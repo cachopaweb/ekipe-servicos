@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
-import MovimentacoesModel from "../models/movimentacoes_model";
+'use client'
+import { ReactNode, useEffect, useState } from "react";
+import MovimentacoesModel from "../../models/movimentacoes_model";
 import Swal from "sweetalert2";
-import MovimentacoesRepository from "../repositories/movimentacoes_repository";
+import MovimentacoesRepository from "../../repositories/movimentacoes_repository";
+import Link from "next/link";
+import { useAppData } from "@/app/contexts/app_context";
 
-type dashbordParams = {
-    handleClick: (rota: string)=> void;
-}
-
-export default function Dashboard({ handleClick }: dashbordParams){
+export default function Dashboard(){
     const [movimentacoes, setMovimentacoes] = useState<MovimentacoesModel[]>([]);
     const [totalDia, setTotalDia] = useState(0);
+    const { setUltRota } = useAppData();
 
     useEffect(()=>{
         buscaMovimentacoes()
@@ -19,20 +19,22 @@ export default function Dashboard({ handleClick }: dashbordParams){
         try {
             const repository = new MovimentacoesRepository();
             let listaMov = await repository.getMovimentacoes(new Date(new Date().valueOf()-30), new Date()) 
-            if (listaMov instanceof Array){
-                listaMov = listaMov;
-            }else{
-                listaMov = [listaMov]
+            if (listaMov){
+                if (listaMov instanceof Array){
+                    listaMov = listaMov;
+                }else{
+                    listaMov = [listaMov]
+                }
+                const saldoAnt = listaMov[0].MOV_SALDOANT;                    
+                if (saldoAnt){
+                    let totalCreditoDebito = 0;
+                    listaMov.forEach(mov => {
+                        totalCreditoDebito += mov.MOV_CREDITO - mov.MOV_DEBITO;
+                    });
+                    setTotalDia(saldoAnt + totalCreditoDebito);
+                }
+                setMovimentacoes(listaMov);
             }
-            if (listaMov.length > 0){
-                const saldoAnt = listaMov[0].MOV_SALDOANT;
-                let totalCreditoDebito = 0;
-                listaMov.forEach(mov => {
-                    totalCreditoDebito += mov.MOV_CREDITO - mov.MOV_DEBITO;
-                });
-                setTotalDia(saldoAnt + totalCreditoDebito);
-            }
-            setMovimentacoes(listaMov);
         } catch (error) {
             Swal.fire('Erro', String(error), 'error')
         }
@@ -61,17 +63,21 @@ export default function Dashboard({ handleClick }: dashbordParams){
 
                     <div className="bg-white p-4 rounded-lg xs:mb-4 max-w-full shadow-md lg:w-[65%]">
                         <div className="flex flex-wrap justify-between h-full">
-                            <div onClick={(e)=> handleClick('vendas')}
+                            <Link
+                                href='/home/vendas'
+                                onClick={e=> setUltRota('vendas')}
                                 className="flex-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex flex-col items-center justify-center p-4 space-y-2 border border-gray-200 m-2">
                                 <i className="fas fa-hand-holding-usd text-white text-4xl"></i>
                                 <p className="text-white">Vendas</p>
-                            </div>
+                            </Link>
 
-                            <div onClick={(e)=> handleClick('orcamentos')}
+                            <Link
+                                href='/home/orcamentos'
+                                onClick={e=> setUltRota('orcamentos')}
                                 className="flex-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-lg flex flex-col items-center justify-center p-4 space-y-2 border border-gray-200 m-2">
                                 <i className="fas fa-exchange-alt text-white text-4xl"></i>
                                 <p className="text-white">Orçamentos</p>
-                            </div>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -92,7 +98,7 @@ export default function Dashboard({ handleClick }: dashbordParams){
                                     <td className="px-4 py-2 text-left align-top w-1/2">
                                         <div>
                                             <h2>{mov.MOV_DESCRICAO}</h2>
-                                            <p>{new Date(mov.MOV_DATAHORA).toLocaleDateString()}</p>
+                                            <p>{mov.MOV_DATAHORA ? new Date(mov.MOV_DATAHORA).toLocaleDateString(): null}</p>
                                         </div>
                                     </td>
                                     <td className="px-4 py-2 text-right text-amber-500">

@@ -1,4 +1,4 @@
-export interface ClienteModel {
+export class ClienteModel {
   CODIGO: number;
   NOME: string;
   CPF_CNPJ?: string;
@@ -6,4 +6,8 @@ export interface ClienteModel {
   FONE?: string;
   CELULAR?: string;
   ENDERECO?: string;
+  constructor(codigo: number, nome: string){
+    this.CODIGO = codigo;
+    this.NOME = nome;
+  }
 }

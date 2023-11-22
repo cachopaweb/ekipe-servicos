@@ -9,8 +9,7 @@ export default class ProdutoRepository{
                         PRO_LOCAL, PRO_FABRICANTE, PRO_NOME, PRO_VALORCM, PRO_VALORC, PRO_CODBARRA, PRO_EMBALAGEM, 
                         PRO_NCM FROM PRODUTOS WHERE PRO_ESTADO = 'ATIVO' AND PRO_NOME LIKE '%${busca.toUpperCase()}%'`
             })
-            const produtos = response.data as ProdutoModel[];
-            console.log(produtos)
+            const produtos = response.data as ProdutoModel[];            
             return produtos;
         } catch (error) {
            throw new Error('erro ao buscar produtos') 

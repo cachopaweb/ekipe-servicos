@@ -1,17 +1,17 @@
 import { Dispatch, SetStateAction, useState } from "react";
 
 type modalParams = {
-    showModal: boolean;
-    setShowModal: Dispatch<SetStateAction<boolean>>;
-    title: string;
-    body: JSX.Element;
-    edtSearch?: JSX.Element;
-    showButtonExit?: boolean;
+  showModal: boolean;
+  setShowModal: Dispatch<SetStateAction<boolean>>;
+  title: string;
+  body: JSX.Element;
+  edtSearch?: JSX.Element;
+  showButtonExit?: boolean;
 }
 
-export default function Modal({ showModal, setShowModal, title, body, edtSearch, showButtonExit = true }: modalParams) {  
+export default function Modal({ showModal, setShowModal, title, body, edtSearch, showButtonExit = true }: modalParams) {
   return (
-    <>      
+    <>
       {showModal ? (
         <>
           <div
@@ -22,9 +22,9 @@ export default function Modal({ showModal, setShowModal, title, body, edtSearch,
               <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                 {/*header*/}
                 <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
-                  <h3 className="text-3xl font-semibold">
+                  <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">
                     {title}
-                  </h3>
+                  </h2>
                   <button
                     className="p-1 ml-auto border-0 text-black float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
                     onClick={() => setShowModal(false)}

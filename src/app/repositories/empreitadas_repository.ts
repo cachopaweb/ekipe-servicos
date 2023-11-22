@@ -1,0 +1,52 @@
+import EmpreitadasModel from "../models/empreitadas_model";
+import api from "../services/api";
+
+export default class EmpreitadasRepository{
+    async buscaEmpreitadas(codigo: number): Promise<EmpreitadasModel>{
+        const obj = {
+            'sql': 
+                `SELECT EMP_CODIGO, EMP_FOR, FOR_NOME, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, LRC_FAT2 
+                 FROM EMPREITADAS JOIN FORNECEDORES ON EMP_FOR = FOR_CODIGO LEFT JOIN LANCAMENTO_REC_CUS ON ((LRC_TIPO = 'C') 
+                 AND (FOR_CODIGO = LRC_CLI_FOR) AND (EMP_FAT = LRC_FAT2) AND (LRC_DATAC = '01/01/1900')) WHERE EMP_ORD = ${codigo} 
+                 ORDER BY EMP_CODIGO`        
+        }
+        try {
+            const response = await api.post('/dataset', obj)
+            return response.data as EmpreitadasModel;
+        } catch (e) {
+            throw new Error('Erro ao buscar Empreitadas.'+String(e))
+        }
+    }
+
+    async buscaServicosEmpreitadas(codigo: number): Promise<EmpreitadasServicosModel[]>{
+        const obj = {
+            'sql': 
+                `SELECT ES_CODIGO, ES_EMP, CAST(ES_DESCRICAO AS VARCHAR(1000)) DESCRICAO, ES_VALOR, ES_PRAZO_CONCLUSAO, 
+                ES_QUANTIDADE, ES_VALOR/ES_QUANTIDADE VLR_UNIT, ES_UNIDADE FROM EMPREITADAS_SERVICOS WHERE ES_EMP = ${codigo} 
+                ORDER BY ES_CODIGO`        
+        }
+        try {
+            const response = await api.post('/dataset', obj)
+            if (response.data instanceof Array){
+                return response.data as EmpreitadasServicosModel[];
+            }else{
+                return [response.data] as EmpreitadasServicosModel[];
+            }
+        } catch (e) {
+            throw new Error('Erro ao buscar Servicos Empreitadas.'+String(e))
+        }
+    }
+
+    async faturamento(codigo: number): Promise<EmpreitadasServicosModel[]>{        
+        try {
+            const response = await api.post('/dataset', {})
+            if (response.data instanceof Array){
+                return response.data as EmpreitadasServicosModel[];
+            }else{
+                return [response.data] as EmpreitadasServicosModel[];
+            }
+        } catch (e) {
+            throw new Error('Erro ao buscar Servicos Empreitadas.'+String(e))
+        }
+    }
+}

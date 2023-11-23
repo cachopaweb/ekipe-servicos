@@ -305,11 +305,11 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                     <div className="w-full">
                         <div className="flex flex-col p-1">
                             <label htmlFor="localExecucao">Local Execução</label>
-                            <textarea value={localExecucao} onChange={e => setLocalExecucao(e.target.value)} id="localExecucaoid" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36" />
+                            <textarea value={localExecucao} onChange={e => setLocalExecucao(e.target.value)} id="localExecucaoid" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-10" />
                         </div>
                         <div className="flex flex-col p-1">
                             <label htmlFor="obsEmpreitadas">Observações</label>
-                            <textarea value={obsEmpreitadas} onChange={e => setObsEmpreitadas(e.target.value)} id="obsEmpreitadasid" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36" />
+                            <textarea value={obsEmpreitadas} onChange={e => setObsEmpreitadas(e.target.value)} id="obsEmpreitadasid" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-10" />
                         </div>
                     </div>
                 </div>

@@ -13,10 +13,6 @@ import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
-import PesquisaClienteFornecedor from "@/app/pesquisas/pesquisa_cli_for";
-import CliForModel from "@/app/models/cli_for_model";
-import EmpreitadasModel from "@/app/models/empreitadas_model";
-import EmpreitadasRepository from "@/app/repositories/empreitadas_repository";
 import Empreitadas from "../empreitadas/page";
 
 type keyBoardEvent = React.KeyboardEvent<HTMLInputElement>;
@@ -575,7 +571,7 @@ export default function Orcamentos() {
             </div>
         );
     }
-    
+
     const ModalListarArquivos = () => {
         return (
             <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
@@ -616,7 +612,7 @@ export default function Orcamentos() {
                         <i className="fas fa-hand-holding-usd"></i>
                         <span>Empreitadas</span>
                     </button>
-                    {showModalEmpreitadas && <Empreitadas codigoOrdem={codigoOrdem} showModalEmpreitadas setShowModalEmpreitadas={setShowModalEmpreitadas}  />}
+                    {showModalEmpreitadas && <Empreitadas codigoOrdem={codigoOrdem} showModalEmpreitadas setShowModalEmpreitadas={setShowModalEmpreitadas} />}
                     <button
                         className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
                         onClick={e => setShowModalListaArquivos(true)}
@@ -631,99 +627,122 @@ export default function Orcamentos() {
         );
     }
 
+    const Totalizador = () => {
+        return (
+            <>
+                <div className="sm:flex justify-center items-center h-8 w-full bg-amber-300 rounded-t-md text-center shadow-lg">
+                    <h2 className="text-black font-bold">Total</h2>
+                </div>
+                <div className="p-4 space-y-4">
+                    <div>
+                        <h4 className="text-sm font-bold">Valor Total Produtos</h4>
+                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalProdutos() ?? 0)}</span>
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold">Valor Total Serviços</h4>
+                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalServicos() ?? 0)}</span>
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold">Valor Total OS</h4>
+                        <span className="text-2xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos() ?? 0) + (totalServicos() ?? 0))}</span>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
     return (
         <div className="lg:ml-64 lg:pl-4 lg:flex lg:flex-col lg:w-75% mx-2 h-auto overflow-hidden">
-            <div className="bg-white rounded-lg shadow-md my-4 h-3/4 w-full">
+            <div className="bg-white rounded-lg shadow-md m-2">
                 <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Orçamentos</h2>
-                <div className="w-full p-2 sm:flex sm:justify-between">
-                    <div>
-                        <div className="sm:flex">
-                            <div className="flex flex-col p-2">
-                                <label htmlFor="codOrdem">Cod. Ordem</label>
-                                <div className="flex flex-row h-7">
-                                    <input value={codigoOrdem} onChange={e => setCodigoOrdem(Number(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" onKeyDown={(e) => buscarOrdem(e)} />
-                                    <button
-                                        className={`${(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'bg-slate-400 active:bg-slate-600' : 'bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
-                                        type="button"
-                                        onClick={() => setShowModalSalvar(true)}
-                                        disabled={listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0}
-                                    >
-                                        <i className="fa fa-solid fa-floppy-disk text-white"></i>
-                                    </button>
-                                    {showModalSalvar && <ModalSalvar />}
-                                </div>
-                            </div>
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="dataAb">Data Abertura</label>
-                                <input value={dataAbertura.toLocaleDateString()} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
-                            </div>
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="fatura">Fatura</label>
-                                <input className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
-                            </div>
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="nfServico">NF Serviço</label>
-                                <input value={nfs} onChange={(e) => setNfs(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
-                            </div>
-                            <div className="flex flex-col p-1 sm:w-60">
-                                <label htmlFor="status">Status</label>
-                                <select id='statusid' value={statusOrdem} onChange={(e) => setStatusOrdem(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" >
-                                    {listaStatus().map(status => <option key={status} value={status}>{status}</option>)}
-                                </select>
+                <div className="sm:flex gap-2">
+                    <div className="flex flex-wrap">
+                        <div className="flex flex-1 flex-col p-1">
+                            <label htmlFor="codOrdem">Cod. Ordem</label>
+                            <div className="flex flex-row">
+                                <input value={codigoOrdem} onChange={e => setCodigoOrdem(Number(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" onKeyDown={(e) => buscarOrdem(e)} />
+                                <button
+                                    className={`${(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'bg-slate-400 active:bg-slate-600' : 'bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
+                                    type="button"
+                                    onClick={() => setShowModalSalvar(true)}
+                                    disabled={listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0}
+                                >
+                                    <i className="fa fa-solid fa-floppy-disk text-white"></i>
+                                </button>
+                                {showModalSalvar && <ModalSalvar />}
                             </div>
                         </div>
-                        <div className="sm:flex">
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="cliente">Cliente</label>
-                                <div className="flex flex-row">
-                                    <input id="clientid" value={clienteSelecionado.NOME} readOnly className="border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
-                                    <button
-                                        className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                        type="button"
-                                        onClick={() => setShowModalPesquisaCliente(true)}
-                                    >
-                                        <i className="fas fa-magnifying-glass text-white"></i>
-                                    </button>
-                                    {showModalPesquisaCliente &&
-                                        <Pesquisa_cliente
-                                            clienteSelecionado={clienteSelecionado}
-                                            setClienteSelecionado={setClienteSelecionado}
-                                            showModal={showModalPesquisaCliente}
-                                            setShowModal={setShowModalPesquisaCliente}
-                                        />
-                                    }
-                                </div>
-                            </div>
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="atendente">Atendente</label>
-                                <input id='atendenteid' value={atendente} onChange={(e) => setAtendente(e.target.value)} className="border uppercase p-1 rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
+                        <div className="flex flex-1 flex-col p-1">
+                            <label htmlFor="dataAb">Data Abertura</label>
+                            <input value={dataAbertura.toLocaleDateString()} className="sm:w-28 uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
+                        </div>
+                        <div className="flex flex-1 flex-col p-1">
+                            <label htmlFor="fatura">Fatura</label>
+                            <input className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
+                        </div>
+                        <div className="flex flex-1 flex-col p-1">
+                            <label htmlFor="nfServico">NF Serviço</label>
+                            <input value={nfs} onChange={(e) => setNfs(e.target.value)} className="sm:w-28 uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
+                        </div>
+                        <div className="flex flex-col p-1">
+                            <label htmlFor="status">Status</label>
+                            <select id='statusid' value={statusOrdem} onChange={(e) => setStatusOrdem(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" >
+                                {listaStatus().map(status => <option key={status} value={status}>{status}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex flex-1 flex-col p-1">
+                            <label htmlFor="cliente">Cliente</label>
+                            <div className="flex flex-row">
+                                <input id="clientid" value={clienteSelecionado.NOME} readOnly className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
+                                <button
+                                    className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                    type="button"
+                                    onClick={() => setShowModalPesquisaCliente(true)}
+                                >
+                                    <i className="fas fa-magnifying-glass text-white"></i>
+                                </button>
+                                {showModalPesquisaCliente &&
+                                    <Pesquisa_cliente
+                                        clienteSelecionado={clienteSelecionado}
+                                        setClienteSelecionado={setClienteSelecionado}
+                                        showModal={showModalPesquisaCliente}
+                                        setShowModal={setShowModalPesquisaCliente}
+                                    />
+                                }
                             </div>
                         </div>
-                        <div className="sm:flex">
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="obs">Observações</label>
-                                <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-96" />
-                            </div>
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="solicitacoes">Solicitações</label>
-                                <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-96" />
-                            </div>
+                        <div className="flex flex-1 flex-col p-1">
+                            <label htmlFor="atendente">Atendente</label>
+                            <input id='atendenteid' value={atendente} onChange={(e) => setAtendente(e.target.value)} className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
+                        </div>
+                        <div className="flex flex-1 flex-col p-1">
+                            <label htmlFor="obs">Observações</label>
+                            <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+                        </div>
+                        <div className="flex flex-1 flex-col p-1">
+                            <label htmlFor="solicitacoes">Solicitações</label>
+                            <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                         </div>
                     </div>
-                    <div className="bg-amber-400 w-44 rounded-lg shadow-md my-4">
-                        <Atalhos />
+                    <div className="flex gap-2 h-72 p-2">
+                        <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
+                            <Atalhos />
+                        </div>
+                        <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
+                            <Totalizador />
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <div className='border border-b-indigo-800'>
-                        <ul className='flex cursor-pointer'>
-                            <li onClick={() => handleClickAba('SERVICOS')} className={`p-1 m-2 ${abaAtiva === 'SERVICOS' ? 'bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none' : 'bg-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none text-black'}`}>Serviços</li>
-                            <li onClick={() => handleClickAba('PRODUTOS')} className={`p-1 m-2 ${abaAtiva === 'PRODUTOS' ? 'bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none' : 'bg-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none text-black'}`}>Produtos</li>
-                        </ul>
-                    </div>
-                    {abaAtiva === 'SERVICOS' ? <AbaServicos /> : <AbaProdutos />}
                 </div>
             </div>
-        </div>
+            <div>
+                <div className='border border-b-indigo-800'>
+                    <ul className='flex cursor-pointer'>
+                        <li onClick={() => handleClickAba('SERVICOS')} className={`p-1 m-2 ${abaAtiva === 'SERVICOS' ? 'bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none' : 'bg-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none text-black'}`}>Serviços</li>
+                        <li onClick={() => handleClickAba('PRODUTOS')} className={`p-1 m-2 ${abaAtiva === 'PRODUTOS' ? 'bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none' : 'bg-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none text-black'}`}>Produtos</li>
+                    </ul>
+                </div>
+                {abaAtiva === 'SERVICOS' ? <AbaServicos /> : <AbaProdutos />}
+            </div>
+        </div >
     );
 }

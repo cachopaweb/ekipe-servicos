@@ -8,14 +8,13 @@ import Swal from "sweetalert2";
 import OrdEstModel from "../../models/ord_est_model";
 import OrdSerModel from "../../models/ord_ser_model";
 import Modal from "../../components/modal";
-import { FormatDate, GeraCodigo, Status } from "@/app/functions/utils";
+import { FormatDate, GeraCodigo, Status, keyBoardInputEvent } from "@/app/functions/utils";
 import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
 import Empreitadas from "../empreitadas/page";
-
-type keyBoardEvent = React.KeyboardEvent<HTMLInputElement>;
+import Faturamentos from "@/app/faturamentos/page";
 
 var toastMixin = Swal.mixin({
     toast: true,
@@ -60,7 +59,8 @@ export default function Orcamentos() {
     const [obs_adm, setObs_adm] = useState('');
     const [solicitacao, setSolicitacao] = useState('');
     const [statusOrdem, setStatusOrdem] = useState(Status[0].toUpperCase());
-    const [listaUnidadesMed, setListaUnidadesMed] = useState<UnidadeMedidaModel[]>([])
+    const [listaUnidadesMed, setListaUnidadesMed] = useState<UnidadeMedidaModel[]>([]);
+    const [showFaturamento, setShowFaturamento] = useState(false);
 
     const carregaUnidadesMed = async () => {
         try {
@@ -271,8 +271,7 @@ export default function Orcamentos() {
         }
     }
 
-    const buscarOrdem = async (e: keyBoardEvent) => {
-        console.log(e.key)
+    const buscarOrdem = async (e: keyBoardInputEvent) => {        
         if (e.key === 'Enter')
             try {
                 const repository = new OrdemRepository();
@@ -627,6 +626,14 @@ export default function Orcamentos() {
         );
     }
 
+    const faturamentoOS = () => {
+        if ((listaProdutosInseridos.length === 0) && (listaServicosInseridos.length === 0)) {
+            Swal.fire('Inserira ou menos um produtos ou serviço, para faturar!', 'Atenção', 'warning');
+            return;
+        }
+        setShowFaturamento(true);
+    }
+
     const Totalizador = () => {
         return (
             <>
@@ -636,15 +643,18 @@ export default function Orcamentos() {
                 <div className="p-4 space-y-4">
                     <div>
                         <h4 className="text-sm font-bold">Valor Total Produtos</h4>
-                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalProdutos() ?? 0)}</span>
+                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalProdutos())}</span>
                     </div>
                     <div>
                         <h4 className="text-sm font-bold">Valor Total Serviços</h4>
-                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalServicos() ?? 0)}</span>
+                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalServicos())}</span>
                     </div>
                     <div>
                         <h4 className="text-sm font-bold">Valor Total OS</h4>
-                        <span className="text-2xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos() ?? 0) + (totalServicos() ?? 0))}</span>
+                        <span className="text-2xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0))}</span>
+                    </div>
+                    <div>
+                        <button onClick={faturamentoOS} className="p-0 w-32 h-12 text-white text-bold bg-black rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Faturar</button>
                     </div>
                 </div>
             </>
@@ -656,7 +666,7 @@ export default function Orcamentos() {
             <div className="bg-white rounded-lg shadow-md m-2">
                 <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Orçamentos</h2>
                 <div className="sm:flex gap-2">
-                    <div className="flex flex-wrap">
+                    <div className="flex flex-wrap items-start justify-start">
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="codOrdem">Cod. Ordem</label>
                             <div className="flex flex-row">
@@ -723,8 +733,8 @@ export default function Orcamentos() {
                             <label htmlFor="solicitacoes">Solicitações</label>
                             <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                         </div>
-                    </div>
-                    <div className="flex gap-2 h-72 p-2">
+                    </div>                    
+                    <div className="flex gap-2 h-82 p-2">
                         <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
                             <Atalhos />
                         </div>
@@ -743,6 +753,13 @@ export default function Orcamentos() {
                 </div>
                 {abaAtiva === 'SERVICOS' ? <AbaServicos /> : <AbaProdutos />}
             </div>
+            {showFaturamento && <Modal
+                title="Faturamento OS"
+                showModal={showFaturamento}
+                setShowModal={setShowFaturamento}
+                showButtonExit={false}
+                body={<Faturamentos setShowModal={setShowFaturamento} cliFor={clienteSelecionado} valorTotal={totalProdutos() + totalServicos()} />}
+            />}
         </div >
     );
 }

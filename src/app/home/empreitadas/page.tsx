@@ -331,7 +331,9 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                     title="Faturamento Empreitadas"
                     showModal={showFaturamento}
                     setShowModal={setShowFaturamento}
-                    body={<Faturamentos />}
+                    body={<Faturamentos 
+                        cliFor={cliForSelecionado}
+                        valorTotal={listaServicosEmpreitadas.length > 0 ? listaServicosEmpreitadas.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2) : 0} />}
                 />}
             </div>
         );

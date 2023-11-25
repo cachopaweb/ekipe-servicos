@@ -3,6 +3,10 @@ import api from "../services/api";
 enum Status{ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
 
 
+export type keyBoardInputEvent = React.KeyboardEvent<HTMLInputElement>;
+export type keyBoardSelectEvent = React.KeyboardEvent<HTMLSelectElement>;
+
+
 async function GeraCodigo(tabela: string, campo: string): Promise<number>{
     try
     {
@@ -23,10 +27,10 @@ async function IncrementaGenerator(generator: string): Promise<number>{
     try
     {
         const response = await api.post('/dataset', {
-            'sql': `SELECT GEN_ID('${generator}', 1) FROM 'RDB$DATABASE'`
+            'sql': `SELECT GEN_ID('${generator}', 1) COD FROM 'RDB$DATABASE'`
         })
         if (response.status === 200){
-            return (response.data['MAX'] as number) + 1;
+            return (response.data['COD'] as number) + 1;
         }else{
             return 1;
         }

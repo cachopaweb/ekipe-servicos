@@ -22,7 +22,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
     const buscarCliente = async ()=> {
         try {
             const repository = new ClientRepository();
-            const listClients = await repository.getClients(textoPesquisado);
+            const listClients = await repository.getClientes(textoPesquisado);
             setClients(listClients);
         } catch (error) {
             Swal.fire('Erro', String(error), 'error');

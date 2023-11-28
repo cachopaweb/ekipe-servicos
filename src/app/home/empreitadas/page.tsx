@@ -1,5 +1,6 @@
 "use client"
 import Modal from "@/app/components/modal";
+import OperacaoEmpreitadas from "@/app/faturamentos/implementations/operacao_empreitadas";
 import Faturamentos from "@/app/faturamentos/page";
 import { GeraCodigo } from "@/app/functions/utils";
 import CliForModel from "@/app/models/cli_for_model";
@@ -48,7 +49,15 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
 
     useEffect(() => {
         if (cliForSelecionado.CODIGO > 0) {
-            setListaEmpreitadas(old => [...old, { EMP_CODIGO: 0, FOR_NOME: cliForSelecionado!.NOME, EMP_FOR: cliForSelecionado!.CODIGO, LRC_FAT2: 0 }])
+            setListaEmpreitadas(old => [...old, { 
+                EMP_CODIGO: 0, 
+                EMP_ORD: codigoOrdem, 
+                FOR_NOME: 
+                cliForSelecionado!.NOME, 
+                EMP_FOR: cliForSelecionado!.CODIGO, 
+                LRC_FAT2: 0, 
+                EMP_VALOR: 0,
+            }])
         }
     }, [cliForSelecionado])
 
@@ -159,7 +168,6 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
     const faturamentoEmpreitada = async ()=>{          
         if (listaEmpreitadas.length > 0){
             const empreitada = listaEmpreitadas.at(0)!;
-            console.log(empreitada)
             if(empreitada.LRC_FAT2! > 0){
                 Swal.fire('Esta empreitada já foi faturada!')
                 return;
@@ -171,6 +179,8 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                 Swal.fire('Nenhum valor a faturar!')
                 return;
             }
+            //atualiza o valor
+            listaEmpreitadas[0].EMP_VALOR = valor;
         }
        setShowFaturamento(true);
     }
@@ -332,7 +342,31 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                     showModal={showFaturamento}
                     setShowModal={setShowFaturamento}
                     body={<Faturamentos 
+                        Operacao={new OperacaoEmpreitadas()}
+                        pedFat={{
+                            PF_CODIGO: 0,
+                            PF_COD_CLI: cliForSelecionado.CODIGO,
+                            PF_CAMPO_DATAC: 'EMP_DATAC',
+                            PF_CAMPO_FAT: 'EMP_FAT',
+                            PF_CAMPO_PED: 'EMP_CODIGO',
+                            PF_CLIENTE: cliForSelecionado.NOME,
+                            PF_COD_PED: codigoOrdem,
+                            PF_DATA: new Date().toLocaleDateString(),
+                            PF_DATAC: '01/01/1900',
+                            PF_DESCONTO: 0,
+                            PF_FAT: 0,
+                            PF_FUN: 1,
+                            PF_PARCELAS: 1,
+                            PF_TABELA: 'EMPREITADAS',
+                            PF_TIPO: 2,
+                            PF_VALOR: 0,
+                            PF_VALORB: 0,
+                            PF_VALORPG: 0,                        
+                        }}
+                        model={listaEmpreitadas}
+                        itens={listaServicosEmpreitadas}
                         cliFor={cliForSelecionado}
+                        setShowModal={setShowFaturamento}
                         valorTotal={listaServicosEmpreitadas.length > 0 ? listaServicosEmpreitadas.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2) : 0} />}
                 />}
             </div>

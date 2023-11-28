@@ -1,3 +1,6 @@
+import OrdEstModel from "./ord_est_model";
+import OrdSerModel from "./ord_ser_model";
+
 export default interface OrdemModel {
   ORD_CODIGO: number;
   ORD_DATA: string;
@@ -5,6 +8,7 @@ export default interface OrdemModel {
   ORD_FUN: number;
   ORD_CLI: number;
   CLI_NOME: string;
+  CLI_CPF_CNPJ: string;
   ORD_OBS: string;
   ORD_ESTADO: string;
   ORD_DESCONTO_P: number;
@@ -15,4 +19,6 @@ export default interface OrdemModel {
   ORD_OBS_ADM: string;
   ORD_NFS?: string;
   FUN_NOME?: string;
+  itensOrdEst: OrdEstModel[];
+  itensOrdSer: OrdSerModel[];
 }

@@ -8,17 +8,22 @@ import TipoPgmRepository from "../repositories/tipo_pgm_repository";
 import { GeraCodigo, keyBoardInputEvent, keyBoardSelectEvent } from "../functions/utils";
 import CliForModel from "../models/cli_for_model";
 import Modal from "../components/modal";
+import OperacoesStrategy from "./contracts/operacoes_interfaces";
 
 interface FaturamentoProps {
     valorTotal: number;
     cliFor: CliForModel,
     setShowModal: Dispatch<SetStateAction<boolean>>;
+    Operacao: OperacoesStrategy,
+    model: Object;
+    itens: Object;
+    itens2?: Object;
+    pedFat: PedFatModel;
 }
 
-export default function Faturamentos({ valorTotal, cliFor, setShowModal }: FaturamentoProps) {
+export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operacao, model, itens, itens2, pedFat }: FaturamentoProps) {
     const [codFatura, setCodFatura] = useState(0);
     const [codPedFat, setCodPedFat] = useState(0);
-    const [pedFat, setPedFat] = useState<PedFatModel>();
     const [listaPFParcela, setListaPFParcela] = useState<PFParcelaModel[]>([]);
     const [listaTipopgm, setListaTipoPgm] = useState<TipoPgmModel[]>([]);
     const [vlrEntrada, setVlrEntrada] = useState(0);
@@ -39,6 +44,11 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal }: Fatur
         if (valorDescontavel > 0)
             setValorParcela(valorDescontavel)
     }, [valorDescontavel])
+    
+    useEffect(()=> {
+        if ((listaPFParcela.length > 0) && (numParcelasRestantes === 0))
+            setShowModalSalvar(true);
+    }, [numParcelasRestantes])
 
     useEffect(()=>{
         buscaTipoPgm()
@@ -120,6 +130,9 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal }: Fatur
                 setParcela(1);
                 edtTipoPgm?.focus();
             }else{
+                setNumParcelasRestantes(numParcelas);
+                setValorDescontavel(valorTotal);
+                setListaPFParcela([])
                 edtTipoPgm?.focus();
             }
         }
@@ -130,7 +143,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal }: Fatur
         const edtTipoPgm = document.getElementById('tipoPgm');
         const pfParcela: PFParcelaModel = {
             PP_CODIGO: 0,
-            PP_DUPLICATA: `${codFatura}-${nparcela}/${numParcelas+1}`,
+            PP_DUPLICATA: `${codFatura}-${nparcela}/${vlrEntrada > 0 ? numParcelas+1: numParcelas}`,
             PP_DESCONTOS: 0,
             PP_JUROS: 0,
             PP_ESTADO: 2,
@@ -140,8 +153,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal }: Fatur
             PP_VALORPG: 0,
             PP_VENCIMENTO: new Date(),
             DescricaoTipoPgm: tipoPgm!.TP_DESCRICAO
-        }
-        console.log(numParcelasRestantes)
+        }        
         if (numParcelasRestantes === 1){
             setValorDescontavel(valorDescontavel);
         }else{
@@ -153,10 +165,21 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal }: Fatur
         edtTipoPgm?.focus();
     }
 
-    const finalizarFaturamento = ()=>{
+    const finalizarFaturamento = async ()=>{
         try {
-            Swal.fire('finalizando', 'finalizando faturamento', 'success')
+            Swal.fire('Aguarde...', 'finalizando faturamento', 'info');
+            pedFat.PF_COD_CLI = cliFor.CODIGO;
+            pedFat.PF_VALOR = valorTotal;
+            pedFat.PF_VALORB = valorTotal;
+            pedFat.PF_VALORPG = vlrEntrada;
+            pedFat.PF_PARCELAS = vlrEntrada > 0 ? numParcelas + 1: numParcelas;
             setShowModalSalvar(false)
+            await Operacao.insereOperacao(model);
+            await Operacao.insereItens(itens);
+            await Operacao.insereItens2(itens2);
+            await Operacao.inserePedFat(pedFat!);
+            await Operacao.inserePFParcelas(listaPFParcela);
+            Swal.fire('Finalizado', 'Faturamento finalizado com sucesso', 'success');
             setShowModal(false);//fecha ele proprio
         } catch (error) {
             Swal.fire('Erro ao finalizar faturamento', String(error), 'error')   
@@ -209,7 +232,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal }: Fatur
                 <div className="flex">
                     <div className="flex flex-col p-2 w-44">
                         <label htmlFor="codFatura" className="text-black font-bold text-md">Entrada</label>
-                        <input id="edtEntrada" value={vlrEntrada} onChange={e=> setVlrEntrada(parseFloat(e.target.value))} onKeyDown={keydownEntrada} type="text" className="border border-amber-400 p-2 rounded-md" />
+                        <input autoFocus id="edtEntrada" value={vlrEntrada} onChange={e=> setVlrEntrada(parseFloat(e.target.value))} onKeyDown={keydownEntrada} type="text" className="border border-amber-400 p-2 rounded-md" />
                     </div>
                     <div className="flex justify-center items-center">
                         <span className="text-2xl font-bold">+</span>

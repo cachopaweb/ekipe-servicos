@@ -1,3 +1,4 @@
+import Swal from "sweetalert2";
 import api from "../services/api";
 
 enum Status{ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
@@ -39,9 +40,28 @@ async function IncrementaGenerator(generator: string): Promise<number>{
     }
 }
 
-function FormatDate(data: Date): string{
-    let dataFmt = data.toLocaleDateString().split('/');
-    return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
+function FormatDate(data: Date | string): string{
+    if(data instanceof Date){
+        let dataFmt = data.toLocaleDateString().split('/');
+        return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
+    }else{
+        let dataFmt = data.split('/');
+        return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
+    }
 }
 
-export { GeraCodigo, Status, FormatDate, IncrementaGenerator }
+var toastMixin = Swal.mixin({
+    toast: true,
+    icon: 'success',
+    title: 'General Title',
+    position: 'top-right',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
+
+export { GeraCodigo, Status, FormatDate, IncrementaGenerator, toastMixin }

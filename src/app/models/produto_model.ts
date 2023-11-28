@@ -9,6 +9,8 @@ export interface ProdutoModel {
   PRO_NOME: string;
   PRO_VALORCM?: number;
   PRO_VALORC?: number;
+  PRO_VALORF?: number;
+  PRO_VALORL?: number;
   PRO_CODBARRA?: string;
   PRO_EMBALAGEM?: string;
   PRO_NCM?: string;

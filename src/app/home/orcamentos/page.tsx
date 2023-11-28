@@ -8,29 +8,17 @@ import Swal from "sweetalert2";
 import OrdEstModel from "../../models/ord_est_model";
 import OrdSerModel from "../../models/ord_ser_model";
 import Modal from "../../components/modal";
-import { FormatDate, GeraCodigo, Status, keyBoardInputEvent } from "@/app/functions/utils";
+import { FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin } from "@/app/functions/utils";
 import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
 import Empreitadas from "../empreitadas/page";
 import Faturamentos from "@/app/faturamentos/page";
-
-var toastMixin = Swal.mixin({
-    toast: true,
-    icon: 'success',
-    title: 'General Title',
-    position: 'top-right',
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-        toast.addEventListener('mouseenter', Swal.stopTimer)
-        toast.addEventListener('mouseleave', Swal.resumeTimer)
-    }
-});
+import OperacaoOrdens from "@/app/faturamentos/implementations/operacao_ordens";
 
 export default function Orcamentos() {
+    const [ordem, setOrdem] = useState<OrdemModel| null>(null);
     const [dataAbertura, setDataAbertura] = useState(new Date());
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
     const [showModalPesquisaProduto, setShowModalPesquisaProduto] = useState(false);
@@ -61,6 +49,13 @@ export default function Orcamentos() {
     const [statusOrdem, setStatusOrdem] = useState(Status[0].toUpperCase());
     const [listaUnidadesMed, setListaUnidadesMed] = useState<UnidadeMedidaModel[]>([]);
     const [showFaturamento, setShowFaturamento] = useState(false);
+    const [ordemJaFaturada, setOrdemJaFaturada] = useState(false);
+
+    useEffect(()=>{
+        if(!showFaturamento){
+            buscaOrdemServidor();
+        }
+    }, [showFaturamento])
 
     const carregaUnidadesMed = async () => {
         try {
@@ -207,7 +202,7 @@ export default function Orcamentos() {
             codigo = await GeraCodigo('ORDENS', 'ORD_CODIGO');
         }
         try {
-            let ordem: OrdemModel = {
+            let ord: OrdemModel = {
                 ORD_CODIGO: codigo,
                 ORD_DATA: FormatDate(new Date()),
                 ORD_VALOR: totalProdutos() + totalServicos(),
@@ -223,9 +218,13 @@ export default function Orcamentos() {
                 ORD_SOLICITACAO: solicitacao,
                 CLI_NOME: clienteSelecionado.NOME,
                 ORD_FAT: 0,
+                CLI_CPF_CNPJ: clienteSelecionado.CPF_CNPJ!,
+                itensOrdEst: listaProdutosInseridos,
+                itensOrdSer: listaServicosInseridos,
             }
             ////
-            repository.insereordem(ordem);
+            setOrdem(ord);
+            repository.insereordem(ord);
             ////
             if (listaServicosInseridos.length > 0) {
                 Swal.fire({
@@ -271,33 +270,43 @@ export default function Orcamentos() {
         }
     }
 
+    const buscaOrdemServidor = async ()=>{
+        try {
+            const repository = new OrdemRepository();
+            const ordem = await repository.buscaOrdem(codigoOrdem);
+            setAtendente(ordem.FUN_NOME!);
+            setClienteSelecionado(new ClienteModel(ordem.ORD_CLI, ordem.CLI_NOME));
+            setDataAbertura(new Date(ordem.ORD_DATA));
+            setNfs(ordem.ORD_NFS ?? '');
+            setObs(ordem.ORD_OBS);
+            setObs_adm(ordem.ORD_OBS_ADM);
+            setSolicitacao(ordem.ORD_SOLICITACAO);
+            setStatusOrdem(ordem.ORD_ESTADO);
+            setOrdemJaFaturada(ordem.ORD_FAT ? ordem.ORD_FAT! > 0 : false)
+            //produtos
+            const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
+            if (produtos.length > 0)
+                setListaProdutosInseridos([...produtos])
+            else
+                setListaProdutosInseridos([])
+            //servicos
+            const servicos = await repository.buscaServicosOrdem(codigoOrdem);
+            if(servicos.length > 0)
+                setListaServicosInseridos([...servicos])
+            else
+                setListaServicosInseridos([])
+            toastMixin.fire({
+                title: 'Ordem encontrada com sucesso'
+            });
+        } catch (error) {
+            Swal.fire('Erro', String(error), 'error')
+        }
+    }
+
     const buscarOrdem = async (e: keyBoardInputEvent) => {        
-        if (e.key === 'Enter')
-            try {
-                const repository = new OrdemRepository();
-                const ordem = await repository.buscaOrdem(codigoOrdem);
-                setAtendente(ordem.FUN_NOME!);
-                setClienteSelecionado(new ClienteModel(ordem.ORD_CLI, ordem.CLI_NOME));
-                setDataAbertura(new Date(ordem.ORD_DATA));
-                setNfs(ordem.ORD_NFS ?? '');
-                setObs(ordem.ORD_OBS);
-                setObs_adm(ordem.ORD_OBS_ADM);
-                setSolicitacao(ordem.ORD_SOLICITACAO);
-                setStatusOrdem(ordem.ORD_ESTADO);
-                //produtos
-                const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
-                console.log(produtos)
-                setListaProdutosInseridos([...produtos]);
-                //servicos
-                const servicos = await repository.buscaServicosOrdem(codigoOrdem);
-                console.log(servicos)
-                setListaServicosInseridos([...servicos]);
-                toastMixin.fire({
-                    title: 'Ordem encontrada com sucesso'
-                });
-            } catch (error) {
-                Swal.fire('Erro', String(error), 'error')
-            }
+        if (e.key === 'Enter'){
+            buscaOrdemServidor()
+        }
     }
 
     const ModalSalvar = () => {
@@ -626,7 +635,8 @@ export default function Orcamentos() {
         );
     }
 
-    const faturamentoOS = () => {
+    const faturamentoOS = async () => {
+        await salvaOrdem();
         if ((listaProdutosInseridos.length === 0) && (listaServicosInseridos.length === 0)) {
             Swal.fire('Inserira ou menos um produtos ou serviço, para faturar!', 'Atenção', 'warning');
             return;
@@ -654,7 +664,7 @@ export default function Orcamentos() {
                         <span className="text-2xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0))}</span>
                     </div>
                     <div>
-                        <button onClick={faturamentoOS} className="p-0 w-32 h-12 text-white text-bold bg-black rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Faturar</button>
+                        <button onClick={faturamentoOS} disabled={ordemJaFaturada} className={`p-0 w-32 h-12 text-white text-bold ${ordemJaFaturada ? 'bg-gray-400' :'bg-black'} rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}>Faturar</button>
                     </div>
                 </div>
             </>
@@ -758,7 +768,33 @@ export default function Orcamentos() {
                 showModal={showFaturamento}
                 setShowModal={setShowFaturamento}
                 showButtonExit={false}
-                body={<Faturamentos setShowModal={setShowFaturamento} cliFor={clienteSelecionado} valorTotal={totalProdutos() + totalServicos()} />}
+                body={<Faturamentos  
+                    Operacao={new OperacaoOrdens()}
+                    pedFat={{
+                        PF_CODIGO: 0,
+                        PF_COD_CLI: clienteSelecionado.CODIGO,
+                        PF_CAMPO_DATAC: 'ORD_DATAC',
+                        PF_CAMPO_FAT: 'ORD_FAT',
+                        PF_CAMPO_PED: 'ORD_CODIGO',
+                        PF_CLIENTE: clienteSelecionado.NOME,
+                        PF_COD_PED: codigoOrdem,
+                        PF_DATA: new Date().toLocaleDateString(),
+                        PF_DATAC: '01/01/1900',
+                        PF_DESCONTO: 0,
+                        PF_FAT: 0,
+                        PF_FUN: 1,
+                        PF_PARCELAS: 1,
+                        PF_TABELA: 'ORDENS',
+                        PF_TIPO: 1,
+                        PF_VALOR: 0,
+                        PF_VALORB: 0,
+                        PF_VALORPG: 0,                        
+                    }}  
+                    model={ordem!}
+                    itens={listaProdutosInseridos}
+                    itens2={listaServicosInseridos}
+                    setShowModal={setShowFaturamento} 
+                    cliFor={clienteSelecionado} valorTotal={totalProdutos() + totalServicos()} />}
             />}
         </div >
     );

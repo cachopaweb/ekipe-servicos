@@ -5,18 +5,18 @@ import api from "../services/api";
 
 export default class OrdemRepository{
     async insereordem(ordem: OrdemModel): Promise<boolean>{
-        const obj = {
+        const sql = {
             'sql': 
                 `UPDATE OR INSERT INTO ORDENS (ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_HORA, ORD_FUN, ORD_CLI, ORD_DATAC, ORD_OBS, ORD_ESTADO,
-                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, 
-                 ORD_OBS_ADM, ORD_NFS)
+                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT)
                  VALUES (${ordem.ORD_CODIGO}, '${ordem.ORD_DATA}', ${ordem.ORD_VALOR}, '${new Date().toLocaleTimeString()}', 
                  ${ordem.ORD_FUN}, ${ordem.ORD_CLI}, '1900-01-01', '${ordem.ORD_OBS}', '${ordem.ORD_ESTADO}', ${ordem.ORD_DESCONTO_P}, 
-                 ${ordem.ORD_DESCONTO_S}, '${ordem.ORD_DEVOLUCAO_P}', 0, '${ordem.ORD_SOLICITACAO}', '${ordem.ORD_OBS_ADM}', '${ordem.ORD_NFS}')
+                 ${ordem.ORD_DESCONTO_S}, '${ordem.ORD_DEVOLUCAO_P}', 0, '${ordem.ORD_SOLICITACAO}', '${ordem.ORD_OBS_ADM}', '${ordem.ORD_NFS}', ${ordem.ORD_FAT ?? 0})
                  MATCHING (ORD_CODIGO)`
         }
         try {
-            const response = await api.post('/dataset', obj)
+            console.log(sql)
+            const response = await api.post('/dataset', sql)
             return response.status === 200;
         } catch (e) {
             throw new Error('Erro ao inserir Ordem.'+String(e))
@@ -79,9 +79,11 @@ export default class OrdemRepository{
         }        
         try {
             const response = await api.post('/dataset', obj)
-            let data = <any>[];
-            if (!Array.isArray(response.data)){
+            let data = [];
+            if ((JSON.stringify(response.data) !== '{}') && !Array.isArray(response.data)){
                 data.push(response.data);
+            }else{
+                data = response.data;
             }
             return data as OrdEstModel[];
         } catch (e) {
@@ -98,9 +100,11 @@ export default class OrdemRepository{
         }
         try {
             const response = await api.post('/dataset', obj)
-            let data = <any>[];
-            if (!Array.isArray(response.data)){
+            let data = [];
+            if ((JSON.stringify(response.data) !== '{}') && !Array.isArray(response.data)){
                 data.push(response.data);
+            }else{
+                data = response.data;
             }
             return data as OrdSerModel[];
         } catch (e) {

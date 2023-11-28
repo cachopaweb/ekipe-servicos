@@ -1,3 +1,4 @@
+import { FormatDate } from "../functions/utils";
 import EmpreitadasModel from "../models/empreitadas_model";
 import api from "../services/api";
 
@@ -37,16 +38,37 @@ export default class EmpreitadasRepository{
         }
     }
 
-    async faturamento(codigo: number): Promise<EmpreitadasServicosModel[]>{        
+    async insereEmpreitada(empreitada: EmpreitadasModel): Promise<boolean>{        
         try {
-            const response = await api.post('/dataset', {})
-            if (response.data instanceof Array){
-                return response.data as EmpreitadasServicosModel[];
-            }else{
-                return [response.data] as EmpreitadasServicosModel[];
-            }
+            const response = await api.post('/dataset', {
+                'sql': `UPDATE OR INSERT INTO EMPREITADAS (EMP_CODIGO, EMP_ORD, EMP_FOR, EMP_FAT, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, EMP_NFS)
+                VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR}, ${empreitada.LRC_FAT2}, ${empreitada.EMP_OBS ?? ''}, 
+                ${empreitada.EMP_LOCAL_EXECUCAO_SERVICOS ?? ''}, ${empreitada.EMP_NFS ?? ''})
+                MATCHING (EMP_CODIGO)`
+            })
+            return response.status === 200;
         } catch (e) {
-            throw new Error('Erro ao buscar Servicos Empreitadas.'+String(e))
+            throw new Error('Erro ao inserir Empreitadas.'+String(e))
+        }
+    }
+
+    async insereServicosEmpreitada(servicos: EmpreitadasServicosModel[]): Promise<boolean>{        
+        try {
+            let result = false;
+            for (const servico in servicos) {
+                if (Object.prototype.hasOwnProperty.call(servicos, servico)) {
+                    const item = servicos[servico];
+                    const response = await api.post('/dataset', {
+                        'sql': `UPDATE OR INSERT INTO EMPREITADAS_SERVICOS (ES_CODIGO, ES_EMP, ES_DESCRICAO, ES_VALOR, ES_PRAZO_CONCLUSAO, ES_QUANTIDADE, ES_UNIDADE)
+                        VALUES (${item.ES_CODIGO}, ${item.ES_EMP}, '${item.DESCRICAO}', ${item.ES_VALOR}, '${FormatDate(item.ES_PRAZO_CONCLUSAO ?? new Date())}, ${item.ES_QUANTIDADE}, '${item.ES_UNIDADE ?? ''}')
+                        MATCHING (ES_CODIGO)`
+                    })
+                    result = response.status === 200; 
+                }
+            }           
+            return result;
+        } catch (e) {
+            throw new Error('Erro ao inserir Empreitadas.'+String(e))
         }
     }
 }

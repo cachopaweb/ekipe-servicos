@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
 import Pesquisa_produto from "../../pesquisas/pesquisa_produto";
 import { ClienteModel } from "../../models/cliente_model";
@@ -18,7 +18,8 @@ import Faturamentos from "@/app/faturamentos/page";
 import OperacaoOrdens from "@/app/faturamentos/implementations/operacao_ordens";
 
 export default function Orcamentos() {
-    const [ordem, setOrdem] = useState<OrdemModel| null>(null);
+    const windowSize = useRef([window.innerWidth, window.innerHeight]);
+    const [ordem, setOrdem] = useState<OrdemModel | null>(null);
     const [dataAbertura, setDataAbertura] = useState(new Date());
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
     const [showModalPesquisaProduto, setShowModalPesquisaProduto] = useState(false);
@@ -26,21 +27,13 @@ export default function Orcamentos() {
     const [showModalEmpreitadas, setShowModalEmpreitadas] = useState(false);
     const [showModalListaArquivos, setShowModalListaArquivos] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
+    const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO', PRO_VALORV: 0 });
     // const [servicoSelecionado, setServicoSelecionado] = useState<Servico>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
-    const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO' });
     const [atendente, setAtendente] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
-    const [quantProduto, setQuantProduto] = useState(1);
-    const [valorProduto, setValorProduto] = useState(0);
     ////servico  
     const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
-    const [quantServico, setQuantServico] = useState(1);
-    const [valorServico, setValorServico] = useState(0);
-    const [nomeServico, setNomeServico] = useState('');
-    const [unidadeMedServico, setUnidadeMedServico] = useState('');
-    const [unidadeMedProduto, setUnidadeMedProduto] = useState('');
-    const [codServico, setCodServico] = useState(0);
     const [codigoOrdem, setCodigoOrdem] = useState(0);
     const [nfs, setNfs] = useState('');
     const [obs, setObs] = useState('');
@@ -49,13 +42,12 @@ export default function Orcamentos() {
     const [statusOrdem, setStatusOrdem] = useState(Status[0].toUpperCase());
     const [listaUnidadesMed, setListaUnidadesMed] = useState<UnidadeMedidaModel[]>([]);
     const [showFaturamento, setShowFaturamento] = useState(false);
-    const [ordemJaFaturada, setOrdemJaFaturada] = useState(false);
+    const [codFatura, setCodFatura] = useState(0);
+    const [foiFaturado, setFoiFaturado] = useState(false);
 
-    useEffect(()=>{
-        if(!showFaturamento){
-            buscaOrdemServidor();
-        }
-    }, [showFaturamento])
+    useEffect(() => {
+        buscaOrdemServidor();
+    }, [foiFaturado])
 
     const carregaUnidadesMed = async () => {
         try {
@@ -63,7 +55,7 @@ export default function Orcamentos() {
             const unidades = await repository.getUnidadeMedidas();
             setListaUnidadesMed(unidades);
         } catch (error) {
-            Swal.fire('Erro', String(error), 'error')
+            toastMixin.fire('Erro', String(error), 'error')
         }
     }
 
@@ -81,51 +73,51 @@ export default function Orcamentos() {
         setAbaAtiva(aba);
     }
 
-    const inserirProduto = () => {
+    const inserirProduto = (produto: OrdEstModel) => {
         try {
-            if (quantProduto === 0) {
-                Swal.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
+            if (produto.ORE_QUANTIDADE === 0) {
+                toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
                 return;
             }
-            if (valorProduto === 0) {
-                Swal.fire('Valor zero', 'O Valor do produto não pode ser Zero', 'warning')
+            if (produto.ORE_VALOR === 0) {
+                toastMixin.fire('Valor zero', 'O Valor do produto não pode ser Zero', 'warning')
                 return;
             }
             setListaProdutosInseridos(item => [...item, {
                 ORE_CODIGO: 0,
-                ORE_NOME: produtoSelecionado.PRO_NOME,
-                ORE_EMBALAGEM: unidadeMedProduto,
-                ORE_PRO: produtoSelecionado.PRO_CODIGO,
-                ORE_QUANTIDADE: quantProduto,
-                ORE_VALOR: valorProduto * quantProduto,
+                ORE_NOME: produto.ORE_NOME,
+                ORE_EMBALAGEM: produto.ORE_EMBALAGEM,
+                ORE_PRO: produto.ORE_PRO,
+                ORE_QUANTIDADE: produto.ORE_QUANTIDADE,
+                ORE_VALOR: produto.ORE_VALOR * produto.ORE_QUANTIDADE,
                 ORE_ORD: 0,
             }])
         } catch (error) {
-            Swal.fire('Atenção', String(error), 'warning')
+            toastMixin.fire('Atenção', String(error), 'warning')
         }
     }
 
-    const inserirServico = () => {
+    const inserirServico = (servico: OrdSerModel) => {
         try {
-            if (quantServico === 0) {
-                Swal.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
+            if (servico.OS_QUANTIDADE === 0) {
+                toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
                 return;
             }
-            if (valorServico === 0) {
-                Swal.fire('Valor zero', 'O Valor do serviço não pode ser Zero', 'warning')
+            if (servico.OS_VALOR === 0) {
+                toastMixin.fire('Valor zero', 'O Valor do serviço não pode ser Zero', 'warning')
                 return;
             }
             setListaServicosInseridos(item => [...item, {
                 OS_CODIGO: 0,
-                OS_NOME: nomeServico,
-                OS_UNIDADE_MED: unidadeMedServico,
-                OS_SER: codServico,
-                OS_QUANTIDADE: quantServico,
-                OS_VALOR: valorServico * quantServico,
+                OS_NOME: servico.OS_NOME,
+                OS_UNIDADE_MED: servico.OS_UNIDADE_MED,
+                OS_SER: servico.OS_SER,
+                OS_QUANTIDADE: servico.OS_QUANTIDADE,
+                OS_VALOR: servico.OS_VALOR * servico.OS_QUANTIDADE,
                 OS_ORD: 0,
             }])
         } catch (error) {
-            Swal.fire('Atenção', String(error), 'warning')
+            toastMixin.fire('Atenção', String(error), 'warning')
         }
     }
 
@@ -148,7 +140,7 @@ export default function Orcamentos() {
 
     const salvaOrdem = async () => {
         if (statusOrdem === '') {
-            Swal.fire('Atenção', 'Informe o estado', 'warning').finally(() => {
+            toastMixin.fire('Atenção', 'Informe o estado', 'warning').finally(() => {
                 setShowModalSalvar(false);
                 const edtStatus = document.getElementById('statusid');
                 if (edtStatus) {
@@ -159,7 +151,7 @@ export default function Orcamentos() {
             return;
         }
         if (solicitacao === '') {
-            Swal.fire('Atenção', 'Solicitação não informada', 'warning').finally(() => {
+            toastMixin.fire('Atenção', 'Solicitação não informada', 'warning').finally(() => {
                 setShowModalSalvar(false);
                 const edtSolicitacao = document.getElementById('solicitacaoid');
                 if (edtSolicitacao) {
@@ -169,7 +161,7 @@ export default function Orcamentos() {
             return;
         }
         if (listaProdutosInseridos.length === 0 && listaServicosInseridos.length === 0) {
-            Swal.fire('Atenção', 'Insera produtos ou serviços na OS.', 'warning').finally(() => {
+            toastMixin.fire('Atenção', 'Insera produtos ou serviços na OS.', 'warning').finally(() => {
                 setShowModalSalvar(false);
                 if (listaServicosInseridos.length === 0) {
                     setAbaAtiva('SERVICOS')
@@ -191,7 +183,7 @@ export default function Orcamentos() {
         if (dataAbertura.toString().replaceAll('/', '') === '') {
             setDataAbertura(new Date());
         }
-        Swal.fire({
+        toastMixin.fire({
             title: 'Salvar',
             text: 'Salvando ordem',
             timer: 2000
@@ -227,7 +219,7 @@ export default function Orcamentos() {
             repository.insereordem(ord);
             ////
             if (listaServicosInseridos.length > 0) {
-                Swal.fire({
+                toastMixin.fire({
                     title: 'Salvar',
                     text: 'Salvando os serviços',
                     timer: 2000
@@ -242,7 +234,7 @@ export default function Orcamentos() {
                 });
             }
             if (listaProdutosInseridos.length > 0) {
-                Swal.fire({
+                toastMixin.fire({
                     title: 'Salvar',
                     text: 'Salvando os produtos',
                     timer: 2000
@@ -260,7 +252,7 @@ export default function Orcamentos() {
             }
             setCodigoOrdem(codigo);
         } catch (e) {
-            Swal.fire({
+            toastMixin.fire({
                 title: 'Erro',
                 text: 'Erro ao salvar ordem: ' + String(e),
                 timer: 2000
@@ -270,8 +262,11 @@ export default function Orcamentos() {
         }
     }
 
-    const buscaOrdemServidor = async ()=>{
+    const buscaOrdemServidor = async () => {
         try {
+            if (codigoOrdem === 0) {
+                return;
+            }
             const repository = new OrdemRepository();
             const ordem = await repository.buscaOrdem(codigoOrdem);
             setAtendente(ordem.FUN_NOME!);
@@ -282,7 +277,7 @@ export default function Orcamentos() {
             setObs_adm(ordem.ORD_OBS_ADM);
             setSolicitacao(ordem.ORD_SOLICITACAO);
             setStatusOrdem(ordem.ORD_ESTADO);
-            setOrdemJaFaturada(ordem.ORD_FAT ? ordem.ORD_FAT! > 0 : false)
+            setCodFatura(ordem.ORD_FAT ?? 0)
             //produtos
             const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
             if (produtos.length > 0)
@@ -291,7 +286,7 @@ export default function Orcamentos() {
                 setListaProdutosInseridos([])
             //servicos
             const servicos = await repository.buscaServicosOrdem(codigoOrdem);
-            if(servicos.length > 0)
+            if (servicos.length > 0)
                 setListaServicosInseridos([...servicos])
             else
                 setListaServicosInseridos([])
@@ -299,12 +294,12 @@ export default function Orcamentos() {
                 title: 'Ordem encontrada com sucesso'
             });
         } catch (error) {
-            Swal.fire('Erro', String(error), 'error')
+            toastMixin.fire('Erro', String(error), 'error')
         }
     }
 
-    const buscarOrdem = async (e: keyBoardInputEvent) => {        
-        if (e.key === 'Enter'){
+    const buscarOrdem = async (e: keyBoardInputEvent) => {
+        if (e.key === 'Enter') {
             buscaOrdemServidor()
         }
     }
@@ -339,6 +334,16 @@ export default function Orcamentos() {
     }
 
     const AbaServicos = () => {
+        const [servico, setServico] = useState<OrdSerModel>({
+            OS_CODIGO: 0,
+            OS_NOME: 'GENERICO',
+            OS_ORD: 0,
+            OS_QUANTIDADE: 1,
+            OS_SER: 0,
+            OS_UNIDADE_MED: 'PC',
+            OS_VALOR: 0,
+        })
+
         return (
             <div className="bg-white rounded-lg shadow-md">
                 <div className="border-b-2">
@@ -346,7 +351,7 @@ export default function Orcamentos() {
                         <div className="flex flex-col p-2">
                             <label htmlFor="codigo">Código</label>
                             <div className="flex flex-row">
-                                <input id="codigoServicoid" value={codServico} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 flex-1" type="text" />
+                                <input id="codigoServicoid" value={servico.OS_SER} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 flex-1" type="text" />
                                 <button
                                     className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                     type="button"
@@ -358,103 +363,143 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="servico">Serviço</label>
-                            <input value={nomeServico} onChange={(e) => setNomeServico(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
+                            <input value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
-                            <select value={unidadeMedServico} onChange={(e) => setUnidadeMedServico(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
+                            <select value={servico.OS_UNIDADE_MED} onChange={(e) => setServico({ ...servico, OS_UNIDADE_MED: e.target.value })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="quant">Quant</label>
-                            <input value={quantServico} onChange={(e) => setQuantServico(parseFloat(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
                         <div className="flex flex-col p-2 w-60">
                             <label htmlFor="valor">Valor</label>
-                            <input value={valorServico} onChange={(e) => setValorServico(parseFloat(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input value={servico.OS_VALOR} onChange={(e) => setServico({ ...servico, OS_VALOR: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
                         <div>
                             <button
                                 className="w-12 h-12 m-4 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                 type="button"
-                                onClick={inserirServico}
-                            >
+                                onClick={e => inserirServico(servico)}                            >
                                 <i className="fas fa-check text-white "></i>
                             </button>
                         </div>
                     </div>
                 </div>
-                <table className="table-auto w-full">
-                    <thead>
-                        <tr>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Cód.</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Serviço</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Quantidade</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">UM</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Valor Unit.</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Valor Total</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Ação</h2>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {listaServicosInseridos.map((item) =>
-                            <tr className="border-b w-full">
-                                <td className="px-4 py-2 text-left">
-                                    <div>
-                                        <h2>{item.OS_CODIGO}</h2>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-2 text-left">
-                                    <div>
-                                        <h2>{item.OS_NOME}</h2>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-2 text-left text-amber-500">
-                                    <p><span>{item.OS_QUANTIDADE}</span></p>
-                                </td>
-                                <td className="px-4 py-2 text-left">
-                                    <div>
-                                        <h2>{item.OS_UNIDADE_MED}</h2>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-2 text-left text-amber-500">
-                                    <p><span>R$ {item.OS_VALOR / item.OS_QUANTIDADE}</span></p>
-                                </td>
-                                <td className="px-4 py-2 text-left text-amber-500">
-                                    <p><span>R$ {item.OS_VALOR}</span></p>
-                                </td>
-                                <td className="px-4 py-2 text-left text-amber-500">
-                                    <button
-                                        className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                        type="button"
-                                        onClick={() => excluirServico(item.OS_CODIGO)}
-                                    >
-                                        <i className="fas fa-trash text-white "></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>);
+                <div className="container">
+                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                        <thead className="text-white">
+                            {windowSize.current[0] > 736 ? (
+                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                    <th className="p-3 text-left">Cód.</th>
+                                    <th className="p-3 text-left w-[65%]">Serviço</th>
+                                    <th className="p-3 text-left">Quantidade</th>
+                                    <th className="p-3 text-left">UM</th>
+                                    <th className="p-3 text-left">Valor Unit.</th>
+                                    <th className="p-3 text-left">Valor Total</th>
+                                    <th className="p-3 text-left">Ação</th>
+                                </tr>
+                            )
+                                :
+                                listaServicosInseridos.map(item =>
+                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                    <th className="p-3 text-left">Cód.</th>
+                                    <th className="p-3 text-left">Serviço</th>
+                                    <th className="p-3 text-left">Quantidade</th>
+                                    <th className="p-3 text-left">UM</th>
+                                    <th className="p-3 text-left">Valor Unit.</th>
+                                    <th className="p-3 text-left">Valor Total</th>
+                                    <th className="p-3 text-left">Ação</th>
+                                </tr>)
+                            }
+                        </thead>
+                        <tbody className="flex-1 sm:flex-none">
+                            {listaServicosInseridos.map((item) =>
+                                <tr className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <div>
+                                            <h2>{item.OS_CODIGO}</h2>
+                                        </div>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[65%]">
+                                        <div>
+                                            <h2>{item.OS_NOME}</h2>
+                                        </div>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <p><span>{item.OS_QUANTIDADE}</span></p>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <div>
+                                            <h2>{item.OS_UNIDADE_MED}</h2>
+                                        </div>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <p><span>R$ {item.OS_VALOR / item.OS_QUANTIDADE}</span></p>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <p><span>R$ {item.OS_VALOR}</span></p>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-1 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                        <button
+                                            className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                            type="button"
+                                            onClick={() => excluirServico(item.OS_CODIGO)}
+                                        >
+                                            <i className="fas fa-trash text-white "></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
     }
 
-    const AbaProdutos = () => {
+    const AbaProdutos = () => {            
+        const [produto, setProduto] = useState<OrdEstModel>({
+            ORE_CODIGO: 0,
+            ORE_EMBALAGEM: 'PC',
+            ORE_NOME: 'GENERICO',
+            ORE_ORD: 0,
+            ORE_PRO: 1,
+            ORE_QUANTIDADE: 1,
+            ORE_VALOR: 0
+        });
+
+        useEffect(() => {
+            const edtQuantidade = document.getElementById('edtQuantidade');
+            edtQuantidade?.focus();
+            setProduto({ 
+                ORE_CODIGO: 0,
+                ORE_EMBALAGEM: 'PC',
+                ORE_NOME: produtoSelecionado.PRO_NOME,
+                ORE_ORD: 0,
+                ORE_PRO: produtoSelecionado.PRO_CODIGO,
+                ORE_QUANTIDADE: 1,
+                ORE_VALOR: produtoSelecionado.PRO_VALORV ?? 0
+             })
+        }, [produtoSelecionado])
+
+        const edtQuantidadeKeyDown = (e: keyBoardInputEvent) => {
+            if (e.key === 'Enter') {
+                const edtValorProduto = document.getElementById('edtValorProduto');
+                edtValorProduto?.focus();
+            }
+        }
+
+        const edtValorProdutoKeyDown = (e: keyBoardInputEvent) => {
+            if (e.key === 'Enter') {
+                const btnInserirProduto = document.getElementById('btnInserirProduto');
+                btnInserirProduto?.focus();
+            }
+        }
+
         return (
             <div className="bg-white rounded-lg  shadow-md">
                 <div className="border-b-2">
@@ -472,7 +517,6 @@ export default function Orcamentos() {
                                 </button>
                                 {showModalPesquisaProduto &&
                                     <Pesquisa_produto
-                                        setValorProduto={setValorProduto}
                                         produtoSelecionado={produtoSelecionado}
                                         setProdutoSelecionado={setProdutoSelecionado}
                                         showModal={showModalPesquisaProduto}
@@ -487,95 +531,94 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
-                            <select defaultValue={unidadeMedProduto} onChange={(e) => setUnidadeMedProduto(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
+                            <select value={produto.ORE_EMBALAGEM} onChange={(e) => setProduto({ ...produto, ORE_EMBALAGEM: e.target.value })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="quant">Quant</label>
-                            <input value={quantProduto} onChange={(e) => setQuantProduto(parseFloat(e.target.value))} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input id="edtQuantidade" onKeyDown={edtQuantidadeKeyDown} value={produto.ORE_QUANTIDADE} onChange={(e) => setProduto({ ...produto, ORE_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
                         <div className="flex flex-col p-2 w-60">
                             <label htmlFor="valor">Valor</label>
-                            <input value={valorProduto} onChange={(e) => setValorProduto(parseFloat(e.target.value))} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input id="edtValorProduto" onKeyDown={edtValorProdutoKeyDown} value={produto.ORE_VALOR} onChange={(e) => setProduto({ ...produto, ORE_VALOR: e.target.value ? parseFloat(e.target.value) : 0 })} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
                         <div className="">
                             <button
                                 className="w-12 h-12 m-4 p-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                 type="button"
-                                onClick={inserirProduto}
+                                id="btnInserirProduto"
+                                onClick={e => inserirProduto(produto)}
                             >
                                 <i className="fas fa-check text-white "></i>
                             </button>
                         </div>
                     </div>
                 </div>
-                <table className="table-auto w-full">
-                    <thead>
-                        <tr>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Cód.</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Produto</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Quantidade</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">UM</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Valor Unit.</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Valor Total</h2>
-                            </th>
-                            <th className="px-4 py-2 text-left border-b-2">
-                                <h2 className="text-ml font-bold text-gray-600">Ação</h2>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {listaProdutosInseridos.map((item) =>
-                            <tr className="border-b w-full">
-                                <td className="px-4 py-2 text-left">
-                                    <div>
-                                        <h2>{item.ORE_CODIGO}</h2>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-2 text-left">
-                                    <div>
-                                        <h2>{item.ORE_NOME}</h2>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-2 text-left text-amber-500">
-                                    <p><span>{item.ORE_QUANTIDADE}</span></p>
-                                </td>
-                                <td className="px-4 py-2 text-left">
-                                    <div>
-                                        <h2>{item.ORE_EMBALAGEM}</h2>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-2 text-left text-amber-500">
-                                    <p><span>R$ {item.ORE_VALOR / item.ORE_QUANTIDADE}</span></p>
-                                </td>
-                                <td className="px-4 py-2 text-left text-amber-500">
-                                    <p><span>R$ {item.ORE_VALOR}</span></p>
-                                </td>
-                                <td className="px-4 py-2 text-left text-amber-500">
-                                    <button
-                                        className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                        type="button"
-                                        onClick={() => excluirProduto(item.ORE_CODIGO)}
-                                    >
-                                        <i className="fas fa-trash text-white "></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <div className="container">
+                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                        <thead className="text-white">
+                            {windowSize.current[0] > 736 ? (
+                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                    <th className="p-3 text-left">Cód.</th>
+                                    <th className="p-3 text-left w-[65%]">Produto</th>
+                                    <th className="p-3 text-left">Quantidade</th>
+                                    <th className="p-3 text-left">UM</th>
+                                    <th className="p-3 text-left">Valor Unit.</th>
+                                    <th className="p-3 text-left">Valor Total</th>
+                                    <th className="p-3 text-left">Ação</th>
+                                </tr>)
+                                : listaProdutosInseridos.map(item => <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                    <th className="p-3 text-left">Cód.</th>
+                                    <th className="p-3 text-left">Produto</th>
+                                    <th className="p-3 text-left">Quantidade</th>
+                                    <th className="p-3 text-left">UM</th>
+                                    <th className="p-3 text-left">Valor Unit.</th>
+                                    <th className="p-3 text-left">Valor Total</th>
+                                    <th className="p-3 text-left">Ação</th>
+                                </tr>)}
+                        </thead>
+                        <tbody className="flex-1 sm:flex-none">
+                            {listaProdutosInseridos.map((item) =>
+                                <tr className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <div>
+                                            <h2>{item.ORE_PRO}</h2>
+                                        </div>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-[65%]">
+                                        <div>
+                                            <h2>{item.ORE_NOME}</h2>
+                                        </div>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <p><span>{item.ORE_QUANTIDADE}</span></p>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <div>
+                                            <h2>{item.ORE_EMBALAGEM}</h2>
+                                        </div>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <p><span>R$ {item.ORE_VALOR / item.ORE_QUANTIDADE}</span></p>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                        <p><span>R$ {item.ORE_VALOR}</span></p>
+                                    </td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-1 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                        <button
+                                            className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                            type="button"
+                                            onClick={() => excluirProduto(item.ORE_CODIGO)}
+                                        >
+                                            <i className="fas fa-trash text-white "></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         );
     }
@@ -638,7 +681,7 @@ export default function Orcamentos() {
     const faturamentoOS = async () => {
         await salvaOrdem();
         if ((listaProdutosInseridos.length === 0) && (listaServicosInseridos.length === 0)) {
-            Swal.fire('Inserira ou menos um produtos ou serviço, para faturar!', 'Atenção', 'warning');
+            toastMixin.fire('Inserira ou menos um produtos ou serviço, para faturar!', 'Atenção', 'warning');
             return;
         }
         setShowFaturamento(true);
@@ -664,7 +707,7 @@ export default function Orcamentos() {
                         <span className="text-2xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0))}</span>
                     </div>
                     <div>
-                        <button onClick={faturamentoOS} disabled={ordemJaFaturada} className={`p-0 w-32 h-12 text-white text-bold ${ordemJaFaturada ? 'bg-gray-400' :'bg-black'} rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}>Faturar</button>
+                        <button onClick={faturamentoOS} disabled={(codFatura > 0) || codigoOrdem === 0} className={`p-0 w-32 h-12 text-white text-bold ${(codFatura > 0) || codigoOrdem === 0 ? 'bg-gray-400' : 'bg-black'} rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}>Faturar</button>
                     </div>
                 </div>
             </>
@@ -698,7 +741,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="fatura">Fatura</label>
-                            <input className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
+                            <input value={codFatura} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
                         </div>
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="nfServico">NF Serviço</label>
@@ -743,8 +786,8 @@ export default function Orcamentos() {
                             <label htmlFor="solicitacoes">Solicitações</label>
                             <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                         </div>
-                    </div>                    
-                    <div className="flex gap-2 h-82 p-2">
+                    </div>
+                    <div className="sm:flex gap-2 h-82 p-2">
                         <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
                             <Atalhos />
                         </div>
@@ -768,7 +811,8 @@ export default function Orcamentos() {
                 showModal={showFaturamento}
                 setShowModal={setShowFaturamento}
                 showButtonExit={false}
-                body={<Faturamentos  
+                body={<Faturamentos
+                    tipoRecPag="R"
                     Operacao={new OperacaoOrdens()}
                     pedFat={{
                         PF_CODIGO: 0,
@@ -788,12 +832,13 @@ export default function Orcamentos() {
                         PF_TIPO: 1,
                         PF_VALOR: 0,
                         PF_VALORB: 0,
-                        PF_VALORPG: 0,                        
-                    }}  
+                        PF_VALORPG: 0,
+                    }}
                     model={ordem!}
                     itens={listaProdutosInseridos}
                     itens2={listaServicosInseridos}
-                    setShowModal={setShowFaturamento} 
+                    setShowModal={setShowFaturamento}
+                    setFaturado={setFoiFaturado}
                     cliFor={clienteSelecionado} valorTotal={totalProdutos() + totalServicos()} />}
             />}
         </div >

@@ -2,7 +2,7 @@
 import Modal from "@/app/components/modal";
 import OperacaoEmpreitadas from "@/app/faturamentos/implementations/operacao_empreitadas";
 import Faturamentos from "@/app/faturamentos/page";
-import { GeraCodigo } from "@/app/functions/utils";
+import { GeraCodigo, toastMixin } from "@/app/functions/utils";
 import CliForModel from "@/app/models/cli_for_model";
 import EmpreitadasModel from "@/app/models/empreitadas_model";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
@@ -10,7 +10,6 @@ import PesquisaClienteFornecedor from "@/app/pesquisas/pesquisa_cli_for";
 import EmpreitadasRepository from "@/app/repositories/empreitadas_repository";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import Swal from "sweetalert2";
 
 interface empreitadasProps {
     showModalEmpreitadas: boolean;
@@ -25,7 +24,8 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
     const [showModalPesquisaCliFor, setShowModalPesquisaCliFor] = useState(false);
     const [showModalServicos, setShowModalServicos] = useState<boolean>(false);
     const [listaUnidadesMed, setListaUnidadesMed] = useState<UnidadeMedidaModel[]>([]) 
-    const [showFaturamento, setShowFaturamento] = useState(false);     
+    const [showFaturamento, setShowFaturamento] = useState(false);
+    const [foiFaturado, setFoiFaturado] = useState(false);
  
     const carregaUnidadesMed = async () => {
         try {
@@ -33,7 +33,7 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
             const unidades = await repository.getUnidadeMedidas();
             setListaUnidadesMed(unidades);
         } catch (error) {
-            Swal.fire('Erro', String(error), 'error')
+            toastMixin.fire('Erro', String(error), 'error')
         }
     }
 
@@ -45,15 +45,14 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
         if (codigoOrdem > 0) {
             buscaEmpreitadas();
         }
-    }, []);
+    }, [foiFaturado]);
 
     useEffect(() => {
         if (cliForSelecionado.CODIGO > 0) {
             setListaEmpreitadas(old => [...old, { 
                 EMP_CODIGO: 0, 
                 EMP_ORD: codigoOrdem, 
-                FOR_NOME: 
-                cliForSelecionado!.NOME, 
+                FOR_NOME: cliForSelecionado!.NOME, 
                 EMP_FOR: cliForSelecionado!.CODIGO, 
                 LRC_FAT2: 0, 
                 EMP_VALOR: 0,
@@ -68,17 +67,19 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
             setListaEmpreitadas([data]);
             buscaServicosEmpreitadas(data.EMP_CODIGO);
         } catch (error) {
-            Swal.fire('Erro', 'Erro ao buscar empreitadas', 'error');
+            toastMixin.fire('Erro', 'Erro ao buscar empreitadas', 'error');
         }
     }
 
     const buscaServicosEmpreitadas = async (codEmpreitada: number) => {
         try {
-            const repository = new EmpreitadasRepository();
-            const data = await repository.buscaServicosEmpreitadas(codEmpreitada);
-            setListaServicosEmpreitadas([...data])
+            if (codEmpreitada > 0){
+                const repository = new EmpreitadasRepository();
+                const data = await repository.buscaServicosEmpreitadas(codEmpreitada);
+                setListaServicosEmpreitadas([...data])
+            }
         } catch (error) {
-            Swal.fire('Erro', 'Erro ao buscar Servicos empreitadas', 'error');
+            toastMixin.fire('Erro', 'Erro ao buscar Servicos empreitadas', 'error');
         }
     }
 
@@ -92,7 +93,7 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
         const [unidadeMedServico, setUnidadeMedServico] = useState('');
     
         const salvarServicos = async () => {    
-            Swal.fire('Serviço salvo com sucesso', '', 'success');    
+            toastMixin.fire('Serviço salvo com sucesso', '', 'success');    
             const servico = {
                 ES_CODIGO: await GeraCodigo('EMPREITADAS_SERVICOS', 'ES_CODIGO'),
                 DESCRICAO: descricaoServico,
@@ -167,16 +168,16 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
 
     const faturamentoEmpreitada = async ()=>{          
         if (listaEmpreitadas.length > 0){
-            const empreitada = listaEmpreitadas.at(0)!;
+            const empreitada = listaEmpreitadas[0];
             if(empreitada.LRC_FAT2! > 0){
-                Swal.fire('Esta empreitada já foi faturada!')
+                toastMixin.fire('Esta empreitada já foi faturada!')
                 return;
             }
         }      
         if(listaServicosEmpreitadas.length > 0){
             const valor = listaServicosEmpreitadas.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2);
             if (valor === 0){
-                Swal.fire('Nenhum valor a faturar!')
+                toastMixin.fire('Nenhum valor a faturar!')
                 return;
             }
             //atualiza o valor
@@ -342,6 +343,7 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                     showModal={showFaturamento}
                     setShowModal={setShowFaturamento}
                     body={<Faturamentos 
+                        tipoRecPag="P"
                         Operacao={new OperacaoEmpreitadas()}
                         pedFat={{
                             PF_CODIGO: 0,
@@ -367,6 +369,7 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                         itens={listaServicosEmpreitadas}
                         cliFor={cliForSelecionado}
                         setShowModal={setShowFaturamento}
+                        setFaturado={setFoiFaturado}
                         valorTotal={listaServicosEmpreitadas.length > 0 ? listaServicosEmpreitadas.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2) : 0} />}
                 />}
             </div>

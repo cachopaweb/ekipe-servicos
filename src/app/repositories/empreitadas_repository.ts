@@ -39,11 +39,17 @@ export default class EmpreitadasRepository{
     }
 
     async insereEmpreitada(empreitada: EmpreitadasModel): Promise<boolean>{        
-        try {
+        try {            
+            console.log({
+                'sql': `UPDATE OR INSERT INTO EMPREITADAS (EMP_CODIGO, EMP_ORD, EMP_FOR, EMP_FAT, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, EMP_NFS)
+                VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR}, ${empreitada.LRC_FAT2 ?? 0}, '${empreitada.EMP_OBS ?? ''}', 
+                '${empreitada.EMP_LOCAL_EXECUCAO_SERVICOS ?? ''}', '${empreitada.EMP_NFS ?? ''}')
+                MATCHING (EMP_CODIGO)`
+            })
             const response = await api.post('/dataset', {
                 'sql': `UPDATE OR INSERT INTO EMPREITADAS (EMP_CODIGO, EMP_ORD, EMP_FOR, EMP_FAT, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, EMP_NFS)
-                VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR}, ${empreitada.LRC_FAT2}, ${empreitada.EMP_OBS ?? ''}, 
-                ${empreitada.EMP_LOCAL_EXECUCAO_SERVICOS ?? ''}, ${empreitada.EMP_NFS ?? ''})
+                VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR}, ${empreitada.LRC_FAT2 ?? 0}, '${empreitada.EMP_OBS ?? ''}', 
+                '${empreitada.EMP_LOCAL_EXECUCAO_SERVICOS ?? ''}', '${empreitada.EMP_NFS ?? ''}')
                 MATCHING (EMP_CODIGO)`
             })
             return response.status === 200;

@@ -11,7 +11,7 @@ export default class UsuarioRepository{
             
             return response.status === 200;
         } catch (error) {
-            throw new Error('Erro ao tentar logar');
+            throw new Error('Usuario ou senha incorretos.');
         }
     }
 

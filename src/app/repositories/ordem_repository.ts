@@ -15,7 +15,6 @@ export default class OrdemRepository{
                  MATCHING (ORD_CODIGO)`
         }
         try {
-            console.log(sql)
             const response = await api.post('/dataset', sql)
             return response.status === 200;
         } catch (e) {

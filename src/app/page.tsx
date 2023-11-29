@@ -8,9 +8,8 @@ import { useRouter } from "next/navigation";
 
 import { UsuarioModel } from "./models/usuario_model";
 import logo from '../../assets/logo.png'
-import Swal from "sweetalert2";
 import UsuarioRepository from "./repositories/usuario_repository";
-import { AppProvider } from "./contexts/app_context";
+import { toastMixin } from "./functions/utils";
 
 export default function Login() {
   const [user, setUser] = useState('');
@@ -31,7 +30,7 @@ export default function Login() {
         setUser(usuarios[0].USU_LOGIN)
       }
     } catch (error) {
-      Swal.fire('Falha ao buscar usuários', String(error), 'error')
+      toastMixin.fire('Falha ao buscar usuários', String(error), 'error')
     }
   }
 
@@ -40,24 +39,19 @@ export default function Login() {
     const repository = new UsuarioRepository();
     try {
       if (user === '') {
-        Swal.fire('Atenção', 'Usuário não escolhido', 'info')
+        toastMixin.fire('Atenção', 'Usuário não escolhido', 'info')
         return;
       }
       const sucess: boolean = await repository.login(user, passw);
       if (sucess) {
+        toastMixin.fire('Aguarde...', 'Logando no servidor', 'info')
         router.push('/home')
       } else {
-        Swal.fire({
-          title: 'Falha ao logar',
-          text: 'usuário ou senha incorretos'
-        })
+        toastMixin.fire('Falha ao logar', 'usuário ou senha incorretos', 'error')
       }
     }
     catch (error) {
-      Swal.fire({
-        title: 'Falha ao logar',
-        text: String(error)
-      })
+      toastMixin.fire('Falha ao logar', String(error), 'error')
     }
   }
 

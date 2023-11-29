@@ -9,10 +9,9 @@ type pesquisaProdutoParams = {
     setShowModal: Dispatch<SetStateAction<boolean>>;
     produtoSelecionado: ProdutoModel;
     setProdutoSelecionado: Dispatch<SetStateAction<ProdutoModel>>;
-    setValorProduto: Dispatch<SetStateAction<number>>;
 }
 
-export default function PesquisaProduto({ showModal, setShowModal, setProdutoSelecionado, setValorProduto }: pesquisaProdutoParams){ 
+export default function PesquisaProduto({ showModal, setShowModal, setProdutoSelecionado }: pesquisaProdutoParams){ 
     const [textoPesquisado, setTextoPesquisado] = useState('');
     const [produtos, setProdutos] = useState<ProdutoModel[]>([]);   
 
@@ -30,9 +29,8 @@ export default function PesquisaProduto({ showModal, setShowModal, setProdutoSel
         }
     }
 
-    const selecionarProdutoModel = (model: ProdutoModel)=> {
+    const selecionarProdutoModel = (model: ProdutoModel)=> {        
         setProdutoSelecionado(model);
-        setValorProduto(model.PRO_VALORV!)
         setShowModal(false);
     }
 

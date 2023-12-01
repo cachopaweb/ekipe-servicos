@@ -22,7 +22,7 @@ interface FaturamentoProps {
     tipoRecPag: string;
 }
 
-export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operacao, model, itens, itens2, pedFat, setFaturado, tipoRecPag }: FaturamentoProps) {
+export default function Faturamentos({ valorTotal, cliFor = {CODIGO: 1, NOME: 'GENERICO'}, setShowModal, Operacao, model, itens, itens2, pedFat, setFaturado, tipoRecPag }: FaturamentoProps) {
     const [codFatura, setCodFatura] = useState(0);
     const [codPedFat, setCodPedFat] = useState(0);
     const [listaPFParcela, setListaPFParcela] = useState<PFParcelaModel[]>([]);
@@ -118,7 +118,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
     }
 
     const keyDownParcelas = async (e: keyBoardInputEvent)=>{
-        const tipoPgm = listaTipopgm.find((tp)=> tp.TP_CODIGO === 0);
+        const tipoPgm = listaTipopgm!.find((tp)=> tp.TP_CODIGO === 0);
         ////
         setParcela(0);
         setVencimento(new Date());
@@ -159,7 +159,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
     }
 
     const salvarParcela = async (nparcela: number)=>{
-        const tipoPgm = listaTipopgm.find((tp)=> tp.TP_CODIGO === codTipoPgm);        
+        const tipoPgm = listaTipopgm!.find((tp)=> tp.TP_CODIGO === codTipoPgm);        
         const edtTipoPgm = document.getElementById('tipoPgm');
         const pfParcela: PFParcelaModel = {
             PP_CODIGO: 0,
@@ -276,7 +276,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
                     <div className="flex flex-col p-2 w-72">
                         <label htmlFor="codFatura" className="text-black font-bold text-md">Tipo Pgm</label>
                         <select onKeyDown={keydownTipoPgm} value={codTipoPgm} onChange={e=> setCodTipoPgm(e.target.value ? parseInt(e.target.value) : 0)} name="tipoPgm" id="tipoPgm" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400">
-                            {listaTipopgm.map(tp=> <option key={tp.TP_CODIGO} value={tp.TP_CODIGO}>{tp.TP_DESCRICAO}</option>)}
+                            {listaTipopgm && listaTipopgm?.map(tp=> <option key={tp.TP_CODIGO} value={tp.TP_CODIGO}>{tp.TP_DESCRICAO}</option>)}
                         </select>
                     </div>
                     <div className="flex flex-col p-2">

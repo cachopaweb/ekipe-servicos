@@ -16,8 +16,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
     const [clients, setClients] = useState<ClienteModel[]>([]);   
 
     useEffect(()=>{
-        if (textoPesquisado.length >= 3)
-            buscarCliente();
+        buscarCliente();
     }, [textoPesquisado])
 
     const buscarCliente = async ()=> {

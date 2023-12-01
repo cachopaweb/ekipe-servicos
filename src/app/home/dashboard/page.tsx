@@ -1,10 +1,12 @@
 'use client'
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MovimentacoesModel from "../../models/movimentacoes_model";
 import Swal from "sweetalert2";
 import MovimentacoesRepository from "../../repositories/movimentacoes_repository";
 import Link from "next/link";
 import { useAppData } from "@/app/contexts/app_context";
+import walletIcon from "../../../../assets/wallet.png";
+import Image from "next/image";
 
 export default function Dashboard(){
     const [movimentacoes, setMovimentacoes] = useState<MovimentacoesModel[]>([]);
@@ -56,8 +58,7 @@ export default function Dashboard(){
                                 <p>Saldo dia</p>
                                 <h2 className="text-3xl font-bold text-gray-600 w-56">R$ {totalDia}</h2>                                
                             </div>
-                            <img src="https://www.emprenderconactitud.com/img/Wallet.png" alt="wallet"
-                                className="h-24 md:h-16 w-28" />
+                            <Image src={walletIcon} alt="wallet" height={130} width={120} />
                         </div>
                     </div>
 

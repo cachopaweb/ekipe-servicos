@@ -16,7 +16,8 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
     const [clients, setClients] = useState<ClienteModel[]>([]);   
 
     useEffect(()=>{
-        buscarCliente();
+        if (textoPesquisado.length >= 3)
+            buscarCliente();
     }, [textoPesquisado])
 
     const buscarCliente = async ()=> {
@@ -64,7 +65,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                         </thead>
                         <tbody>
                             {clients.length > 0 ? (clients.map((item) =>
-                                <tr className="border-b">
+                                <tr key={item.CODIGO} className="border-b">
                                     <td className="sm:px-4 sm:py-2 text-left">
                                         <div>
                                             <span className="text-xs">{item.CODIGO}</span>

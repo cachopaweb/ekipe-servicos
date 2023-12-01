@@ -8,12 +8,11 @@ import { GeraCodigo, keyBoardInputEvent, keyBoardSelectEvent, toastMixin } from 
 import CliForModel from "../models/cli_for_model";
 import Modal from "../components/modal";
 import OperacoesStrategy from "./contracts/operacoes_interfaces";
-import { FormattedDate } from "react-intl";
 
 interface FaturamentoProps {
     valorTotal: number;
     cliFor: CliForModel,
-    setShowModal: Dispatch<SetStateAction<boolean>>;
+    setShowModal?: Dispatch<SetStateAction<boolean>>;
     Operacao: OperacoesStrategy,
     model: Object;
     itens: Object;
@@ -40,7 +39,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
 
     useEffect(()=> {
         if (numParcelas && (numParcelas > 0))
-            setValorDescontavel(valorTotal)
+            setValorDescontavel(valorTotal!)
     }, [valorTotal])
 
     useEffect(()=> {
@@ -144,7 +143,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
                     DescricaoTipoPgm: tipoPgm!.TP_DESCRICAO
                 }
                 setNumParcelasRestantes(numParcelas!);
-                setValorDescontavel(parseFloat(((valorTotal - vlrEntrada!)/numParcelas!).toFixed(2)));
+                setValorDescontavel(parseFloat(((valorTotal! - vlrEntrada!)/numParcelas!).toFixed(2)));
 
                 setListaPFParcela([pfParcela])
                 setParcela(1);
@@ -152,7 +151,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
                 edtTipoPgm?.focus();
             }else{
                 setNumParcelasRestantes(numParcelas!);
-                setValorDescontavel(valorTotal/numParcelas!);
+                setValorDescontavel(valorTotal!/numParcelas!);
                 setListaPFParcela([])
                 edtTipoPgm?.focus();
             }
@@ -191,8 +190,8 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
         try {
             toastMixin.fire('Aguarde...', 'finalizando faturamento', 'info');
             pedFat.PF_COD_CLI = cliFor.CODIGO;
-            pedFat.PF_VALOR = valorTotal;
-            pedFat.PF_VALORB = valorTotal;
+            pedFat.PF_VALOR = valorTotal!;
+            pedFat.PF_VALORB = valorTotal!;
             pedFat.PF_VALORPG = vlrEntrada!;
             pedFat.PF_PARCELAS = (vlrEntrada! && numParcelas!) > 0 ? numParcelas! + 1: numParcelas!;
             setShowModalSalvar(false)
@@ -203,7 +202,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
             await Operacao.inserePFParcelas(listaPFParcela);
             toastMixin.fire('Finalizado', 'Faturamento finalizado com sucesso', 'success');
             setFaturado(true);
-            setShowModal(false);//fecha ele proprio
+            setShowModal!(false);//fecha ele proprio
         } catch (error) {
             toastMixin.fire('Erro ao finalizar faturamento', String(error), 'error')   
         }
@@ -249,13 +248,13 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
                     </div>
                     <div className="flex flex-col p-2">
                         <label htmlFor="codFatura" className="text-red-700 font-bold text-md">Valor Total</label>
-                        <span className="text-red-800 font-bold text-2xl">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(valorTotal)}</span>
+                        <span className="text-red-800 font-bold text-2xl">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(valorTotal!)}</span>
                     </div>
                 </div>
                 <div className="flex">
                     <div className="flex flex-col p-2 w-44">
                         <label htmlFor="codFatura" className="text-black font-bold text-md">Entrada</label>
-                        <input type="number" placeholder="0" step={0.1} min={0} max={valorTotal} autoFocus id="edtEntrada" value={vlrEntrada} onChange={e=> setVlrEntrada(e.target.value ? parseFloat(e.target.value): 0)} onKeyDown={keydownEntrada} className="border border-amber-400 p-2 rounded-md" />
+                        <input type="number" placeholder="0" step={0.1} min={0} max={valorTotal!} autoFocus id="edtEntrada" value={vlrEntrada} onChange={e=> setVlrEntrada(e.target.value ? parseFloat(e.target.value): 0)} onKeyDown={keydownEntrada} className="border border-amber-400 p-2 rounded-md" />
                     </div>
                     <div className="flex justify-center items-center">
                         <span className="text-2xl font-bold">+</span>
@@ -266,7 +265,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
                     </div>
                     <div className="flex flex-col p-2 flex-1">
                         <label htmlFor="codFatura" className="text-black font-bold text-md">Consumidor</label>
-                        <input defaultValue={cliFor.NOME} readOnly type="text" className="border border-amber-400 p-2 rounded-md" />
+                        <input value={cliFor.NOME ?? ''} readOnly type="text" className="border border-amber-400 p-2 rounded-md" />
                     </div>
                 </div>
             </div>
@@ -277,7 +276,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
                     <div className="flex flex-col p-2 w-72">
                         <label htmlFor="codFatura" className="text-black font-bold text-md">Tipo Pgm</label>
                         <select onKeyDown={keydownTipoPgm} value={codTipoPgm} onChange={e=> setCodTipoPgm(e.target.value ? parseInt(e.target.value) : 0)} name="tipoPgm" id="tipoPgm" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400">
-                            {listaTipopgm.map(tp=> <option value={tp.TP_CODIGO}>{tp.TP_DESCRICAO}</option>)}
+                            {listaTipopgm.map(tp=> <option key={tp.TP_CODIGO} value={tp.TP_CODIGO}>{tp.TP_DESCRICAO}</option>)}
                         </select>
                     </div>
                     <div className="flex flex-col p-2">
@@ -324,7 +323,7 @@ export default function Faturamentos({ valorTotal, cliFor, setShowModal, Operaca
                         </thead>
                         <tbody>
                             {listaPFParcela.map((item) =>
-                                <tr className="border-b w-full">
+                                <tr key={item.PP_DUPLICATA} className="border-b w-full">
                                     <td className="px-4 py-2 text-left">
                                         <div>
                                             <h2>{item.PP_DUPLICATA}</h2>

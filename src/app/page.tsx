@@ -58,14 +58,14 @@ export default function Login() {
   return (
     <main>
       <div className="flex h-screen w-full items-center justify-center bg-white bg-cover bg-no-repeat">
-        <div className="rounded-xl bg-gradient-to-r from-amber-200 to-amber-500 bg-opacity-50 px-16 py-10 shadow-lg backdrop-blur-md max-sm:px-8">
+        <div className="rounded-xl bg-gradient-to-r from-amber-200 to-amber-500 bg-opacity-50 px-16 py-10 m-4 shadow-lg backdrop-blur-md max-sm:px-8">
           <div className="text-white">
             <div className="mb-8 flex flex-col items-center">
               <Image src={logo} height={50} alt="Logo" />
             </div>
             <form onSubmit={(e) => fazerLogin(e)}>
               <div className="mb-4 text-lg">
-                <select className="rounded-3xl w-72 border-2 border-black-400 bg-black-50 bg-opacity-50 px-6 py-2  text-center 
+                <select className="rounded-3xl w-full border-2 border-black-400 bg-black-50 bg-opacity-50 px-6 py-2  text-center 
                placeholder-black-200 shadow-lg outline-none backdrop-blur-md text-black" value={user} onChange={(e) => setUser(e.target.value)} name="login">
                   {users.map((u) => <option key={u.USU_CODIGO} value={u.USU_LOGIN} className="w-96">{u.USU_LOGIN}</option>)}
                 </select>
@@ -73,7 +73,7 @@ export default function Login() {
 
               <div className="mb-4 text-lg">
                 <input className="rounded-3xl border-2 border-black-400 bg-black-50 bg-opacity-50 px-6 py-2 text-center 
-               placeholder-black-200 shadow-lg outline-none backdrop-blur-md text-black"
+               placeholder-black-200 shadow-lg outline-none backdrop-blur-md text-black w-full"
                   onChange={(e) => setPassw(e.target.value)}
                   type="Password" name="name" placeholder="*********" />
               </div>

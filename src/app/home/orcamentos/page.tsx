@@ -1,10 +1,9 @@
-'use client'
+"use client"
 import { useEffect, useRef, useState } from "react";
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
 import Pesquisa_produto from "../../pesquisas/pesquisa_produto";
 import { ClienteModel } from "../../models/cliente_model";
 import { ProdutoModel } from "../../models/produto_model";
-import Swal from "sweetalert2";
 import OrdEstModel from "../../models/ord_est_model";
 import OrdSerModel from "../../models/ord_ser_model";
 import Modal from "../../components/modal";
@@ -16,9 +15,9 @@ import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
 import Empreitadas from "../empreitadas/page";
 import Faturamentos from "@/app/faturamentos/page";
 import OperacaoOrdens from "@/app/faturamentos/implementations/operacao_ordens";
+import ProdutoRepository from "@/app/repositories/produto_repository";
 
 export default function Orcamentos() {
-    const windowSize = useRef([window.innerWidth, window.innerHeight]);
     const [ordem, setOrdem] = useState<OrdemModel | null>(null);
     const [dataAbertura, setDataAbertura] = useState(new Date());
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
@@ -27,8 +26,7 @@ export default function Orcamentos() {
     const [showModalEmpreitadas, setShowModalEmpreitadas] = useState(false);
     const [showModalListaArquivos, setShowModalListaArquivos] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
-    const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO', PRO_VALORV: 0 });
-    // const [servicoSelecionado, setServicoSelecionado] = useState<Servico>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
+    const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO', PRO_VALORV: 0 });    
     const [atendente, setAtendente] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
@@ -69,70 +67,23 @@ export default function Orcamentos() {
         return list;
     }
 
+    useEffect(() => {
+        if (abaAtiva === 'SERVICOS') {
+            const edtcodigoServico = document.getElementById('codigoServicoid');
+            if (edtcodigoServico) {
+                edtcodigoServico.focus();
+            }
+
+        } else {
+            const edtcodigoProduto = document.getElementById('codigoProdutoid');
+            if (edtcodigoProduto) {
+                edtcodigoProduto.focus();
+            }
+        }
+    }, [abaAtiva])
+
     const handleClickAba = (aba: string) => {
         setAbaAtiva(aba);
-    }
-
-    const inserirProduto = (produto: OrdEstModel) => {
-        try {
-            if (produto.ORE_QUANTIDADE === 0) {
-                toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
-                return;
-            }
-            if (produto.ORE_VALOR === 0) {
-                toastMixin.fire('Valor zero', 'O Valor do produto não pode ser Zero', 'warning')
-                return;
-            }
-            setListaProdutosInseridos(item => [...item, {
-                ORE_CODIGO: 0,
-                ORE_NOME: produto.ORE_NOME,
-                ORE_EMBALAGEM: produto.ORE_EMBALAGEM,
-                ORE_PRO: produto.ORE_PRO,
-                ORE_QUANTIDADE: produto.ORE_QUANTIDADE,
-                ORE_VALOR: produto.ORE_VALOR * produto.ORE_QUANTIDADE,
-                ORE_ORD: 0,
-            }])
-        } catch (error) {
-            toastMixin.fire('Atenção', String(error), 'warning')
-        }
-    }
-
-    const inserirServico = (servico: OrdSerModel) => {
-        try {
-            if (servico.OS_QUANTIDADE === 0) {
-                toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
-                return;
-            }
-            if (servico.OS_VALOR === 0) {
-                toastMixin.fire('Valor zero', 'O Valor do serviço não pode ser Zero', 'warning')
-                return;
-            }
-            setListaServicosInseridos(item => [...item, {
-                OS_CODIGO: 0,
-                OS_NOME: servico.OS_NOME,
-                OS_UNIDADE_MED: servico.OS_UNIDADE_MED,
-                OS_SER: servico.OS_SER,
-                OS_QUANTIDADE: servico.OS_QUANTIDADE,
-                OS_VALOR: servico.OS_VALOR * servico.OS_QUANTIDADE,
-                OS_ORD: 0,
-            }])
-        } catch (error) {
-            toastMixin.fire('Atenção', String(error), 'warning')
-        }
-    }
-
-    const excluirServico = (id: number) => {
-        const idServico = listaServicosInseridos.findIndex(e => e.OS_CODIGO === id);
-        const lista = Array.from(listaServicosInseridos)
-        lista.splice(idServico, 1);
-        setListaServicosInseridos(lista);
-    }
-
-    const excluirProduto = (id: number) => {
-        const idProduto = listaProdutosInseridos.findIndex(e => e.ORE_CODIGO === id);
-        const lista = Array.from(listaProdutosInseridos);
-        lista.splice(idProduto, 1);
-        setListaProdutosInseridos(lista);
     }
 
     const totalProdutos = () => listaProdutosInseridos.length > 0 ? listaProdutosInseridos.map(p => p.ORE_VALOR).reduce((item1, item2) => item1 + item2) : 0;
@@ -165,17 +116,9 @@ export default function Orcamentos() {
                 setShowModalSalvar(false);
                 if (listaServicosInseridos.length === 0) {
                     setAbaAtiva('SERVICOS')
-                    const edtcodigoServico = document.getElementById('codigoServicoid');
-                    if (edtcodigoServico) {
-                        edtcodigoServico.focus();
-                    }
                 }
                 if (listaProdutosInseridos.length === 0) {
                     setAbaAtiva('PRODUTOS')
-                    const edtcodigoProduto = document.getElementById('codigoProdutoid');
-                    if (edtcodigoProduto) {
-                        edtcodigoProduto.focus();
-                    }
                 }
             });
             return;
@@ -334,6 +277,13 @@ export default function Orcamentos() {
     }
 
     const AbaServicos = () => {
+        const refDivServicos = useRef<HTMLDivElement>(null);
+        const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
+        useEffect(() => {
+            setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
+        }, [refDivServicos.current]);
+
+
         const [servico, setServico] = useState<OrdSerModel>({
             OS_CODIGO: 0,
             OS_NOME: 'GENERICO',
@@ -344,14 +294,73 @@ export default function Orcamentos() {
             OS_VALOR: 0,
         })
 
+        const excluirServico = (id: number) => {
+            const idServico = listaServicosInseridos.findIndex(e => e.OS_CODIGO === id);
+            const lista = Array.from(listaServicosInseridos)
+            lista.splice(idServico, 1);
+            setListaServicosInseridos(lista);
+        }
+
+        const inserirServico = (servico: OrdSerModel) => {
+            try {
+                if (servico.OS_QUANTIDADE === 0) {
+                    toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
+                    return;
+                }
+                if (servico.OS_VALOR === 0) {
+                    toastMixin.fire('Valor zero', 'O Valor do serviço não pode ser Zero', 'warning')
+                    return;
+                }
+                setListaServicosInseridos(item => [...item, {
+                    OS_CODIGO: 0,
+                    OS_NOME: servico.OS_NOME,
+                    OS_UNIDADE_MED: servico.OS_UNIDADE_MED,
+                    OS_SER: servico.OS_SER,
+                    OS_QUANTIDADE: servico.OS_QUANTIDADE,
+                    OS_VALOR: servico.OS_VALOR * servico.OS_QUANTIDADE,
+                    OS_ORD: 0,
+                }])
+            } catch (error) {
+                toastMixin.fire('Atenção', String(error), 'warning')
+            }
+        }
+
+        const edtCodServicoKeydown = (e: keyBoardInputEvent) => {
+            if (e.key === 'Enter') {
+                const edtNomeServico = document.getElementById('edtNomeServico');
+                edtNomeServico?.focus();
+            }
+        }
+
+        const edtNomeServicoKeydown = (e: keyBoardInputEvent) => {
+            if (e.key === 'Enter') {
+                const edtQuantServico = document.getElementById('edtQuantidadeServico');
+                edtQuantServico?.focus();
+            }
+        }
+
+        const edtQuantServicoKeydown = (e: keyBoardInputEvent) => {
+            if (e.key === 'Enter') {
+                const edtValorServico = document.getElementById('edtValorServico');
+                edtValorServico?.focus();
+            }
+        }
+
+        const edtValorServicoKeyDown = (e: keyBoardInputEvent) => {
+            if (e.key === 'Enter') {
+                const btnInsereServico = document.getElementById('btnInsereServico');
+                btnInsereServico?.focus();
+            }
+        }
+
         return (
-            <div className="bg-white rounded-lg shadow-md">
+            <div ref={refDivServicos} className="bg-white rounded-lg shadow-md">
                 <div className="border-b-2">
                     <div className="sm:flex">
                         <div className="flex flex-col p-2">
                             <label htmlFor="codigo">Código</label>
                             <div className="flex flex-row">
-                                <input id="codigoServicoid" value={servico.OS_SER} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 flex-1" type="text" />
+                                <input id="codigoServicoid" value={servico.OS_SER} onKeyDown={edtCodServicoKeydown} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 flex-1" type="text" />
                                 <button
                                     className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                     type="button"
@@ -363,7 +372,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="servico">Serviço</label>
-                            <input value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
+                            <input id="edtNomeServico" onKeyDown={edtNomeServicoKeydown} value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
@@ -373,14 +382,15 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="quant">Quant</label>
-                            <input value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input id="edtQuantidadeServico" onKeyDown={edtQuantServicoKeydown} value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
-                        <div className="flex flex-col p-2 w-60">
+                        <div className="flex flex-col p-2">
                             <label htmlFor="valor">Valor</label>
-                            <input value={servico.OS_VALOR} onChange={(e) => setServico({ ...servico, OS_VALOR: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input id="edtValorServico" onKeyDown={edtValorServicoKeyDown} value={servico.OS_VALOR} onChange={(e) => setServico({ ...servico, OS_VALOR: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
                         <div>
                             <button
+                                id="btnInsereServico"
                                 className="w-12 h-12 m-4 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                 type="button"
                                 onClick={e => inserirServico(servico)}                            >
@@ -389,13 +399,13 @@ export default function Orcamentos() {
                         </div>
                     </div>
                 </div>
-                <div className="container">
-                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                <div className="flex items-center justify-center">
+                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5 ml-5">
                         <thead className="text-white">
-                            {windowSize.current[0] > 736 ? (
+                            {divWidthServicos > 600 ? (
                                 <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
                                     <th className="p-3 text-left">Cód.</th>
-                                    <th className="p-3 text-left w-[65%]">Serviço</th>
+                                    <th className={`p-3 text-left w-[48%]`}>Serviço</th>
                                     <th className="p-3 text-left">Quantidade</th>
                                     <th className="p-3 text-left">UM</th>
                                     <th className="p-3 text-left">Valor Unit.</th>
@@ -405,26 +415,27 @@ export default function Orcamentos() {
                             )
                                 :
                                 listaServicosInseridos.map(item =>
-                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left">Cód.</th>
-                                    <th className="p-3 text-left">Serviço</th>
-                                    <th className="p-3 text-left">Quantidade</th>
-                                    <th className="p-3 text-left">UM</th>
-                                    <th className="p-3 text-left">Valor Unit.</th>
-                                    <th className="p-3 text-left">Valor Total</th>
-                                    <th className="p-3 text-left">Ação</th>
-                                </tr>)
+                                    <tr key={item.OS_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                        <th className="p-3 text-left">Cód.</th>
+                                        <th className="p-3 text-left">Serviço</th>
+                                        <th className="p-3 text-left">Quantidade</th>
+                                        <th className="p-3 text-left">UM</th>
+                                        <th className="p-3 text-left">Valor Unit.</th>
+                                        <th className="p-3 text-left">Valor Total</th>
+                                        <th className="p-3 text-left">Ação</th>
+                                    </tr>
+                                )
                             }
                         </thead>
                         <tbody className="flex-1 sm:flex-none">
                             {listaServicosInseridos.map((item) =>
-                                <tr className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">
                                         <div>
                                             <h2>{item.OS_CODIGO}</h2>
                                         </div>
                                     </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[65%]">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-[55%]">
                                         <div>
                                             <h2>{item.OS_NOME}</h2>
                                         </div>
@@ -438,10 +449,10 @@ export default function Orcamentos() {
                                         </div>
                                     </td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>R$ {item.OS_VALOR / item.OS_QUANTIDADE}</span></p>
+                                        <p><span>R$ {(item.OS_VALOR / item.OS_QUANTIDADE).toFixed(2)}</span></p>
                                     </td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>R$ {item.OS_VALOR}</span></p>
+                                        <p><span>R$ {item.OS_VALOR.toFixed(2)}</span></p>
                                     </td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-1 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
                                         <button
@@ -461,7 +472,13 @@ export default function Orcamentos() {
         );
     }
 
-    const AbaProdutos = () => {            
+    const AbaProdutos = () => {
+        const refDivProdutos = useRef<HTMLDivElement>(null);
+        const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
+        useEffect(() => {
+            setDivWidthProdutos(refDivProdutos.current ? refDivProdutos.current.offsetWidth : 0);
+        }, [refDivProdutos.current]);
+
         const [produto, setProduto] = useState<OrdEstModel>({
             ORE_CODIGO: 0,
             ORE_EMBALAGEM: 'PC',
@@ -473,17 +490,19 @@ export default function Orcamentos() {
         });
 
         useEffect(() => {
-            const edtQuantidade = document.getElementById('edtQuantidade');
-            edtQuantidade?.focus();
-            setProduto({ 
-                ORE_CODIGO: 0,
-                ORE_EMBALAGEM: 'PC',
-                ORE_NOME: produtoSelecionado.PRO_NOME,
-                ORE_ORD: 0,
-                ORE_PRO: produtoSelecionado.PRO_CODIGO,
-                ORE_QUANTIDADE: 1,
-                ORE_VALOR: produtoSelecionado.PRO_VALORV ?? 0
-             })
+            if (produtoSelecionado.PRO_CODIGO > 1) {
+                const edtQuantidade = document.getElementById('edtQuantidade');
+                edtQuantidade?.focus();
+                setProduto({
+                    ORE_CODIGO: 0,
+                    ORE_EMBALAGEM: 'PC',
+                    ORE_NOME: produtoSelecionado.PRO_NOME,
+                    ORE_ORD: 0,
+                    ORE_PRO: produtoSelecionado.PRO_CODIGO,
+                    ORE_QUANTIDADE: 1,
+                    ORE_VALOR: produtoSelecionado.PRO_VALORV ?? 0
+                })
+            }
         }, [produtoSelecionado])
 
         const edtQuantidadeKeyDown = (e: keyBoardInputEvent) => {
@@ -500,14 +519,72 @@ export default function Orcamentos() {
             }
         }
 
+        const edtProdutoKeydown = async (e: keyBoardInputEvent) => {
+            if (e.key === 'Enter') {
+                try {
+                    const produtoRepository = new ProdutoRepository();
+                    toastMixin.fire('Aguarde...', 'Buscando produto', 'info')
+                    const produtoResponse = await produtoRepository.getProdutoPorCodigo(produto.ORE_PRO);
+                    if (produtoResponse) {
+                        setProduto({
+                            ORE_CODIGO: 0,
+                            ORE_NOME: produtoResponse.PRO_NOME,
+                            ORE_EMBALAGEM: produtoResponse.PRO_EMBALAGEM!,
+                            ORE_ORD: codigoOrdem,
+                            ORE_PRO: produtoResponse.PRO_CODIGO,
+                            ORE_QUANTIDADE: 1,
+                            ORE_VALOR: produtoResponse.PRO_VALORV!,
+                        })
+                        const edtQuantidade = document.getElementById('edtQuantidade');
+                        edtQuantidade?.focus();
+                    }
+                } catch (error) {
+                    toastMixin.fire('Erro ao buscar produto', String(error), 'error');
+                }
+            }
+        }
+
+        const inserirProduto = (produto: OrdEstModel) => {
+            try {
+                if (produto.ORE_QUANTIDADE === 0) {
+                    toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
+                    return;
+                }
+                if (produto.ORE_VALOR === 0) {
+                    toastMixin.fire('Valor zero', 'O Valor do produto não pode ser Zero', 'warning')
+                    return;
+                }
+                setListaProdutosInseridos(item => [...item, {
+                    ORE_CODIGO: 0,
+                    ORE_NOME: produto.ORE_NOME,
+                    ORE_EMBALAGEM: produto.ORE_EMBALAGEM,
+                    ORE_PRO: produto.ORE_PRO,
+                    ORE_QUANTIDADE: produto.ORE_QUANTIDADE,
+                    ORE_VALOR: produto.ORE_VALOR * produto.ORE_QUANTIDADE,
+                    ORE_ORD: 0,
+                }])
+                const edtCodProduto = document.getElementById('codigoProdutoid');
+                edtCodProduto?.focus();
+            } catch (error) {
+                toastMixin.fire('Atenção', String(error), 'warning')
+            }
+        }
+
+        const excluirProduto = (id: number) => {
+            const idProduto = listaProdutosInseridos.findIndex(e => e.ORE_CODIGO === id);
+            const lista = Array.from(listaProdutosInseridos);
+            lista.splice(idProduto, 1);
+            setListaProdutosInseridos(lista);
+        }
+
         return (
-            <div className="bg-white rounded-lg  shadow-md">
+            <div ref={refDivProdutos} className="bg-white rounded-lg  shadow-md">
                 <div className="border-b-2">
                     <div className="sm:flex">
                         <div className="flex flex-col p-2">
                             <label htmlFor="codigo">Código</label>
                             <div className="flex flex-row">
-                                <input id="codigoProdutoid" value={produtoSelecionado.PRO_CODIGO} readOnly className="p-1 border rounded-md border-spacing-1 border-amber-400 flex-1" type="text" />
+                                <input id="codigoProdutoid" value={produto.ORE_PRO} onKeyDown={edtProdutoKeydown} onChange={e => setProduto({ ...produto, ORE_PRO: parseInt(e.target.value ?? 0) })} className="p-1 border rounded-md border-spacing-1 border-amber-400 flex-1" type="text" />
                                 <button
                                     className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                     type="button"
@@ -527,7 +604,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="produto">Produto</label>
-                            <input value={produtoSelecionado.PRO_NOME} readOnly className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
+                            <input value={produto.ORE_NOME} readOnly className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
@@ -539,7 +616,7 @@ export default function Orcamentos() {
                             <label htmlFor="quant">Quant</label>
                             <input id="edtQuantidade" onKeyDown={edtQuantidadeKeyDown} value={produto.ORE_QUANTIDADE} onChange={(e) => setProduto({ ...produto, ORE_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
-                        <div className="flex flex-col p-2 w-60">
+                        <div className="flex flex-col p-2">
                             <label htmlFor="valor">Valor</label>
                             <input id="edtValorProduto" onKeyDown={edtValorProdutoKeyDown} value={produto.ORE_VALOR} onChange={(e) => setProduto({ ...produto, ORE_VALOR: e.target.value ? parseFloat(e.target.value) : 0 })} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
@@ -555,38 +632,40 @@ export default function Orcamentos() {
                         </div>
                     </div>
                 </div>
-                <div className="container">
-                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                <div className="flex items-center justify-center">
+                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5 ml-5">
                         <thead className="text-white">
-                            {windowSize.current[0] > 736 ? (
+                            {divWidthProdutos > 600 ? (
                                 <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
                                     <th className="p-3 text-left">Cód.</th>
-                                    <th className="p-3 text-left w-[65%]">Produto</th>
+                                    <th className="p-3 text-left w-[48%]">Produto</th>
                                     <th className="p-3 text-left">Quantidade</th>
                                     <th className="p-3 text-left">UM</th>
                                     <th className="p-3 text-left">Valor Unit.</th>
                                     <th className="p-3 text-left">Valor Total</th>
                                     <th className="p-3 text-left">Ação</th>
                                 </tr>)
-                                : listaProdutosInseridos.map(item => <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left">Cód.</th>
-                                    <th className="p-3 text-left">Produto</th>
-                                    <th className="p-3 text-left">Quantidade</th>
-                                    <th className="p-3 text-left">UM</th>
-                                    <th className="p-3 text-left">Valor Unit.</th>
-                                    <th className="p-3 text-left">Valor Total</th>
-                                    <th className="p-3 text-left">Ação</th>
-                                </tr>)}
+                                : listaProdutosInseridos.map(item =>
+                                    <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                        <th className="p-3 text-left">Cód.</th>
+                                        <th className="p-3 text-left">Produto</th>
+                                        <th className="p-3 text-left">Quantidade</th>
+                                        <th className="p-3 text-left">UM</th>
+                                        <th className="p-3 text-left">Valor Unit.</th>
+                                        <th className="p-3 text-left">Valor Total</th>
+                                        <th className="p-3 text-left">Ação</th>
+                                    </tr>)
+                            }
                         </thead>
                         <tbody className="flex-1 sm:flex-none">
                             {listaProdutosInseridos.map((item) =>
-                                <tr className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
+                                <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-16">
                                         <div>
                                             <h2>{item.ORE_PRO}</h2>
                                         </div>
                                     </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-[65%]">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-[60%]">
                                         <div>
                                             <h2>{item.ORE_NOME}</h2>
                                         </div>
@@ -600,10 +679,10 @@ export default function Orcamentos() {
                                         </div>
                                     </td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>R$ {item.ORE_VALOR / item.ORE_QUANTIDADE}</span></p>
+                                        <p><span>R$ {(item.ORE_VALOR / item.ORE_QUANTIDADE).toFixed(2)}</span></p>
                                     </td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>R$ {item.ORE_VALOR}</span></p>
+                                        <p><span>R$ {item.ORE_VALOR.toFixed(2)}</span></p>
                                     </td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-1 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
                                         <button
@@ -723,7 +802,7 @@ export default function Orcamentos() {
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="codOrdem">Cod. Ordem</label>
                             <div className="flex flex-row">
-                                <input value={codigoOrdem} onChange={e => setCodigoOrdem(Number(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" onKeyDown={(e) => buscarOrdem(e)} />
+                                <input value={codigoOrdem} onChange={e => setCodigoOrdem(parseInt(e.target.value) ?? 0)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="number" onKeyDown={(e) => buscarOrdem(e)} />
                                 <button
                                     className={`${(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'bg-slate-400 active:bg-slate-600' : 'bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
                                     type="button"
@@ -839,7 +918,8 @@ export default function Orcamentos() {
                     itens2={listaServicosInseridos}
                     setShowModal={setShowFaturamento}
                     setFaturado={setFoiFaturado}
-                    cliFor={clienteSelecionado} valorTotal={totalProdutos() + totalServicos()} />}
+                    cliFor={clienteSelecionado}
+                    valorTotal={totalProdutos() + totalServicos()} />}
             />}
         </div >
     );

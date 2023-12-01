@@ -58,7 +58,7 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                 EMP_VALOR: 0,
             }])
         }
-    }, [cliForSelecionado])
+    }, [cliForSelecionado, codigoOrdem])
 
     const buscaEmpreitadas = async () => {
         try {
@@ -209,7 +209,7 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                             </thead>
                             <tbody>
                                 {listaEmpreitadas.map((item) =>
-                                    <tr className="border-b w-full">
+                                    <tr key={item.EMP_CODIGO} className="border-b w-full">
                                         <td className="px-4 py-2 text-left">
                                             <div>
                                                 <h2>{item.FOR_NOME}</h2>

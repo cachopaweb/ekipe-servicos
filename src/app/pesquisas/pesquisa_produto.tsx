@@ -67,7 +67,7 @@ export default function PesquisaProduto({ showModal, setShowModal, setProdutoSel
                         </thead>
                         <tbody>
                             {produtos.length > 0 ? (produtos.map((item) =>
-                                <tr className="border-b">
+                                <tr key={item.PRO_CODIGO} className="border-b">
                                     <td className="sm:px-4 sm:py-2 text-left">
                                         <div>
                                             <span className="text-xs">{item.PRO_CODIGO}</span>

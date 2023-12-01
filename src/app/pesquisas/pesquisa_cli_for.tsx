@@ -64,7 +64,7 @@ export default function PesquisaClienteFornecedor({ showModal, setShowModal, set
                         </thead>
                         <tbody>
                             {listaCliFor.length > 0 ? (listaCliFor.map((item) =>
-                                <tr className="border-b">
+                                <tr key={item.CODIGO} className="border-b">
                                     <td className="sm:px-4 sm:py-2 text-left">
                                         <div>
                                             <span className="text-xs">{item.CODIGO}</span>

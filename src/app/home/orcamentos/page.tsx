@@ -400,12 +400,12 @@ export default function Orcamentos() {
                     </div>
                 </div>
                 <div className="flex items-center justify-center">
-                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5 ml-5">
+                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
                         <thead className="text-white">
                             {divWidthServicos > 600 ? (
                                 <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
                                     <th className="p-3 text-left">Cód.</th>
-                                    <th className={`p-3 text-left w-[48%]`}>Serviço</th>
+                                    <th className="p-3 text-left w-full">Serviço</th>
                                     <th className="p-3 text-left">Quantidade</th>
                                     <th className="p-3 text-left">UM</th>
                                     <th className="p-3 text-left">Valor Unit.</th>
@@ -430,31 +430,13 @@ export default function Orcamentos() {
                         <tbody className="flex-1 sm:flex-none">
                             {listaServicosInseridos.map((item) =>
                                 <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <div>
-                                            <h2>{item.OS_CODIGO}</h2>
-                                        </div>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-[55%]">
-                                        <div>
-                                            <h2>{item.OS_NOME}</h2>
-                                        </div>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>{item.OS_QUANTIDADE}</span></p>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <div>
-                                            <h2>{item.OS_UNIDADE_MED}</h2>
-                                        </div>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>R$ {(item.OS_VALOR / item.OS_QUANTIDADE).toFixed(2)}</span></p>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>R$ {item.OS_VALOR.toFixed(2)}</span></p>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-1 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.OS_CODIGO}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{item.OS_NOME}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.OS_QUANTIDADE}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.OS_UNIDADE_MED}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
                                         <button
                                             className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                             type="button"
@@ -633,12 +615,12 @@ export default function Orcamentos() {
                     </div>
                 </div>
                 <div className="flex items-center justify-center">
-                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5 ml-5">
+                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
                         <thead className="text-white">
                             {divWidthProdutos > 600 ? (
                                 <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
                                     <th className="p-3 text-left">Cód.</th>
-                                    <th className="p-3 text-left w-[48%]">Produto</th>
+                                    <th className="p-3 text-left w-full">Produto</th>
                                     <th className="p-3 text-left">Quantidade</th>
                                     <th className="p-3 text-left">UM</th>
                                     <th className="p-3 text-left">Valor Unit.</th>
@@ -660,31 +642,13 @@ export default function Orcamentos() {
                         <tbody className="flex-1 sm:flex-none">
                             {listaProdutosInseridos.map((item) =>
                                 <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-16">
-                                        <div>
-                                            <h2>{item.ORE_PRO}</h2>
-                                        </div>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-[60%]">
-                                        <div>
-                                            <h2>{item.ORE_NOME}</h2>
-                                        </div>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>{item.ORE_QUANTIDADE}</span></p>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <div>
-                                            <h2>{item.ORE_EMBALAGEM}</h2>
-                                        </div>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>R$ {(item.ORE_VALOR / item.ORE_QUANTIDADE).toFixed(2)}</span></p>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">
-                                        <p><span>R$ {item.ORE_VALOR.toFixed(2)}</span></p>
-                                    </td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-1 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORE_PRO}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{item.ORE_NOME}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORE_QUANTIDADE}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORE_EMBALAGEM}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
                                         <button
                                             className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                             type="button"

@@ -47,6 +47,14 @@ export default function Orcamentos() {
         buscaOrdemServidor();
     }, [foiFaturado])
 
+    useEffect(()=> {     
+        const timeout = setTimeout(()=> {
+            if ((codigoOrdem > 0) && (codigoOrdem.toString().length > 3))
+                buscaOrdemServidor()
+        }, 1000)
+        return ()=> clearTimeout(timeout);
+    }, [codigoOrdem])
+
     const carregaUnidadesMed = async () => {
         try {
             const repository = new UnidadeMedidaRepository();
@@ -59,6 +67,9 @@ export default function Orcamentos() {
 
     useEffect(() => {
         carregaUnidadesMed()
+        const edtCodigoOrdem = document.getElementById('edtCodigoOrdem') as HTMLInputElement;
+        edtCodigoOrdem!.select();
+        edtCodigoOrdem!.focus()
     }, [])
 
     const listaStatus = () => {
@@ -68,18 +79,18 @@ export default function Orcamentos() {
     }
 
     useEffect(() => {
-        if (abaAtiva === 'SERVICOS') {
-            const edtcodigoServico = document.getElementById('codigoServicoid');
-            if (edtcodigoServico) {
-                edtcodigoServico.focus();
-            }
+        // if (abaAtiva === 'SERVICOS') {
+        //     const edtcodigoServico = document.getElementById('codigoServicoid');
+        //     if (edtcodigoServico) {
+        //         edtcodigoServico.focus();
+        //     }
 
-        } else {
-            const edtcodigoProduto = document.getElementById('codigoProdutoid');
-            if (edtcodigoProduto) {
-                edtcodigoProduto.focus();
-            }
-        }
+        // } else {
+        //     const edtcodigoProduto = document.getElementById('codigoProdutoid');
+        //     if (edtcodigoProduto) {
+        //         edtcodigoProduto.focus();
+        //     }
+        // }
     }, [abaAtiva])
 
     const handleClickAba = (aba: string) => {
@@ -766,7 +777,7 @@ export default function Orcamentos() {
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="codOrdem">Cod. Ordem</label>
                             <div className="flex flex-row">
-                                <input value={codigoOrdem} onChange={e => setCodigoOrdem(parseInt(e.target.value) ?? 0)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="number" onKeyDown={(e) => buscarOrdem(e)} />
+                                <input type="number" id="edtCodigoOrdem" placeholder="0" autoFocus value={codigoOrdem ?? ''} onChange={e => setCodigoOrdem(parseInt(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" onKeyDown={(e) => buscarOrdem(e)} />
                                 <button
                                     className={`${(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'bg-slate-400 active:bg-slate-600' : 'bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
                                     type="button"

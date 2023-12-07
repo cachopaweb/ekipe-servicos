@@ -2,21 +2,33 @@
 import Image from 'next/image'
 import logo from '../../../../assets/logo.png'
 import { useAppData } from '@/app/contexts/app_context';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { converterDataFormato, formatCurrency, toastMixin } from '../../functions/utils'
 
 const PrintOrcamentos = () => {
     const { OrdemCtx } = useAppData()
+    const [somaProdutos, setSomaProdutos] = useState(0);
+    const [somaServicos, setSomaServicos] = useState(0);
+    const [carregando, setCarregando] = useState(true);
 
-    const somaProdutos = OrdemCtx.itensOrdEst.map(e => e.ORE_VALOR).reduce((item1, item2) => item1 + item2);
-    const somaServicos = OrdemCtx.itensOrdSer.map(e => e.OS_VALOR).reduce((item1, item2) => item1 + item2);
+
+    
 
     useEffect(() => {
+        setCarregando(true);
+        var somaProd =  OrdemCtx!.itensOrdEst.map(e => e.ORE_VALOR).reduce((item1, item2) => item1 + item2);
+        var somaServ =  OrdemCtx!.itensOrdSer.map(e => e.OS_VALOR).reduce((item1, item2) => item1 + item2);
+        setSomaProdutos(somaProd);
+        setSomaServicos(somaServ);
         toastMixin.fire({
             title: 'Aperte CTRL + P para imprimir!'
         });
+        setCarregando(false);
     },[])
     return (
+        carregando?
+        <></>
+        :
         <body className='p-3'>
             <Image className='p-10' src={logo} height={80} alt="Logo" />
             <div className='divide-solid divide-y divide-black'>
@@ -156,9 +168,6 @@ const PrintOrcamentos = () => {
                             <span>(67) 99618-6079 - (67) 99618-6021</span>
                         </div>
                     </div>
-
-
-
                 </div>
             </div>
         </body>

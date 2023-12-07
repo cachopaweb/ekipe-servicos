@@ -55,7 +55,13 @@ function formatCurrency(value:number)
     return (Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(value));
 }
 
-function converterDataFormato(data: string): string {
+function converterDataFormato(data: string|null): string {
+    if(data == null)
+    {
+        return '';
+    }
+    else
+    {
     // Divide a data em ano, mês e dia
     const [ano, mes, dia] = data.split('-');
   
@@ -63,6 +69,7 @@ function converterDataFormato(data: string): string {
     const novaDataFormatada = `${dia}/${mes}/${ano}`;
   
     return novaDataFormatada;
+    }
   }
 
 var toastMixin = Swal.mixin({

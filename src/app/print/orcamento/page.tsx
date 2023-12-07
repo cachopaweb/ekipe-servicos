@@ -16,8 +16,18 @@ const PrintOrcamentos = () => {
 
     useEffect(() => {
         setCarregando(true);
-        var somaProd =  OrdemCtx!.itensOrdEst.map(e => e.ORE_VALOR).reduce((item1, item2) => item1 + item2);
-        var somaServ =  OrdemCtx!.itensOrdSer.map(e => e.OS_VALOR).reduce((item1, item2) => item1 + item2);
+        var somaProd = 0;
+        var somaServ = 0;
+        console.log(OrdemCtx);
+        if(OrdemCtx!.itensOrdEst.length > 0)
+        {
+            somaProd =  OrdemCtx!.itensOrdEst.map(e => e.ORE_VALOR).reduce((item1, item2) => item1 + item2);
+        }
+        if(OrdemCtx!.itensOrdSer.length > 0)
+        {
+            somaServ =  OrdemCtx!.itensOrdSer.map(e => e.OS_VALOR).reduce((item1, item2) => item1 + item2);
+        }
+        
         setSomaProdutos(somaProd);
         setSomaServicos(somaServ);
         toastMixin.fire({

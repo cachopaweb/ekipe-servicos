@@ -8,7 +8,13 @@ export default interface OrdemModel {
   ORD_FUN: number;
   ORD_CLI: number;
   CLI_NOME: string;
-  CLI_CPF_CNPJ: string;
+  CLI_CNPJ_CPF: string;
+  CLI_ENDERECO: string;
+  CLI_NUMERO: string;
+  CLI_BAIRRO: string;
+  CLI_FONE: string;
+  CID_NOME?: string;
+  CID_UF?: string;
   ORD_OBS: string;
   ORD_ESTADO: string;
   ORD_DESCONTO_P: number;

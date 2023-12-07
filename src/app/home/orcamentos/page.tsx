@@ -16,8 +16,12 @@ import Empreitadas from "../empreitadas/page";
 import Faturamentos from "@/app/faturamentos/page";
 import OperacaoOrdens from "@/app/faturamentos/implementations/operacao_ordens";
 import ProdutoRepository from "@/app/repositories/produto_repository";
+import { useAppData } from "@/app/contexts/app_context";
+import Link from "next/link";
+import { Context } from "react-intl/src/components/injectIntl";
 
 export default function Orcamentos() {
+    const { setOrdemCtx } = useAppData();
     const [ordem, setOrdem] = useState<OrdemModel | null>(null);
     const [dataAbertura, setDataAbertura] = useState(new Date());
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
@@ -26,7 +30,7 @@ export default function Orcamentos() {
     const [showModalEmpreitadas, setShowModalEmpreitadas] = useState(false);
     const [showModalListaArquivos, setShowModalListaArquivos] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
-    const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO', PRO_VALORV: 0 });    
+    const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO', PRO_VALORV: 0 });
     const [atendente, setAtendente] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
@@ -47,12 +51,12 @@ export default function Orcamentos() {
         buscaOrdemServidor();
     }, [foiFaturado])
 
-    useEffect(()=> {     
-        const timeout = setTimeout(()=> {
+    useEffect(() => {
+        const timeout = setTimeout(() => {
             if ((codigoOrdem > 0) && (codigoOrdem.toString().length > 3))
                 buscaOrdemServidor()
         }, 1000)
-        return ()=> clearTimeout(timeout);
+        return () => clearTimeout(timeout);
     }, [codigoOrdem])
 
     const carregaUnidadesMed = async () => {
@@ -76,6 +80,10 @@ export default function Orcamentos() {
         let list = Object.values(Status).filter(v => isNaN(Number(v)));
         list = list.map(v => v.toString().toUpperCase());
         return list;
+    }
+
+    function imprimeOrcamento() {
+        setOrdemCtx(ordem!);
     }
 
     useEffect(() => {
@@ -164,7 +172,11 @@ export default function Orcamentos() {
                 ORD_SOLICITACAO: solicitacao,
                 CLI_NOME: clienteSelecionado.NOME,
                 ORD_FAT: 0,
-                CLI_CPF_CNPJ: clienteSelecionado.CPF_CNPJ!,
+                CLI_CNPJ_CPF: clienteSelecionado.CPF_CNPJ!,
+                CLI_ENDERECO: clienteSelecionado.ENDERECO != null ? clienteSelecionado.ENDERECO : '',
+                CLI_NUMERO: clienteSelecionado.NUMERO != null ? clienteSelecionado.NUMERO : '',
+                CLI_BAIRRO: clienteSelecionado.BAIRRO != null ? clienteSelecionado.BAIRRO : '',
+                CLI_FONE: clienteSelecionado.FONE != null ? clienteSelecionado.FONE : '',
                 itensOrdEst: listaProdutosInseridos,
                 itensOrdSer: listaServicosInseridos,
             }
@@ -222,16 +234,16 @@ export default function Orcamentos() {
                 return;
             }
             const repository = new OrdemRepository();
-            const ordem = await repository.buscaOrdem(codigoOrdem);
-            setAtendente(ordem.FUN_NOME!);
-            setClienteSelecionado(new ClienteModel(ordem.ORD_CLI, ordem.CLI_NOME));
-            setDataAbertura(new Date(ordem.ORD_DATA));
-            setNfs(ordem.ORD_NFS ?? '');
-            setObs(ordem.ORD_OBS);
-            setObs_adm(ordem.ORD_OBS_ADM);
-            setSolicitacao(ordem.ORD_SOLICITACAO);
-            setStatusOrdem(ordem.ORD_ESTADO);
-            setCodFatura(ordem.ORD_FAT ?? 0)
+            const ord = await repository.buscaOrdem(codigoOrdem);
+            setAtendente(ord.FUN_NOME!);
+            setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
+            setDataAbertura(new Date(ord.ORD_DATA));
+            setNfs(ord.ORD_NFS ?? '');
+            setObs(ord.ORD_OBS);
+            setObs_adm(ord.ORD_OBS_ADM);
+            setSolicitacao(ord.ORD_SOLICITACAO);
+            setStatusOrdem(ord.ORD_ESTADO);
+            setCodFatura(ord.ORD_FAT ?? 0)
             //produtos
             const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
             if (produtos.length > 0)
@@ -247,6 +259,21 @@ export default function Orcamentos() {
             toastMixin.fire({
                 title: 'Ordem encontrada com sucesso'
             });
+            if (produtos.length > 0) {
+                ord.itensOrdEst = [...produtos];
+            }
+            else {
+                ord.itensOrdEst = [];
+            }
+
+            if (servicos.length > 0) {
+                ord.itensOrdSer = [...servicos];
+            }
+            else {
+                ord.itensOrdSer = [];
+            }
+
+            setOrdem(ord)
         } catch (error) {
             toastMixin.fire('Erro', String(error), 'error')
         }
@@ -726,6 +753,17 @@ export default function Orcamentos() {
                         <span>Listar Arquivos</span>
                     </button>
                     {showModalListaArquivos && <ModalListarArquivos />}
+                    <Link
+                        className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
+                        href={{
+                            pathname: '../print/orcamento',
+
+                        }}
+                        onClick={e => imprimeOrcamento()}
+                    >
+                        <i className="fas fa-print"></i>
+                        <span>Imprimir</span>
+                    </Link>
 
                 </div>
             </>

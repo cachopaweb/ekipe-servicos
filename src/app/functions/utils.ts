@@ -50,6 +50,21 @@ function FormatDate(data: Date | string): string{
     }
 }
 
+function formatCurrency(value:number)
+{
+    return (Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(value));
+}
+
+function converterDataFormato(data: string): string {
+    // Divide a data em ano, mês e dia
+    const [ano, mes, dia] = data.split('-');
+  
+    // Formata a nova data no formato DD/MM/AAAA
+    const novaDataFormatada = `${dia}/${mes}/${ano}`;
+  
+    return novaDataFormatada;
+  }
+
 var toastMixin = Swal.mixin({
     toast: true,
     icon: 'success',
@@ -64,4 +79,4 @@ var toastMixin = Swal.mixin({
     }
 });
 
-export { GeraCodigo, Status, FormatDate, IncrementaGenerator, toastMixin }
+export { GeraCodigo, Status, FormatDate, IncrementaGenerator, toastMixin, formatCurrency, converterDataFormato }

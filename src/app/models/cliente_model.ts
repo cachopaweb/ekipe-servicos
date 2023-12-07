@@ -6,6 +6,9 @@ export class ClienteModel {
   FONE?: string;
   CELULAR?: string;
   ENDERECO?: string;
+  NUMERO?: string;
+  BAIRRO?: string;
+  CIDADE?: string;
   constructor(codigo: number, nome: string){
     this.CODIGO = codigo;
     this.NOME = nome;

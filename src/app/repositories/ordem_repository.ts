@@ -56,10 +56,13 @@ export default class OrdemRepository{
     async buscaOrdem(codigo: number): Promise<OrdemModel>{
         const obj = {
             'sql': 
-                `SELECT ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
+                `SELECT ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, CLI_CNPJ_CPF, ORD_CLI, CLI_NOME,
+                CLI_FONE, CLI_BAIRRO, CLI_ENDERECO, CLI_NUMERO, ORD_OBS, ORD_ESTADO, CID_NOME, CID_UF,
                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FUN_NOME 
                 FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO 
-                JOIN FUNCIONARIOS ON FUN_CODIGO = ORD_FUN WHERE ORD_CODIGO = ${codigo}`        
+                JOIN FUNCIONARIOS ON FUN_CODIGO = ORD_FUN 
+                JOIN CIDADES ON CID_CODIGO = CLI_CID
+                WHERE ORD_CODIGO = ${codigo}`        
         }
         try {
             const response = await api.post('/dataset', obj)

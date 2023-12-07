@@ -86,7 +86,7 @@ const PrintOrcamentos = () => {
                             <div className='divide-solid divide-y divide-slate-500'>
                                 <div className='divide-slate-500 divide-dashed divide-y'>
                                     {OrdemCtx!.itensOrdEst.map((item) =>
-                                        <tr className='grid grid-cols-8 '>
+                                        <tr className='grid grid-cols-8 ' key={item.ORE_CODIGO}>
                                             <td className='col-span-4 text-start text-xs'>{item.ORE_NOME}</td>
                                             <td className='text-start text-xs'>{item.ORE_EMBALAGEM}</td>
                                             <td className='text-start text-xs'>{item.ORE_QUANTIDADE}</td>
@@ -120,7 +120,7 @@ const PrintOrcamentos = () => {
                             <div className='divide-solid divide-y divide-slate-500'>
                                 <div className='divide-slate-500 divide-dashed divide-y'>
                                     {OrdemCtx!.itensOrdSer.map((item) =>
-                                        <tr className='grid grid-cols-8 '>
+                                        <tr className='grid grid-cols-8 ' key={item.OS_CODIGO}>
                                             <td className='col-span-4 text-start text-xs'>{item.OS_NOME}</td>
                                             <td className='text-start text-xs'>{item.OS_UNIDADE_MED}</td>
                                             <td className='text-start text-xs'>{item.OS_QUANTIDADE}</td>

@@ -1,18 +1,23 @@
 "use client"
 import Image from 'next/image'
+import { useReactToPrint } from 'react-to-print';
+
 import logo from '../../../../assets/logo.png'
 import { useAppData } from '@/app/contexts/app_context';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { converterDataFormato, formatCurrency, toastMixin } from '../../functions/utils'
 
 const PrintOrcamentos = () => {
+    const componentRef = useRef<HTMLDivElement>(null);
+    
     const { OrdemCtx } = useAppData()
     const [somaProdutos, setSomaProdutos] = useState(0);
     const [somaServicos, setSomaServicos] = useState(0);
-    const [carregando, setCarregando] = useState(true);
+    const [carregando, setCarregando] = useState(true);    
 
-
-    
+    const handlePrint = useReactToPrint({
+        content: () => componentRef.current,
+      });
 
     useEffect(() => {
         setCarregando(true);
@@ -31,15 +36,16 @@ const PrintOrcamentos = () => {
         setSomaProdutos(somaProd);
         setSomaServicos(somaServ);
         toastMixin.fire({
-            title: 'Aperte CTRL + P para imprimir!'
+            title: 'Aperte no botão a baixo imprimir!'
         });
         setCarregando(false);
     },[])
+
     return (
-        carregando?
-        <></>
+        carregando ?
+        <h1>Aguarde, carregando dados...</h1>
         :
-        <body className='p-3'>
+        <div className='p-3' ref={componentRef}>
             <Image className='p-10' src={logo} height={80} alt="Logo" />
             <div className='divide-solid divide-y divide-black'>
                 <h1 className='text-center text-2xl font-bold'>Orçamento</h1>
@@ -180,7 +186,15 @@ const PrintOrcamentos = () => {
                     </div>
                 </div>
             </div>
-        </body>
+            <button
+                id="botaoImpressao"
+                className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
+                onClick={handlePrint}
+            >
+                <i className="fas fa-print"></i>
+                <span>Imprimir</span>
+            </button> 
+        </div>
     );
 
 }

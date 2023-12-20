@@ -17,8 +17,7 @@ import Faturamentos from "@/app/faturamentos/page";
 import OperacaoOrdens from "@/app/faturamentos/implementations/operacao_ordens";
 import ProdutoRepository from "@/app/repositories/produto_repository";
 import { useAppData } from "@/app/contexts/app_context";
-import Link from "next/link";
-import { Context } from "react-intl/src/components/injectIntl";
+import PrintOrcamentos from "@/app/print/orcamento/page";
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -46,6 +45,7 @@ export default function Orcamentos() {
     const [showFaturamento, setShowFaturamento] = useState(false);
     const [codFatura, setCodFatura] = useState(0);
     const [foiFaturado, setFoiFaturado] = useState(false);
+    const [showModalimprimir, setShowModalImprimir] = useState(false);
 
     useEffect(() => {
         buscaOrdemServidor();
@@ -84,22 +84,8 @@ export default function Orcamentos() {
 
     function imprimeOrcamento() {
         setOrdemCtx(ordem!);
+        setShowModalImprimir(true);
     }
-
-    useEffect(() => {
-        // if (abaAtiva === 'SERVICOS') {
-        //     const edtcodigoServico = document.getElementById('codigoServicoid');
-        //     if (edtcodigoServico) {
-        //         edtcodigoServico.focus();
-        //     }
-
-        // } else {
-        //     const edtcodigoProduto = document.getElementById('codigoProdutoid');
-        //     if (edtcodigoProduto) {
-        //         edtcodigoProduto.focus();
-        //     }
-        // }
-    }, [abaAtiva])
 
     const handleClickAba = (aba: string) => {
         setAbaAtiva(aba);
@@ -730,6 +716,18 @@ export default function Orcamentos() {
         );
     }
 
+    const ModalImprimir = ()=>{
+        return (
+            <Modal showModal={showModalimprimir} setShowModal={setShowModalImprimir}
+                title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
+                showButtonExit={false}
+                body={
+                    <PrintOrcamentos />
+                }
+            />
+        );
+    }
+
     const Atalhos = () => {
         return (
             <>
@@ -753,18 +751,13 @@ export default function Orcamentos() {
                         <span>Listar Arquivos</span>
                     </button>
                     {showModalListaArquivos && <ModalListarArquivos />}
-                    <Link
+                    <button
                         className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
-                        href={{
-                            pathname: '../print/orcamento',
-
-                        }}
                         onClick={e => imprimeOrcamento()}
                     >
                         <i className="fas fa-print"></i>
                         <span>Imprimir</span>
-                    </Link>
-
+                    </button>                    
                 </div>
             </>
         );
@@ -934,6 +927,7 @@ export default function Orcamentos() {
                     cliFor={clienteSelecionado}
                     valorTotal={totalProdutos() + totalServicos()} />}
             />}
+            {showModalimprimir && <ModalImprimir />}
         </div >
     );
 }

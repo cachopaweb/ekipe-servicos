@@ -6,6 +6,8 @@ enum Status{ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
 
 export type keyBoardInputEvent = React.KeyboardEvent<HTMLInputElement>;
 export type keyBoardSelectEvent = React.KeyboardEvent<HTMLSelectElement>;
+export type keyBoardDivEvent = React.KeyboardEventHandler<HTMLDivElement>;
+
 
 
 async function GeraCodigo(tabela: string, campo: string): Promise<number>{

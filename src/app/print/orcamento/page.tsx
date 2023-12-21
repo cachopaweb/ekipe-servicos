@@ -14,6 +14,7 @@ const PrintOrcamentos = () => {
     const [somaProdutos, setSomaProdutos] = useState(0);
     const [somaServicos, setSomaServicos] = useState(0);
     const [carregando, setCarregando] = useState(true);
+    const [titulo, setTitulo] = useState('Orçamento');
 
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
@@ -36,6 +37,8 @@ const PrintOrcamentos = () => {
         toastMixin.fire({
             title: 'Aperte no botão a baixo imprimir!'
         });
+        OrdemCtx.ORD_FAT == null ? OrdemCtx.ORD_FAT = 0 : OrdemCtx.ORD_FAT = OrdemCtx.ORD_FAT;
+        OrdemCtx.ORD_FAT == 0 ? setTitulo('Orçamento') : setTitulo('Ordem de Serviço');
         setCarregando(false);
     }, [])
 
@@ -47,7 +50,7 @@ const PrintOrcamentos = () => {
                 <div >
                     <Image className='p-10' src={logo} height={80} alt="Logo" />
                     <div className='divide-solid divide-y divide-black'>
-                        <h1 className='text-center text-2xl font-bold'>Orçamento</h1>
+                        <h1 className='text-center text-2xl font-bold'>{titulo}</h1>
                         <div>
                             <div className='grid grid-cols-2'>
                                 <div className='grid grid-rows-2'>

@@ -1,4 +1,5 @@
-import { Dispatch, MouseEventHandler, SetStateAction, useState } from "react";
+import { Dispatch, KeyboardEventHandler, MouseEventHandler, SetStateAction, useEffect, useState } from "react";
+import { keyBoardDivEvent } from "../functions/utils";
 
 type modalParams = {
   showModal: boolean;
@@ -13,11 +14,32 @@ type modalParams = {
 }
 
 export default function Modal({ showModal, setShowModal, title, body, edtSearch, showButtonExit = true, corBotaoExit = 'red', titutloBotaoExit='Fechar', onclickExit }: modalParams) {
+
+
+  useEffect(() => {
+    const close = (e:any) => {
+      if(e.keyCode === 27){
+        setShowModal(false)
+      }
+    }
+    window.addEventListener('keydown', close)
+  return () => window.removeEventListener('keydown', close)
+
+
+  },[])
+
+  const keyDownEsc = (e: keyBoardDivEvent) =>
+  {
+  
+    setShowModal(false)
+  }  
+
   return (
     <>
       {showModal ? (
         <>
-          <div
+          <div 
+            // onKeyDown={keyDownEsc}
             className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"            
           >
             <div className="relative my-6 mx-2">
@@ -47,7 +69,7 @@ export default function Modal({ showModal, setShowModal, title, body, edtSearch,
                   <button
                     className={`bg-${corBotaoExit}-500 text-white active:bg-${corBotaoExit}-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150`}
                     type="button"
-                    onClick={onclickExit === null ? () => setShowModal(false): onclickExit}
+                    onClick={onclickExit === undefined ? () => setShowModal(false): onclickExit}
                   >
                     {titutloBotaoExit}
                   </button>

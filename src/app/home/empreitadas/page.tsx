@@ -5,19 +5,20 @@ import Faturamentos from "@/app/faturamentos/page";
 import { GeraCodigo, toastMixin } from "@/app/functions/utils";
 import CliForModel from "@/app/models/cli_for_model";
 import EmpreitadasModel from "@/app/models/empreitadas_model";
+import OrdemModel from "@/app/models/ordem_model";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import PesquisaClienteFornecedor from "@/app/pesquisas/pesquisa_cli_for";
 import EmpreitadasRepository from "@/app/repositories/empreitadas_repository";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 interface empreitadasProps {
     showModalEmpreitadas: boolean;
-    setShowModalEmpreitadas: Dispatch<SetStateAction<boolean>>
-    codigoOrdem: number;
+    setShowModalEmpreitadas: Dispatch<SetStateAction<boolean>>    
+    ordemServico: OrdemModel;
 }
 
-export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShowModalEmpreitadas }: empreitadasProps) {
+export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreitadas , ordemServico}: empreitadasProps) {
     const [listaEmpreitadas, setListaEmpreitadas] = useState<EmpreitadasModel[]>([]);
     const [listaServicosEmpreitadas, setListaServicosEmpreitadas] = useState<EmpreitadasServicosModel[]>([]);
     const [cliForSelecionado, setCliForSelecionado] = useState<CliForModel>({ CODIGO: 0, NOME: 'GENERICO' });
@@ -42,30 +43,44 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
     }, [])
 
     useEffect(() => {
-        if (codigoOrdem > 0) {
-            buscaEmpreitadas();
-        }
+        buscaEmpreitadas();
     }, [foiFaturado]);
 
     useEffect(() => {
         if (cliForSelecionado.CODIGO > 0) {
             setListaEmpreitadas(old => [...old, { 
                 EMP_CODIGO: 0, 
-                EMP_ORD: codigoOrdem, 
+                EMP_ORD: ordemServico.ORD_CODIGO, 
                 FOR_NOME: cliForSelecionado!.NOME, 
                 EMP_FOR: cliForSelecionado!.CODIGO, 
                 LRC_FAT2: 0, 
                 EMP_VALOR: 0,
             }])
-        }
-    }, [cliForSelecionado, codigoOrdem])
+            if (ordemServico.itensOrdSer.length > 0){
+                ordemServico.itensOrdSer.map(os=> {
+                    setListaServicosEmpreitadas(old => [...old, {
+                        ES_CODIGO: 0,
+                        DESCRICAO: os.OS_NOME,
+                        ES_EMP: 0,
+                        ES_PRAZO_CONCLUSAO: new Date(),
+                        ES_QUANTIDADE: os.OS_QUANTIDADE,
+                        ES_UNIDADE: os.OS_UNIDADE_MED,
+                        VLR_UNIT: os.OS_VALOR / os.OS_QUANTIDADE,
+                        ES_VALOR: os.OS_VALOR,
+                    }])
+                });
+            }
+        }        
+    }, [cliForSelecionado])
 
     const buscaEmpreitadas = async () => {
         try {
             const repository = new EmpreitadasRepository();
-            const data = await repository.buscaEmpreitadas(codigoOrdem);
-            setListaEmpreitadas([data]);
-            buscaServicosEmpreitadas(data.EMP_CODIGO);
+            const data = await repository.buscaEmpreitadas(ordemServico.ORD_CODIGO);
+            if(data != undefined && data.EMP_CODIGO > 0){
+                setListaEmpreitadas([data]);
+                buscaServicosEmpreitadas(data.EMP_CODIGO);
+            }
         } catch (error) {
             toastMixin.fire('Erro', 'Erro ao buscar empreitadas', 'error');
         }
@@ -187,38 +202,55 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
     }
 
     const BuidBody = () => {
+        const refDivServicos = useRef<HTMLDivElement>(null);
+        const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
+        useEffect(() => {
+            setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
+        }, [refDivServicos.current]);
+        
         const [localExecucao, setLocalExecucao] = useState('');
         const [obsEmpreitadas, setObsEmpreitadas] = useState('');
+
+        const excluirServico = (id: number) => {
+            const idServico = listaServicosEmpreitadas.findIndex(e => e.ES_CODIGO === id);
+            const lista = Array.from(listaServicosEmpreitadas);
+            lista.splice(idServico, 1);
+            setListaServicosEmpreitadas(lista);
+        }
+
+        const excluirEmpreitada = (id: number) => {
+            const idEmpreitada = listaEmpreitadas.findIndex(e => e.EMP_CODIGO === id);
+            const lista = Array.from(listaEmpreitadas);
+            lista.splice(idEmpreitada, 1);
+            setListaEmpreitadas(lista);
+        }
     
         return (
             <div>
                 <div>
                     <div className="shadow-md my-4">
-
                         <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Prestadores</h2>
-                        <table className="table-auto w-full">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 text-left border-b-2">
-                                        <h2 className="text-ml font-bold text-gray-600">Prestador</h2>
-                                    </th>
-                                    <th className="px-4 py-2 text-left border-b-2">
-                                        <h2 className="text-ml font-bold text-gray-600">Fatura</h2>
-                                    </th>
+                        <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                            <thead className="text-white">
+                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                    <th className="p-3 text-left w-full">Prestador</th>
+                                    <th className="p-3 text-left ">Fatura</th>
+                                    <th className="p-3 text-left">Ação</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="flex-1 sm:flex-none">
                                 {listaEmpreitadas.map((item) =>
-                                    <tr key={item.EMP_CODIGO} className="border-b w-full">
-                                        <td className="px-4 py-2 text-left">
-                                            <div>
-                                                <h2>{item.FOR_NOME}</h2>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 text-left">
-                                            <div>
-                                                <h2>{item.LRC_FAT2}</h2>
-                                            </div>
+                                    <tr key={item.EMP_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                        <td className="p-3 text-left w-full">{item.FOR_NOME}</td>
+                                        <td className="p-3 text-left">{item.LRC_FAT2}</td>
+                                        <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                            <button
+                                                className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                type="button"
+                                                onClick={() => excluirEmpreitada(item.EMP_CODIGO)}
+                                            >
+                                                <i className="fas fa-trash text-white "></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 )}
@@ -239,67 +271,55 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                     </div>
 
                     <div className="shadow-md my-4">
-                        <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Serviços</h2>
-                        <table className="table-auto w-full">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 text-left border-b-2">
-                                        <h2 className="text-ml font-bold text-gray-600">Descrição</h2>
-                                    </th>
-                                    <th className="px-4 py-2 text-left border-b-2">
-                                        <h2 className="text-ml font-bold text-gray-600">Quant</h2>
-                                    </th>
-                                    <th className="px-4 py-2 text-left border-b-2">
-                                        <h2 className="text-ml font-bold text-gray-600">UM</h2>
-                                    </th>
-                                    <th className="px-4 py-2 text-left border-b-2">
-                                        <h2 className="text-ml font-bold text-gray-600">Valor Unit.</h2>
-                                    </th>
-                                    <th className="px-4 py-2 text-left border-b-2">
-                                        <h2 className="text-ml font-bold text-gray-600">Valor Total</h2>
-                                    </th>
-                                    <th className="px-4 py-2 text-left border-b-2">
-                                        <h2 className="text-ml font-bold text-gray-600">Prazo Conclusão</h2>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {listaServicosEmpreitadas.map((item) =>
-                                    <tr key={item.ES_CODIGO} className="border-b w-full">
-                                        <td className="px-4 py-2 text-left">
-                                            <div>
-                                                <h2>{item.DESCRICAO}</h2>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 text-left">
-                                            <div>
-                                                <h2>{item.ES_QUANTIDADE}</h2>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 text-left">
-                                            <div>
-                                                <h2>{item.ES_UNIDADE}</h2>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 text-left">
-                                            <div>
-                                                <h2>{item.VLR_UNIT}</h2>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 text-left">
-                                            <div>
-                                                <h2>{item.ES_VALOR}</h2>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 text-left">
-                                            <div>
-                                                <h2>{item.ES_PRAZO_CONCLUSAO != null ? item.ES_PRAZO_CONCLUSAO?.toLocaleDateString() : ''}</h2>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                        <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Serviços</h2>                        
+                        <div ref={refDivServicos} className="flex items-center justify-center">
+                            <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                                <thead className="text-white">
+                                    {divWidthServicos > 600 ? (
+                                        <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                            <th className="p-3 text-left w-full">Descrição</th>
+                                            <th className="p-3 text-left">Quant</th>
+                                            <th className="p-3 text-left">UM</th>
+                                            <th className="p-3 text-left">Valor Unit.</th>
+                                            <th className="p-3 text-left">Valor Total</th>
+                                            <th className="p-3 text-left">Prazo Conclusão</th>
+                                            <th className="p-3 text-left">Ação</th>
+                                        </tr>)
+                                        : listaServicosEmpreitadas.map(item =>
+                                            <tr key={item.ES_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                                <th className="p-3 text-left">Descrição</th>
+                                                <th className="p-3 text-left">Quant</th>
+                                                <th className="p-3 text-left">UM</th>
+                                                <th className="p-3 text-left">Valor Unit.</th>
+                                                <th className="p-3 text-left">Valor Total</th>
+                                                <th className="p-3 text-left">Prazo Conclusão</th>
+                                                <th className="p-3 text-left">Ação</th>
+                                            </tr>)
+                                    }
+                                </thead>
+                                <tbody className="flex-1 sm:flex-none">
+                                    {listaServicosEmpreitadas.map((item) =>
+                                        <tr key={item.ES_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{item.DESCRICAO}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_QUANTIDADE}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_UNIDADE}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ES_VALOR ?? 0 / (item.ES_QUANTIDADE ?? 1))}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ES_VALOR ?? 0)}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_PRAZO_CONCLUSAO != null ? item.ES_PRAZO_CONCLUSAO?.toLocaleDateString() : ''}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                                <button
+                                                    className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => excluirServico(item.ES_CODIGO)}
+                                                >
+                                                    <i className="fas fa-trash text-white "></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                         <div className="flex items-end justify-end p-2 relative">
                             <button
                                 onClick={e => setShowModalServicos(true)}
@@ -352,7 +372,7 @@ export default function Empreitadas({ codigoOrdem, showModalEmpreitadas, setShow
                             PF_CAMPO_FAT: 'EMP_FAT',
                             PF_CAMPO_PED: 'EMP_CODIGO',
                             PF_CLIENTE: cliForSelecionado.NOME,
-                            PF_COD_PED: codigoOrdem,
+                            PF_COD_PED: ordemServico.ORD_CODIGO,
                             PF_DATA: new Date().toLocaleDateString(),
                             PF_DATAC: '01/01/1900',
                             PF_DESCONTO: 0,

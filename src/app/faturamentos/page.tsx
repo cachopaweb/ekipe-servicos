@@ -123,7 +123,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     }
 
     const keyDownParcelas = async (e: keyBoardInputEvent) => {
-        const tipoPgm = listaTipopgm!.find((tp) => tp.TP_CODIGO === 0);
+        const tipoPgm = listaTipopgm!.find((tp) => tp.TP_CODIGO === (tipoRecPag === 'R' ? 0 : -1));
         ////
         setParcela(0);
         setVencimento(new Date());

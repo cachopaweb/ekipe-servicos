@@ -750,7 +750,7 @@ export default function Orcamentos() {
                         <i className="fas fa-hand-holding-usd"></i>
                         <span>Empreitadas</span>
                     </button>
-                    {showModalEmpreitadas && <Empreitadas codigoOrdem={codigoOrdem} showModalEmpreitadas setShowModalEmpreitadas={setShowModalEmpreitadas} />}
+                    {showModalEmpreitadas && <Empreitadas ordemServico={ordem!} showModalEmpreitadas setShowModalEmpreitadas={setShowModalEmpreitadas} />}
                     <button
                         className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
                         onClick={e => setShowModalListaArquivos(true)}

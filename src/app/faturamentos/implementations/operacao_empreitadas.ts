@@ -51,11 +51,12 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
             const repositoryEmpreitadas = new EmpreitadasRepository();
             const repositoryLancamentoReceitaCusto = new LancamentoReceitaCustoRepository();
             const empreitadas = model as EmpreitadasModel[];
-            console.log(empreitadas)
-            return true;
             for (const emp in empreitadas) {
                 if (Object.prototype.hasOwnProperty.call(empreitadas, emp)) {
-                    const empreitada = empreitadas[emp];   
+                    const empreitada = empreitadas[emp];  
+                    if (empreitada.EMP_CODIGO === 0){
+                        empreitada.EMP_CODIGO = await GeraCodigo('EMPREITADAS', 'EMP_CODIGO');
+                    } 
                     await repositoryEmpreitadas.insereEmpreitada(empreitada);            
                     ////                                
                     const codLancamento = await GeraCodigo('LANCAMENTO_REC_CUS', 'LRC_CODIGO');

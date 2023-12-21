@@ -129,65 +129,39 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                         </div>
                         <div>
 
-                            <table className="table-auto">
-                                <thead>
-                                    <tr>
-                                        <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                            <h2 className="text-ml font-bold text-gray-600">Cód.</h2>
-                                        </th>
-                                        <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                            <h2 className="text-ml font-bold text-gray-600">Data</h2>
-                                        </th>
-                                        <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                            <h2 className="text-ml font-bold text-gray-600">Solicitação</h2>
-                                        </th>
-                                        <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                            <h2 className="text-ml font-bold text-gray-600">Nome</h2>
-                                        </th>
-                                        <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                            <h2 className="text-ml font-bold text-gray-600">Valor</h2>
-                                        </th>
-                                        <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                            <h2 className="text-ml font-bold text-gray-600">Estado</h2>
-                                        </th>
-                                        <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                            <h2 className="text-ml font-bold text-gray-600">Ação</h2>
-                                        </th>
-                                    </tr>
+                            <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                                <thead className="text-white">
+                                    {divWidthProdutos > 600 ? (
+                                        <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                            <th className="p-3 text-left">Cód.</th>
+                                            <th className="p-3 text-left">Data</th>
+                                            <th className="p-3 text-left">Solicitação</th>
+                                            <th className="p-3 text-left w-full">Nome</th>
+                                            <th className="p-3 text-left">Valor</th>
+                                            <th className="p-3 text-left">Estado</th>
+                                            <th className="p-3 text-left">Ação</th>
+                                        </tr>)
+                                        : listaProdutosInseridos.map(item =>
+                                            <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                                <th className="p-3 text-left">Cód.</th>
+                                                <th className="p-3 text-left">Data</th>
+                                                <th className="p-3 text-left">Solicitação</th>
+                                                <th className="p-3 text-left">Nome</th>
+                                                <th className="p-3 text-left">Valor</th>
+                                                <th className="p-3 text-left">Estado</th>
+                                                <th className="p-3 text-left">Ação</th>
+                                            </tr>)
+                                    }                                    
                                 </thead>
                                 <tbody>
                                     {Ordems.length > 0 ? (Ordems.map((item) =>
-                                        <tr key={item.ORD_CODIGO} className="border-b">
-                                            <td className="sm:px-4 sm:py-2 text-left">
-                                                <div>
-                                                    <span className="text-xs">{item.ORD_CODIGO}</span>
-                                                </div>
-                                            </td>
-                                            <td className="sm:px-4 sm:py-2 text-left">
-                                                <div>
-                                                    <span className="text-xs">{item.ORD_DATA != null ? new Date(item.ORD_DATA).toLocaleDateString() : ''}</span>
-                                                </div>
-                                            </td>
-                                            <td className="sm:px-4 sm:py-2 text-left">
-                                                <div>
-                                                    <span className="text-xs">{item.ORD_SOLICITACAO}</span>
-                                                </div>
-                                            </td>
-                                            <td className="sm:px-4 sm:py-2 text-left">
-                                                <div>
-                                                    <span className="text-xs">{item.CLI_NOME}</span>
-                                                </div>
-                                            </td>
-                                            <td className="sm:px-4 sm:py-2 text-left">
-                                                <div>
-                                                    <span className="text-xs">{item.ORD_VALOR}</span>
-                                                </div>
-                                            </td>
-                                            <td className="sm:px-4 sm:py-2 text-left">
-                                                <div>
-                                                    <span className="text-xs">{item.ORD_ESTADO}</span>
-                                                </div>
-                                            </td>
+                                        <tr key={item.ORD_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORD_CODIGO}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORD_DATA != null ? new Date(item.ORD_DATA).toLocaleDateString() : ''}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORD_SOLICITACAO}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{item.CLI_NOME}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORD_VALOR)}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORD_ESTADO}</td>
                                             <td className="sm:px-4 sm:py-2 text-left">
                                                 <div>
                                                     <button onClick={() => selecionarOrdemModel(item)} className="bg-green-700 p-2 text-xs rounded-xl shadow-sm text-white">Ver Detalhes</button>

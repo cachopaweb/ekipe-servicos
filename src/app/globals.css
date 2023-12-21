@@ -6,4 +6,15 @@
     #botaoImpressao{
         visibility: hidden;
     }
+
+    #footerImpressao{
+        visibility: visible;
+    }
+}
+@media screen {
+    #footerImpressao{
+        visibility: hidden;
+    }
+    
+    
 }

@@ -83,8 +83,11 @@ export default function Orcamentos() {
     }
 
     function imprimeOrcamento() {
-        setOrdemCtx(ordem!);
-        setShowModalImprimir(true);
+        if(ordem != null)
+        {
+            setOrdemCtx(ordem!);
+            setShowModalImprimir(true);
+        }
     }
 
     const handleClickAba = (aba: string) => {

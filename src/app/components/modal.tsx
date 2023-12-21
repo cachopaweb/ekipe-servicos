@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, MouseEventHandler, SetStateAction, useState } from "react";
 
 type modalParams = {
   showModal: boolean;
@@ -7,9 +7,12 @@ type modalParams = {
   body: JSX.Element;
   edtSearch?: JSX.Element;
   showButtonExit?: boolean;
+  corBotaoExit?: string;
+  titutloBotaoExit?: string;
+  onclickExit?: MouseEventHandler<HTMLButtonElement>
 }
 
-export default function Modal({ showModal, setShowModal, title, body, edtSearch, showButtonExit = true }: modalParams) {
+export default function Modal({ showModal, setShowModal, title, body, edtSearch, showButtonExit = true, corBotaoExit = 'red', titutloBotaoExit='Fechar', onclickExit }: modalParams) {
   return (
     <>
       {showModal ? (
@@ -42,11 +45,11 @@ export default function Modal({ showModal, setShowModal, title, body, edtSearch,
                 {showButtonExit && <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
                   {edtSearch}
                   <button
-                    className="bg-red-500 text-white active:bg-red-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                    className={`bg-${corBotaoExit}-500 text-white active:bg-${corBotaoExit}-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150`}
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={onclickExit === null ? () => setShowModal(false): onclickExit}
                   >
-                    Fechar
+                    {titutloBotaoExit}
                   </button>
                 </div>}
               </div>

@@ -18,6 +18,7 @@ import OperacaoOrdens from "@/app/faturamentos/implementations/operacao_ordens";
 import ProdutoRepository from "@/app/repositories/produto_repository";
 import { useAppData } from "@/app/contexts/app_context";
 import PrintOrcamentos from "@/app/print/orcamento/page";
+import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -46,6 +47,7 @@ export default function Orcamentos() {
     const [codFatura, setCodFatura] = useState(0);
     const [foiFaturado, setFoiFaturado] = useState(false);
     const [showModalimprimir, setShowModalImprimir] = useState(false);
+    const [showModalPesquisaOS, setShowModalPesquisaOS] = useState(false);    
 
     useEffect(() => {
         buscaOrdemServidor();
@@ -269,6 +271,9 @@ export default function Orcamentos() {
     }
 
     const buscarOrdem = async (e: keyBoardInputEvent) => {
+        if (e.key === 'ArrowDown'){
+            setShowModalPesquisaOS(true)
+        }
         if (e.key === 'Enter') {
             buscaOrdemServidor()
         }
@@ -811,7 +816,7 @@ export default function Orcamentos() {
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="codOrdem">Cod. Ordem</label>
                             <div className="flex flex-row">
-                                <input type="number" id="edtCodigoOrdem" placeholder="0" autoFocus value={codigoOrdem ?? ''} onChange={e => setCodigoOrdem(parseInt(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" onKeyDown={(e) => buscarOrdem(e)} />
+                                <input type="number" id="edtCodigoOrdem" placeholder="0" autoFocus onKeyDown={(e) => buscarOrdem(e)} value={codigoOrdem ?? ''} onChange={e => setCodigoOrdem(parseInt(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                                 <button
                                     className={`${(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'bg-slate-400 active:bg-slate-600' : 'bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
                                     type="button"
@@ -821,6 +826,12 @@ export default function Orcamentos() {
                                     <i className="fa fa-solid fa-floppy-disk text-white"></i>
                                 </button>
                                 {showModalSalvar && <ModalSalvar />}
+                                {showModalPesquisaOS && <PesquisaOrdem 
+                                                            OrdemSelecionado={codigoOrdem} 
+                                                            setOrdemSelecionado={setCodigoOrdem} 
+                                                            showModal={showModalPesquisaOS} 
+                                                            setShowModal={setShowModalPesquisaOS} 
+                                                        />}
                             </div>
                         </div>
                         <div className="flex flex-1 flex-col p-1">

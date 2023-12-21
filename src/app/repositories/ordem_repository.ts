@@ -125,12 +125,12 @@ export default class OrdemRepository {
                 switch (tipoBusca) {
                     case "Nome":
                         {
-                            SQL = SQL.replace('[BUSCA]', ` AND CLI_NOME LIKE ''%'${textoBusca}'%''`);
+                            SQL = SQL.replace('[BUSCA]', ` AND CLI_NOME LIKE '%${textoBusca}%'`);
                             SQL = SQL.replace('[ORDEM]', 'CLI_NOME, ORD_CODIGO DESC');
                             break;
                         }
                     case "Solicitacao": {
-                        SQL = SQL.replace('[BUSCA]', ` AND ORD_SOLICITACAO LIKE ''%'${textoBusca}'%''`);
+                        SQL = SQL.replace('[BUSCA]', ` AND ORD_SOLICITACAO LIKE '%${textoBusca}%'`);
                         SQL = SQL.replace('[ORDEM]', 'ORD_SOLICITACAO, ORD_CODIGO DESC');
                         break;
                     };
@@ -139,17 +139,23 @@ export default class OrdemRepository {
             else
                 SQL = SQL.replace('[BUSCA]', '');
             if (porPeriodo)
-                SQL = SQL.replace('[PERIODO]', ` AND ORD_DATA BETWEEN ${FormatDate(data1)} AND ${FormatDate(data2)}`)
+                SQL = SQL.replace('[PERIODO]', ` ${textoBusca != '' ? 'AND' : ''} ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`)
             else
                 SQL = SQL.replace('[PERIODO]', '');
-            if (status != '')
-                SQL = SQL.replace('[STATUS]', ` AND ORD_ESTADO = '${status}'`)
+            if (status != '')                
+                SQL = SQL.replace('[STATUS]', ` ${porPeriodo ? 'AND' : ''} ORD_ESTADO = '${status}'`)
             else
                 SQL = SQL.replace('[STATUS]', '');
             // Para o caso da string não ter sido substituída ainda
             SQL = SQL.replace('[ORDEM]', 'ORD_DATA DESC, ORD_CODIGO DESC');
-            const response = await api.post('/dataset', SQL)
-            return response.data as OrdemModel[];
+            const response = await api.post('/dataset', {'sql': SQL})
+            let data = [];
+            if (response.data instanceof Array){
+                data = response.data;
+            }else{
+                data = [response.data];
+            }
+            return data as OrdemModel[];
         } catch (e) {
             throw new Error('Erro ao buscar Ordem' + String(e))
         }

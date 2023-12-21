@@ -40,7 +40,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
 
     useEffect(() => {
         buscarOrdemModel();        
-    }, [textoBusca, data1, data2, porPeriodo])
+    }, [textoBusca, data1, data2, porPeriodo, statusOrdem])
 
     const listaStatus = () => {
         let list = Object.values(Status).filter(v => isNaN(Number(v)));

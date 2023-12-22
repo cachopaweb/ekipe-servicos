@@ -184,7 +184,6 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                             <th className="p-3 text-left">UM</th>
                                             <th className="p-3 text-left">Valor Unit.</th>
                                             <th className="p-3 text-left">Valor Total</th>
-                                            <th className="p-3 text-left">Ação</th>
                                         </tr>)
                                         : listaProdutosInseridos.map(item =>
                                             <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
@@ -223,7 +222,6 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                             <th className="p-3 text-left">UM</th>
                                             <th className="p-3 text-left">Valor Unit.</th>
                                             <th className="p-3 text-left">Valor Total</th>
-                                            <th className="p-3 text-left">Ação</th>
                                         </tr>
                                     )
                                         :

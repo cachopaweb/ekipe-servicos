@@ -8,9 +8,10 @@ import EmpreitadasModel from "@/app/models/empreitadas_model";
 import OrdemModel from "@/app/models/ordem_model";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import PesquisaClienteFornecedor from "@/app/pesquisas/pesquisa_cli_for";
-import EmpreitadasRepository from "@/app/repositories/empreitadas_repository";
+import EmpreitadasServicosModel from "../../models/empreitada_servicos_model";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import EmpreitadasRepository from "@/app/repositories/empreitadas_repository";
 
 interface empreitadasProps {
     showModalEmpreitadas: boolean;
@@ -20,13 +21,13 @@ interface empreitadasProps {
 
 export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreitadas , ordemServico}: empreitadasProps) {
     const [listaEmpreitadas, setListaEmpreitadas] = useState<EmpreitadasModel[]>([]);
-    const [listaServicosEmpreitadas, setListaServicosEmpreitadas] = useState<EmpreitadasServicosModel[]>([]);
     const [cliForSelecionado, setCliForSelecionado] = useState<CliForModel>({ CODIGO: 0, NOME: 'GENERICO' });
     const [showModalPesquisaCliFor, setShowModalPesquisaCliFor] = useState(false);
     const [showModalServicos, setShowModalServicos] = useState<boolean>(false);
     const [listaUnidadesMed, setListaUnidadesMed] = useState<UnidadeMedidaModel[]>([]) 
     const [showFaturamento, setShowFaturamento] = useState(false);
     const [foiFaturado, setFoiFaturado] = useState(false);
+    const [indiceEmpreitada, setIndiceEmpreitada] = useState(0);
  
     const carregaUnidadesMed = async () => {
         try {
@@ -42,12 +43,27 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
         carregaUnidadesMed()
     }, [])
 
-    useEffect(() => {
+    useEffect(() => {          
         buscaEmpreitadas();
     }, [foiFaturado]);
 
     useEffect(() => {
         if (cliForSelecionado.CODIGO > 0) {
+            let listaServicos: Array<EmpreitadasServicosModel> = [];
+            if (ordemServico.itensOrdSer.length > 0){
+                ordemServico.itensOrdSer.map(os=> {
+                    listaServicos.push({
+                        ES_CODIGO: 0,
+                        DESCRICAO: os.OS_NOME,
+                        ES_EMP: 0,
+                        ES_PRAZO_CONCLUSAO: new Date().toLocaleDateString(),
+                        ES_QUANTIDADE: os.OS_QUANTIDADE,
+                        ES_UNIDADE: os.OS_UNIDADE_MED,
+                        VLR_UNIT: os.OS_VALOR / os.OS_QUANTIDADE,
+                        ES_VALOR: os.OS_VALOR,
+                    })
+                });
+            }
             setListaEmpreitadas(old => [...old, { 
                 EMP_CODIGO: 0, 
                 EMP_ORD: ordemServico.ORD_CODIGO, 
@@ -55,43 +71,36 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                 EMP_FOR: cliForSelecionado!.CODIGO, 
                 LRC_FAT2: 0, 
                 EMP_VALOR: 0,
+                ITENS: listaServicos,
             }])
-            if (ordemServico.itensOrdSer.length > 0){
-                ordemServico.itensOrdSer.map(os=> {
-                    setListaServicosEmpreitadas(old => [...old, {
-                        ES_CODIGO: 0,
-                        DESCRICAO: os.OS_NOME,
-                        ES_EMP: 0,
-                        ES_PRAZO_CONCLUSAO: new Date(),
-                        ES_QUANTIDADE: os.OS_QUANTIDADE,
-                        ES_UNIDADE: os.OS_UNIDADE_MED,
-                        VLR_UNIT: os.OS_VALOR / os.OS_QUANTIDADE,
-                        ES_VALOR: os.OS_VALOR,
-                    }])
-                });
-            }
         }        
     }, [cliForSelecionado])
 
     const buscaEmpreitadas = async () => {
         try {
             const repository = new EmpreitadasRepository();
-            const data = await repository.buscaEmpreitadas(ordemServico.ORD_CODIGO);
-            if(data != undefined && data.EMP_CODIGO > 0){
-                setListaEmpreitadas([data]);
-                buscaServicosEmpreitadas(data.EMP_CODIGO);
+            setListaEmpreitadas([]);
+            const response = await repository.buscaEmpreitadas(ordemServico.ORD_CODIGO);
+            if (response.length > 0){
+                response.forEach(async emp => {
+                    const servicos = await buscaServicosEmpreitadas(emp.EMP_CODIGO);
+                    emp.ITENS = servicos!;                    
+                    setListaEmpreitadas(old => [...old, emp]);
+                });
             }
         } catch (error) {
             toastMixin.fire('Erro', 'Erro ao buscar empreitadas', 'error');
         }
     }
 
-    const buscaServicosEmpreitadas = async (codEmpreitada: number) => {
+    async function buscaServicosEmpreitadas(codEmpreitada: number){
         try {
             if (codEmpreitada > 0){
                 const repository = new EmpreitadasRepository();
                 const data = await repository.buscaServicosEmpreitadas(codEmpreitada);
-                setListaServicosEmpreitadas([...data])
+                return data;
+            }else{
+                return [];
             }
         } catch (error) {
             toastMixin.fire('Erro', 'Erro ao buscar Servicos empreitadas', 'error');
@@ -113,13 +122,13 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                 ES_CODIGO: await GeraCodigo('EMPREITADAS_SERVICOS', 'ES_CODIGO'),
                 DESCRICAO: descricaoServico,
                 ES_EMP: 0,
-                ES_PRAZO_CONCLUSAO: new Date(),
+                ES_PRAZO_CONCLUSAO: new Date().toLocaleDateString(),
                 ES_QUANTIDADE: quantServico,
                 ES_UNIDADE: unidadeMedServico,
                 VLR_UNIT: valorServico / quantServico,
                 ES_VALOR: valorServico,
             };    
-            setListaServicosEmpreitadas(old => [...old, servico])
+            listaEmpreitadas[indiceEmpreitada].ITENS.push(servico)
             setShowModalServicos(false)
         }
     
@@ -183,20 +192,20 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
 
     const faturamentoEmpreitada = async ()=>{          
         if (listaEmpreitadas.length > 0){
-            const empreitada = listaEmpreitadas[0];
+            const empreitada = listaEmpreitadas[indiceEmpreitada];
             if(empreitada.LRC_FAT2! > 0){
-                toastMixin.fire('Esta empreitada já foi faturada!')
+                toastMixin.fire('Esta empreitada já foi faturada!', 'Atenção', 'info')
                 return;
             }
         }      
-        if(listaServicosEmpreitadas.length > 0){
-            const valor = listaServicosEmpreitadas.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2);
+        if(listaEmpreitadas[indiceEmpreitada].ITENS.length > 0){
+            const valor = listaEmpreitadas[indiceEmpreitada].ITENS.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2);
             if (valor === 0){
                 toastMixin.fire('Nenhum valor a faturar!')
                 return;
             }
             //atualiza o valor
-            listaEmpreitadas[0].EMP_VALOR = valor;
+            listaEmpreitadas[indiceEmpreitada].EMP_VALOR = valor;
         }
        setShowFaturamento(true);
     }
@@ -212,10 +221,10 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
         const [obsEmpreitadas, setObsEmpreitadas] = useState('');
 
         const excluirServico = (id: number) => {
-            const idServico = listaServicosEmpreitadas.findIndex(e => e.ES_CODIGO === id);
-            const lista = Array.from(listaServicosEmpreitadas);
+            const idServico = listaEmpreitadas[indiceEmpreitada].ITENS!.findIndex(e => e.ES_CODIGO === id);
+            const lista = Array.from(listaEmpreitadas[indiceEmpreitada].ITENS!);
             lista.splice(idServico, 1);
-            setListaServicosEmpreitadas(lista);
+            listaEmpreitadas[indiceEmpreitada].ITENS = [...lista];
         }
 
         const excluirEmpreitada = (id: number) => {
@@ -225,7 +234,7 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
             setListaEmpreitadas(lista);
         }
     
-        return (
+        return (   
             <div>
                 <div>
                     <div className="shadow-md my-4">
@@ -239,8 +248,8 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                                 </tr>
                             </thead>
                             <tbody className="flex-1 sm:flex-none">
-                                {listaEmpreitadas.map((item) =>
-                                    <tr key={item.EMP_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                {listaEmpreitadas.length > 0 && listaEmpreitadas.map((item, index) =>
+                                    <tr key={item.EMP_CODIGO} onClick={e=> setIndiceEmpreitada(index)} className={`flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0 ${index === indiceEmpreitada ? 'bg-amber-500' : ''}`}>
                                         <td className="p-3 text-left w-full">{item.FOR_NOME}</td>
                                         <td className="p-3 text-left">{item.LRC_FAT2}</td>
                                         <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
@@ -285,7 +294,7 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                                             <th className="p-3 text-left">Prazo Conclusão</th>
                                             <th className="p-3 text-left">Ação</th>
                                         </tr>)
-                                        : listaServicosEmpreitadas.map(item =>
+                                        : listaEmpreitadas.length > 0 && listaEmpreitadas[indiceEmpreitada].ITENS.map(item =>
                                             <tr key={item.ES_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
                                                 <th className="p-3 text-left">Descrição</th>
                                                 <th className="p-3 text-left">Quant</th>
@@ -298,14 +307,14 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                                     }
                                 </thead>
                                 <tbody className="flex-1 sm:flex-none">
-                                    {listaServicosEmpreitadas.map((item) =>
+                                    {listaEmpreitadas.length > 0 && listaEmpreitadas[indiceEmpreitada].ITENS.map((item) =>
                                         <tr key={item.ES_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
                                             <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{item.DESCRICAO}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_QUANTIDADE}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_UNIDADE}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ES_VALOR ?? 0 / (item.ES_QUANTIDADE ?? 1))}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ES_VALOR ?? 0)}</td>
-                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_PRAZO_CONCLUSAO != null ? item.ES_PRAZO_CONCLUSAO?.toLocaleDateString() : ''}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_PRAZO_CONCLUSAO != null ? new Date(item.ES_PRAZO_CONCLUSAO!).toLocaleDateString() : ''}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
                                                 <button
                                                     className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
@@ -385,18 +394,18 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                             PF_VALORB: 0,
                             PF_VALORPG: 0,                        
                         }}
-                        model={listaEmpreitadas}
-                        itens={listaServicosEmpreitadas}
+                        model={listaEmpreitadas[indiceEmpreitada]}
+                        itens={listaEmpreitadas.length > 0 && listaEmpreitadas[indiceEmpreitada].ITENS}
                         cliFor={cliForSelecionado}
                         setShowModal={setShowFaturamento}
                         setFaturado={setFoiFaturado}
-                        valorTotal={listaServicosEmpreitadas.length > 0 ? listaServicosEmpreitadas.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2) : 0} />}
+                        valorTotal={listaEmpreitadas.length > 0 && listaEmpreitadas[indiceEmpreitada].ITENS.length > 0 ? listaEmpreitadas[indiceEmpreitada].ITENS.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2) : 0} />}
                 />}
             </div>
         );
     }
 
-    return (
+    return (        
         <Modal showModal={showModalEmpreitadas} setShowModal={setShowModalEmpreitadas}
             title="Empreitadas"
             showButtonExit={false}

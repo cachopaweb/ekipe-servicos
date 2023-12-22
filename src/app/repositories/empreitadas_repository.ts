@@ -1,9 +1,10 @@
-import { FormatDate } from "../functions/utils";
+import { FormatDate, GeraCodigo } from "../functions/utils";
+import EmpreitadasServicosModel from "../models/empreitada_servicos_model";
 import EmpreitadasModel from "../models/empreitadas_model";
 import api from "../services/api";
 
 export default class EmpreitadasRepository{
-    async buscaEmpreitadas(codigo: number): Promise<EmpreitadasModel>{
+    async buscaEmpreitadas(codigo: number): Promise<EmpreitadasModel[]>{
         const obj = {
             'sql': 
                 `SELECT EMP_CODIGO, EMP_FOR, FOR_NOME, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, LRC_FAT2 
@@ -13,7 +14,7 @@ export default class EmpreitadasRepository{
         }
         try {
             const response = await api.post('/dataset', obj)
-            return response.data as EmpreitadasModel;
+            return response.data as EmpreitadasModel[];
         } catch (e) {
             throw new Error('Erro ao buscar Empreitadas.'+String(e))
         }
@@ -42,7 +43,7 @@ export default class EmpreitadasRepository{
         try {                     
             const response = await api.post('/dataset', {
                 'sql': `UPDATE OR INSERT INTO EMPREITADAS (EMP_CODIGO, EMP_ORD, EMP_FOR, EMP_FAT, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, EMP_NFS)
-                VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR}, ${empreitada.LRC_FAT2 ?? 0}, '${empreitada.EMP_OBS ?? ''}', 
+                VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR-1000000}, ${empreitada.EMP_FAT ?? 0}, '${empreitada.EMP_OBS ?? ''}', 
                 '${empreitada.EMP_LOCAL_EXECUCAO_SERVICOS ?? ''}', '${empreitada.EMP_NFS ?? ''}')
                 MATCHING (EMP_CODIGO)`
             })
@@ -58,9 +59,10 @@ export default class EmpreitadasRepository{
             for (const servico in servicos) {
                 if (Object.prototype.hasOwnProperty.call(servicos, servico)) {
                     const item = servicos[servico];
+                    item.ES_CODIGO = await GeraCodigo('EMPREITADAS_SERVICOS', 'ES_CODIGO');
                     const response = await api.post('/dataset', {
                         'sql': `UPDATE OR INSERT INTO EMPREITADAS_SERVICOS (ES_CODIGO, ES_EMP, ES_DESCRICAO, ES_VALOR, ES_PRAZO_CONCLUSAO, ES_QUANTIDADE, ES_UNIDADE)
-                        VALUES (${item.ES_CODIGO}, ${item.ES_EMP}, '${item.DESCRICAO}', ${item.ES_VALOR}, '${FormatDate(item.ES_PRAZO_CONCLUSAO ?? new Date())}, ${item.ES_QUANTIDADE}, '${item.ES_UNIDADE ?? ''}')
+                        VALUES (${item.ES_CODIGO}, ${item.ES_EMP}, '${item.DESCRICAO}', ${item.ES_VALOR}, '${item.ES_PRAZO_CONCLUSAO != null ? FormatDate(item.ES_PRAZO_CONCLUSAO) : null}', ${item.ES_QUANTIDADE}, '${item.ES_UNIDADE ?? ''}')
                         MATCHING (ES_CODIGO)`
                     })
                     result = response.status === 200; 

@@ -14,9 +14,11 @@ import CaixaModel from "@/app/models/caixa_model";
 import CaixaRepository from "@/app/repositories/caixa_repository";
 import MovimentacoesRepository from "@/app/repositories/movimentacoes_repository";
 import PagPgmRepository from "@/app/repositories/pag_pgm_repository";
+import EmpreitadasServicosModel from "@/app/models/empreitada_servicos_model";
 
 export default class OperacaoEmpreitadas implements OperacoesStrategy{
     codFatura = 0;
+    codOperacao = 0;
     caixaModel: CaixaModel | undefined;
     nomeCliente: string = '';
 
@@ -43,39 +45,35 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
     }
 
     insereItens2(model?: Object | undefined): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return Promise.resolve(true);
     }    
     async insereOperacao(model: Object): Promise<boolean> {
         try {
             let result = false;
             const repositoryEmpreitadas = new EmpreitadasRepository();
             const repositoryLancamentoReceitaCusto = new LancamentoReceitaCustoRepository();
-            const empreitadas = model as EmpreitadasModel[];
-            for (const emp in empreitadas) {
-                if (Object.prototype.hasOwnProperty.call(empreitadas, emp)) {
-                    const empreitada = empreitadas[emp];  
-                    if (empreitada.EMP_CODIGO === 0){
-                        empreitada.EMP_CODIGO = await GeraCodigo('EMPREITADAS', 'EMP_CODIGO');
-                    } 
-                    await repositoryEmpreitadas.insereEmpreitada(empreitada);            
-                    ////                                
-                    const codLancamento = await GeraCodigo('LANCAMENTO_REC_CUS', 'LRC_CODIGO');
-                    result = await repositoryLancamentoReceitaCusto.insereLancamento({
-                        LRC_CODIGO: codLancamento,
-                        LRC_CLI_FOR: empreitada.EMP_FOR,
-                        LRC_DATA: new Date().toLocaleDateString(),
-                        LRC_FAT: 0,
-                        LRC_FAT2: empreitada.LRC_FAT2!,
-                        LRC_FUN: 1,
-                        LRC_HISTORICO: `Empreitada da OS ${empreitada.EMP_ORD}`,
-                        LRC_OBS: `OS ${empreitada.EMP_ORD} + ' / NF ${empreitada.EMP_NFS}`,
-                        LRC_TIPO: '2',
-                        LRC_VALOR: empreitada.EMP_VALOR,
-                        LRC_DATAC: '01/01/1900'
-                    });
-                }
-            }
-            
+            const empreitada = model as EmpreitadasModel;
+            if (empreitada.EMP_CODIGO === 0){
+                empreitada.EMP_CODIGO = await GeraCodigo('EMPREITADAS', 'EMP_CODIGO');
+                this.codOperacao = empreitada.EMP_CODIGO;
+            } 
+            empreitada.EMP_FAT = this.codFatura;
+            await repositoryEmpreitadas.insereEmpreitada(empreitada);            
+            ////                                
+            const codLancamento = await GeraCodigo('LANCAMENTO_REC_CUS', 'LRC_CODIGO');
+            result = await repositoryLancamentoReceitaCusto.insereLancamento({
+                LRC_CODIGO: codLancamento,
+                LRC_CLI_FOR: empreitada.EMP_FOR,
+                LRC_DATA: new Date().toLocaleDateString(),
+                LRC_FAT: 0,
+                LRC_FAT2: this.codFatura,
+                LRC_FUN: 1,
+                LRC_HISTORICO: `Empreitada da OS ${empreitada.EMP_ORD}`,
+                LRC_OBS: empreitada.EMP_NFS != undefined ? `OS ${empreitada.EMP_ORD} / NF ${empreitada.EMP_NFS}`: `OS ${empreitada.EMP_ORD}`,
+                LRC_TIPO: 'C',
+                LRC_VALOR: empreitada.EMP_VALOR,
+                LRC_DATAC: '01/01/1900'
+            });            
             return result;
         } catch (error) {
             throw new Error('Erro ao inserir empreitadas.\n'+String(error))            
@@ -86,8 +84,12 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
     async insereItens(model: Object): Promise<boolean> {
         try {
             const servicosEmpreitada = model as EmpreitadasServicosModel[]; 
+            const servicos = servicosEmpreitada.map(s=> {
+                s.ES_EMP = s.ES_EMP = this.codOperacao;
+                return s;
+            });
             const repository = new EmpreitadasRepository();
-            const response = await repository.insereServicosEmpreitada(servicosEmpreitada);
+            const response = await repository.insereServicosEmpreitada(servicos);
             return response;
         } catch (error) {
             throw new Error('Erro ao inserir itens.\n'+String(error))            
@@ -102,7 +104,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
             const repositoryFaturamento = new Faturamento2Repository()
             const result = await repositoryFaturamento.insereFaturamento2({
                 FAT2_CODIGO: this.codFatura,
-                FAT2_COD_FDTF: model.PF_COD_CLI,
+                FAT2_COD_FDTF: model.PF_COD_CLI-1000000,
                 FAT2_DATA: new Date().toLocaleDateString(),
                 FAT2_DESCRICAO: model.PF_COD_PED,
                 FAT2_JUROS: 0,
@@ -113,7 +115,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
             });
             return result;         
         } catch (error) {
-            throw new Error('Erro ao inserir itens.\n'+String(error))            
+            throw new Error('Erro ao inserir PedFat.\n'+String(error))            
         }  
     }
 
@@ -197,7 +199,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
             }         
             return result;
         } catch (error) {
-            throw new Error('Erro ao inserir itens.\n'+String(error))            
+            throw new Error('Erro ao inserir PFParcelas.\n'+String(error))            
         }  
     }  
 }

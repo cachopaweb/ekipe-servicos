@@ -28,18 +28,13 @@ export default function Modal({ showModal, setShowModal, title, body, edtSearch,
 
   },[])
 
-  const keyDownEsc = (e: keyBoardDivEvent) =>
-  {
-  
-    setShowModal(false)
-  }  
+
 
   return (
     <>
       {showModal ? (
         <>
           <div 
-            // onKeyDown={keyDownEsc}
             className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"            
           >
             <div className="relative my-6 mx-2">

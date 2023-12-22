@@ -7,4 +7,5 @@ export default interface EmpreitadasServicosModel {
   ES_QUANTIDADE?: number;
   VLR_UNIT?: number;
   ES_UNIDADE?: string;
+  ITENS?: EmpreitadasServicosModel[];
 }

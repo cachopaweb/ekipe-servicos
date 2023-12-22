@@ -12,6 +12,8 @@ import EmpreitadasServicosModel from "../../models/empreitada_servicos_model";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import EmpreitadasRepository from "@/app/repositories/empreitadas_repository";
+import PrintEmpreitadas from '../../print/empreitadas/page';
+import { useAppData } from "@/app/contexts/app_context";
 
 interface empreitadasProps {
     showModalEmpreitadas: boolean;
@@ -29,6 +31,10 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
     const [foiFaturado, setFoiFaturado] = useState(false);
     const [indiceEmpreitada, setIndiceEmpreitada] = useState(0);
  
+    const [showModalimprimirEmpreitadas, setShowModalImprimirEmpreitadas] = useState(false);
+    const { setEmpreitadaCtx } = useAppData();
+
+
     const carregaUnidadesMed = async () => {
         try {
             const repository = new UnidadeMedidaRepository();
@@ -39,6 +45,25 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
         }
     }
 
+    function imprimeEmpreitada() {
+        if(listaEmpreitadas != null)
+        {
+            //setEmpreitadaCtx(listaEmpreitadas!);
+            setShowModalImprimirEmpreitadas(true);
+        }
+    }
+
+    const ModalImprimir = ()=>{
+        return (
+            <Modal showModal={showModalimprimirEmpreitadas} setShowModal={setShowModalImprimirEmpreitadas}
+                title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
+                showButtonExit={false}
+                body={
+                    <PrintEmpreitadas />
+                }
+            />
+        );
+    }
     useEffect(() => {
         carregaUnidadesMed()
     }, [])
@@ -139,6 +164,7 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
         }, [valorUnitarioServico, quantServico])
 
         return (
+            <div>
             <Modal showModal={showModalServicos} setShowModal={setShowModalServicos}
                 title="Insere serviços empreitada"
                 showButtonExit={false}
@@ -186,7 +212,10 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                         </div>
                     </div>
                 }
+                
             />
+            {showModalimprimirEmpreitadas && <ModalImprimir />}
+            </div>
         );
     }
 
@@ -365,7 +394,9 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                 }
                 <div className="flex gap-2 p-2">
                     <button onClick={faturamentoEmpreitada} className="p-0 w-32 h-12 text-white text-bold bg-black rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Faturar</button>
-                    <button className="p-0 w-32 h-12 text-white text-bold bg-black rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Imprimir</button>
+                    <button className="p-0 w-32 h-12 text-white text-bold bg-black rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                    onClick={imprimeEmpreitada}
+                    >Imprimir</button>
                 </div>
                 {showFaturamento && <Modal
                     title="Faturamento Empreitadas"

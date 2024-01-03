@@ -14,7 +14,13 @@ export default class EmpreitadasRepository{
         }
         try {
             const response = await api.post('/dataset', obj)
-            return response.data as EmpreitadasModel[];
+            let data = [];
+            if(response.data instanceof Array){
+                data = response.data;
+            }else{
+                data = [response.data]
+            }
+            return data as EmpreitadasModel[];
         } catch (e) {
             throw new Error('Erro ao buscar Empreitadas.'+String(e))
         }

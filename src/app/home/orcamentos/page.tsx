@@ -748,9 +748,8 @@ export default function Orcamentos() {
                         onClick={e => setShowModalEmpreitadas(true)}
                     >
                         <i className="fas fa-hand-holding-usd"></i>
-                        <span>Empreitadas</span>
+                        <span>Empreitadas</span>                        
                     </button>
-                    {showModalEmpreitadas && <Empreitadas ordemServico={ordem!} showModalEmpreitadas setShowModalEmpreitadas={setShowModalEmpreitadas} />}
                     <button
                         className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
                         onClick={e => setShowModalListaArquivos(true)}
@@ -758,14 +757,13 @@ export default function Orcamentos() {
                         <i className="fas fa-exchange-alt"></i>
                         <span>Listar Arquivos</span>
                     </button>
-                    {showModalListaArquivos && <ModalListarArquivos />}
                     <button
                         className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
                         onClick={e => imprimeOrcamento()}
                     >
                         <i className="fas fa-print"></i>
                         <span>Imprimir</span>
-                    </button>                    
+                    </button>                                         
                 </div>
             </>
         );
@@ -801,7 +799,7 @@ export default function Orcamentos() {
                     </div>
                     <div>
                         <button onClick={faturamentoOS} disabled={(codFatura > 0) || codigoOrdem === 0} className={`p-0 w-32 h-12 text-white text-bold ${(codFatura > 0) || codigoOrdem === 0 ? 'bg-gray-400' : 'bg-black'} rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}>Faturar</button>
-                    </div>
+                    </div>                    
                 </div>
             </>
         );
@@ -888,7 +886,7 @@ export default function Orcamentos() {
                     </div>
                     <div className="sm:flex gap-2 h-82 p-2">
                         <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
-                            <Atalhos />
+                            <Atalhos />                            
                         </div>
                         <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
                             <Totalizador />
@@ -942,6 +940,15 @@ export default function Orcamentos() {
                     valorTotal={totalProdutos() + totalServicos()} />}
             />}
             {showModalimprimir && <ModalImprimir />}
+            {showModalEmpreitadas && 
+            <Modal showModal={showModalEmpreitadas} setShowModal={setShowModalEmpreitadas}
+                title="Empreitadas"
+                showButtonExit={false}
+                body={
+                    <Empreitadas ordemServico={ordem!} />
+                }
+            />}
+            {showModalListaArquivos && <ModalListarArquivos />}                               
         </div >
     );
 }

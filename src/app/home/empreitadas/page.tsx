@@ -165,56 +165,54 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
 
         return (
             <div>
-            <Modal showModal={showModalServicos} setShowModal={setShowModalServicos}
-                title="Insere serviços empreitada"
-                showButtonExit={false}
-                body={
-                    <div className="bg-white rounded-lg shadow-md my-4 h-3/4 w-full">
-                        <div className="w-full p-2 sm:flex sm:justify-between">
-                            <div>
-                                <div className="sm:flex">
-                                    <div className="flex flex-col p-1">
-                                        <label htmlFor="descricao">Descrição</label>
-                                        <input autoFocus placeholder="Informe a descrição" id="servicoDescricaoId" value={descricaoServico} onChange={(e) => setDescricaoServico(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-56" type="text" />
-                                    </div>
-                                    <div className="flex flex-col p-1">
-                                        <label htmlFor="fatura">Quant.</label>
-                                        <input value={quantServico} onChange={e => setQuantServico(parseFloat(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
-                                    </div>
-                                    <div className="flex flex-col p-2">
-                                        <label htmlFor="unidade">UM</label>
-                                        <select value={unidadeMedServico} onChange={(e) => setUnidadeMedServico(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
-                                            {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="flex flex-col p-1">
-                                        <label htmlFor="fatura">Valor Unit.</label>
-                                        <input value={valorUnitarioServico} onChange={e => setValorUnitarioServico(parseFloat(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
-                                    </div>
-                                    <div className="flex flex-col p-1">
-                                        <label htmlFor="fatura">Valor Total</label>
-                                        <input value={valorServico} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
-                                    </div>
-                                    <div className="flex flex-col p-1">
-                                        <label htmlFor="fatura">Prazo Conclusão</label>
-                                        <input className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
+                <Modal showModal={showModalServicos} setShowModal={setShowModalServicos}
+                    title="Insere serviços empreitada"
+                    showButtonExit={false}
+                    body={
+                        <div className="bg-white rounded-lg shadow-md my-4 h-3/4 w-full">
+                            <div className="w-full p-2 sm:flex sm:justify-between">
+                                <div>
+                                    <div className="sm:flex">
+                                        <div className="flex flex-col p-1">
+                                            <label htmlFor="descricao">Descrição</label>
+                                            <input autoFocus placeholder="Informe a descrição" id="servicoDescricaoId" value={descricaoServico} onChange={(e) => setDescricaoServico(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-56" type="text" />
+                                        </div>
+                                        <div className="flex flex-col p-1">
+                                            <label htmlFor="fatura">Quant.</label>
+                                            <input value={quantServico} onChange={e => setQuantServico(parseFloat(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
+                                        </div>
+                                        <div className="flex flex-col p-2">
+                                            <label htmlFor="unidade">UM</label>
+                                            <select value={unidadeMedServico} onChange={(e) => setUnidadeMedServico(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
+                                                {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="flex flex-col p-1">
+                                            <label htmlFor="fatura">Valor Unit.</label>
+                                            <input value={valorUnitarioServico} onChange={e => setValorUnitarioServico(parseFloat(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
+                                        </div>
+                                        <div className="flex flex-col p-1">
+                                            <label htmlFor="fatura">Valor Total</label>
+                                            <input value={valorServico} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
+                                        </div>
+                                        <div className="flex flex-col p-1">
+                                            <label htmlFor="fatura">Prazo Conclusão</label>
+                                            <input className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36" type="text" />
+                                        </div>
                                     </div>
                                 </div>
+                                <button
+                                    className="bg-green-500 text-white active:bg-green-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                                    type="button"
+                                    onClick={salvarServicos}
+                                >
+                                    <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
+                                    Salvar
+                                </button>
                             </div>
-                            <button
-                                className="bg-green-500 text-white active:bg-green-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                                type="button"
-                                onClick={salvarServicos}
-                            >
-                                <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
-                                Salvar
-                            </button>
                         </div>
-                    </div>
-                }
-                
-            />
-            {showModalimprimirEmpreitadas && <ModalImprimir />}
+                    }                    
+                />    
             </div>
         );
     }
@@ -432,6 +430,7 @@ export default function Empreitadas({ showModalEmpreitadas, setShowModalEmpreita
                         setFaturado={setFoiFaturado}
                         valorTotal={listaEmpreitadas.length > 0 && listaEmpreitadas[indiceEmpreitada].ITENS.length > 0 ? listaEmpreitadas[indiceEmpreitada].ITENS.map(e=> e.ES_VALOR!).reduce((item1, item2)=> item1+item2) : 0} />}
                 />}
+                {showModalimprimirEmpreitadas && <ModalImprimir />}                
             </div>
         );
     }

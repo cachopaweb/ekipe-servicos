@@ -5,6 +5,10 @@ export default interface CliForModel {
   FONE?: string;
   CELULAR?: any;
   ENDERECO?: string;
+  NUMERO?: string;
+  BAIRRO?: string;
+  CIDADE?: string;
+  UF?: string;
   INSC_ESTADUAL?: string;
   RAZAO_SOCIAL?: any;
 }

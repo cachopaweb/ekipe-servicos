@@ -1,3 +1,4 @@
+import CliForModel from "./cli_for_model";
 import EmpreitadasServicosModel from "./empreitada_servicos_model";
 
 export default interface EmpreitadasModel {
@@ -12,4 +13,5 @@ export default interface EmpreitadasModel {
   EMP_NFS?: number;
   EMP_VALOR: number;
   ITENS: EmpreitadasServicosModel[];
+  FORNECEDOR?: CliForModel;
 }

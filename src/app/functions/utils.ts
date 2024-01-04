@@ -52,8 +52,12 @@ function FormatDate(data: Date | string): string{
     }
 }
 
-function formatCurrency(value:number)
+function formatCurrency(value?:number)
 {
+    if(value == null)
+    {
+        return (Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(0));
+    }
     return (Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(value));
 }
 

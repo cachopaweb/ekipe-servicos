@@ -14,6 +14,8 @@ import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useS
 import EmpreitadasRepository from "@/app/repositories/empreitadas_repository";
 import PrintEmpreitadas from '../../print/empreitadas/page';
 import { useAppData } from "@/app/contexts/app_context";
+import getCliFor from '../../repositories/cli_for_repository';
+import CliForRepository from "../../repositories/cli_for_repository";
 
 interface empreitadasProps {
     ordemServico: OrdemModel;
@@ -55,7 +57,8 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
 
     function imprimeEmpreitada() {
         if (listaEmpreitadas != null) {
-            //setEmpreitadaCtx(listaEmpreitadas!);
+
+            setEmpreitadaCtx(listaEmpreitadas[indiceEmpreitada]!);
             setShowModalImprimirEmpreitadas(true);
         }
     }
@@ -64,13 +67,16 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
         buscaEmpreitadas()
     }, [foiFaturado])
 
-    const cacheEmpreitadas = useCallback(async () => {        
+    const cacheEmpreitadas = useCallback(async () => {
+     
         const repository = new EmpreitadasRepository();
+        const repositoryCliFor = new CliForRepository();
         const response = await repository.buscaEmpreitadas(ordemServico.ORD_CODIGO);
         for(var i = 0; i <= response.length; i++){
             if (response[i]){
                 const servicos = await buscaServicosEmpreitadas(response[i].EMP_CODIGO);
                 response[i].ITENS = servicos!;
+                response[i].FORNECEDOR = await repositoryCliFor.getCliFor(response[i].EMP_FOR + 2000000);
             }
         }        
         return response;
@@ -119,6 +125,7 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
                 LRC_FAT2: 0,
                 EMP_VALOR: 0,
                 ITENS: listaServicos,
+                FORNECEDOR: cliForSelecionado
             }])
         }
     }, [cliForSelecionado])

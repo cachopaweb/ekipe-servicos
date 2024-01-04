@@ -22,13 +22,13 @@ const PrintEmpreitadas = () => {
 
     useEffect(() => {
         setCarregando(true);
-        var somaProd = 0;
-        var somaServ = 0;
+        console.log('Empreitada');
         console.log(EmpreitadaCtx);
 
         toastMixin.fire({
             title: 'Aperte no botão a baixo imprimir!'
         });
+        setCarregando(false);
     }, [])
 
     return (
@@ -40,75 +40,87 @@ const PrintEmpreitadas = () => {
                     <Image className='p-10' src={logo} height={80} alt="Logo" />
                     <div className='divide-solid divide-y divide-black'>
                         <h1 className='text-center text-2xl font-bold'>{titulo}</h1>
-                        <div>
+                        <div className='box-border border'>
                             <div className='grid grid-cols-2'>
                                 <div className='grid grid-rows-2'>
                                     <div className='grid grid-cols-2 '>
-                                        <h1 className='font-bold my-0 text-sm'>Data</h1>
-                                        <h1 className='font-bold pr-10 my-0 text-sm'>Nome do Cliente</h1>
+                                        <h1 className='font-bold my-0 text-sm'>Empresa/Parceiro</h1>
                                     </div>
                                     <div className='grid grid-cols-2'>
-                                        <span className='truncate text-xs'>01/01/2023</span>
-                                        <span className='pr-10 truncate text-xs	'>Nome do Cliente</span>
+                                        <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.NOME}</span>
                                     </div>
                                 </div>
                                 <div className='grid grid-rows-2'>
                                     <div className='grid grid-cols-2'>
                                         <h1 className='font-bold my-0 text-sm'>CNPJ/CPF</h1>
-                                        <h1 className='font-bold my-0 text-sm'>Núm. Controle</h1>
+                                        <h1 className='font-bold my-0 text-sm'>Nº Controle</h1>
                                     </div>
                                     <div className='grid grid-cols-2'>
-                                        <span className='truncate text-xs'>123.456.789-99</span>
-                                        <span className='truncate text-xs'>123</span>
+                                        <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.CPF_CNPJ}</span>
+                                        <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.CODIGO}</span>
                                     </div>
                                 </div>
                             </div>
-                            <div className='grid grid-cols-5'>
+                            <div className='grid grid-cols-3'>
                                 <div className='grid grid-rows-2'>
-                                    <h1 className='font-bold my-0 text-sm'>Endereço</h1>
-                                    <span className='truncate text-xs'>Rua</span>
-                                </div>
-                                <div className='grid grid-rows-2'>
-                                    <h1 className='font-bold my-0 text-sm'>Número</h1>
-                                    <span className='truncate text-xs'>123</span>
-                                </div>
-                                <div className='grid grid-rows-2'>
-                                    <h1 className='font-bold my-0 text-sm'>Bairro</h1>
-                                    <span className='truncate text-xs'>Centro</span>
-                                </div>
-                                <div className='grid grid-rows-2'>
-                                    <h1 className='font-bold my-0 text-sm'>Cidade</h1>
-                                    <span className='truncate text-xs'>Fátima do Sul/MS</span>
+                                    <h1 className='font-bold my-0 text-sm'>Razão Social</h1>
+                                    <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.RAZAO_SOCIAL}</span>
                                 </div>
                                 <div className='grid grid-rows-2'>
                                     <h1 className='font-bold my-0 text-sm'>Telefone</h1>
-                                    <span className='truncate text-xs'>(67) 9999-8888</span>
+                                    <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.FONE}</span>
+                                </div>
+                                <div className='grid grid-rows-2'>
+                                    <h1 className='font-bold my-0 text-sm'>Contato</h1>
+                                    <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.CELULAR}</span>
                                 </div>
                             </div>
-                            <div>
-                                <h1 className='font-bold my-0 text-sm'>Solicitação</h1>
-                                <span className='truncate text-xs'>Solicitação</span>
+                            <div className='grid grid-cols-4'>
+                                <div className='grid grid-rows-2'>
+                                    <h1 className='font-bold my-0 text-sm'>Endereço</h1>
+                                    <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.ENDERECO}</span>
+                                </div>
+                                <div className='grid grid-rows-2'>
+                                    <h1 className='font-bold my-0 text-sm'>Bairro</h1>
+                                    <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.BAIRRO}</span>
+                                </div>
+                                <div className='grid grid-rows-2'>
+                                    <h1 className='font-bold my-0 text-sm'>Cidade</h1>
+                                    <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.CIDADE + '/' + EmpreitadaCtx!.FORNECEDOR!.UF}</span>
+                                </div>
                             </div>
                         </div>
                         <div>
                             <table className='w-full' >
                                 <thead>
                                     <tr className='grid grid-cols-8'>
-                                        <th className='col-span-4 text-start text-sm'>Produto</th>
-                                        <th className='text-start text-sm'>UND</th>
+                                        <th className='text-start text-sm'>Item</th>
                                         <th className='text-start text-sm'>Quant.</th>
+                                        <th className='text-start text-sm'>UND</th>
+                                        <th className='col-span-3 text-start text-sm'>Descrição</th>
                                         <th className='text-start text-sm'>Valor Unit.</th>
-                                        <th className='text-start text-sm'>Valor</th>
+                                        <th className='text-start text-sm'>Valor Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <div className='divide-solid divide-y divide-slate-500'>
                                         <div className='divide-slate-500 divide-dashed divide-y'>
+                                        {EmpreitadaCtx!.ITENS.map((item) =>
+                                                <tr className='grid grid-cols-8 ' key={item.ES_CODIGO}>
+                                                    <td className='text-start text-xs'>{item.ES_CODIGO}</td>
+                                                    <td className='text-start text-xs'>{item.ES_QUANTIDADE}</td>
+                                                    <td className='text-start text-xs'>{item.ES_UNIDADE}</td>
+                                                    <td className='col-span-3 text-start text-xs'><p className='text-balance'>{item.DESCRICAO}</p></td>
+                                                    <td className='text-start text-xs'>{formatCurrency(item.ES_VALOR! / item.ES_QUANTIDADE!)}</td>
+                                                    <td className='text-start text-xs'>{formatCurrency(item.ES_VALOR)}</td>
+
+                                                </tr>
+                                            )}
 
                                         </div>
                                         <tr className='grid grid-cols-8'>
                                             <td className='col-span-6 text-end text-sm'>Total Produtos:</td>
-                                            <td className='text-sm text-end'> {formatCurrency(somaProdutos)}</td>
+                                            <td className='text-sm text-end'> {formatCurrency(EmpreitadaCtx.EMP_VALOR)}</td>
                                         </tr>
                                     </div>
 

@@ -54,9 +54,10 @@ function FormatDate(data: Date | string): string{
 
 function formatCurrency(value?:number)
 {
-    if(value == null)
+
+    if((value == null) || (Number.isNaN(value)))
     {
-        return (Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(0));
+        return '';
     }
     return (Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(value));
 }

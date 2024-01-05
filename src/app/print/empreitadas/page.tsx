@@ -11,8 +11,7 @@ const PrintEmpreitadas = () => {
     const componentRef = useRef<HTMLDivElement>(null);
 
     const { EmpreitadaCtx } = useAppData()
-    const [somaProdutos, setSomaProdutos] = useState(0);
-    const [somaServicos, setSomaServicos] = useState(0);
+    const [somaItens, setSomaItens] = useState(0);
     const [carregando, setCarregando] = useState(true);
     const [titulo, setTitulo] = useState('Orçamento');
 
@@ -22,9 +21,14 @@ const PrintEmpreitadas = () => {
 
     useEffect(() => {
         setCarregando(true);
-        console.log('Empreitada');
-        console.log(EmpreitadaCtx);
+        var soma = 0;
+        EmpreitadaCtx.ITENS.forEach((item) => {
+            if (item.ES_VALOR && item.ES_QUANTIDADE) {
+                soma = item.ES_VALOR * item.ES_QUANTIDADE;
+            }
 
+        })
+        setSomaItens(soma);
         toastMixin.fire({
             title: 'Aperte no botão a baixo imprimir!'
         });
@@ -35,8 +39,8 @@ const PrintEmpreitadas = () => {
         carregando ?
             <h1>Aguarde, carregando dados...</h1>
             :
-            <div className='p-3 relative' ref={componentRef}>
-                <div >
+            <div className='p-6 relative' ref={componentRef}>
+                <div>
                     <Image className='p-10' src={logo} height={80} alt="Logo" />
                     <div className='divide-solid divide-y divide-black'>
                         <h1 className='text-center text-2xl font-bold'>{titulo}</h1>
@@ -105,7 +109,7 @@ const PrintEmpreitadas = () => {
                                 <tbody>
                                     <div className='divide-solid divide-y divide-slate-500'>
                                         <div className='divide-slate-500 divide-dashed divide-y'>
-                                        {EmpreitadaCtx!.ITENS.map((item) =>
+                                            {EmpreitadaCtx!.ITENS.map((item) =>
                                                 <tr className='grid grid-cols-8 ' key={item.ES_CODIGO}>
                                                     <td className='text-start text-xs'>{item.ES_CODIGO}</td>
                                                     <td className='text-start text-xs'>{item.ES_QUANTIDADE}</td>
@@ -119,8 +123,8 @@ const PrintEmpreitadas = () => {
 
                                         </div>
                                         <tr className='grid grid-cols-8'>
-                                            <td className='col-span-6 text-end text-sm'>Total Produtos:</td>
-                                            <td className='text-sm text-end'> {formatCurrency(EmpreitadaCtx.EMP_VALOR)}</td>
+                                            <td className='col-span-6 text-end text-sm'>Total:</td>
+                                            <td className='text-sm text-end'> {formatCurrency(somaItens)}</td>
                                         </tr>
                                     </div>
 
@@ -129,47 +133,39 @@ const PrintEmpreitadas = () => {
                             </table>
                         </div>
                         <div>
-                            <table className='w-full' >
-                                <thead>
-                                    <tr className='grid grid-cols-8'>
-                                        <th className='col-span-4 text-start text-sm'>Serviço</th>
-                                        <th className='text-start text-sm'>UND</th>
-                                        <th className='text-start text-sm'>Quant.</th>
-                                        <th className='text-start text-sm'>Valor Unit.</th>
-                                        <th className='text-start text-sm'>Valor</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <div className='divide-solid divide-y divide-slate-500'>
-                                        <div className='divide-slate-500 divide-dashed divide-y'>
-
+                            <div className='box-border border-black border'>
+                                <div className='divide-solid divide-y divide-black'>
+                                    <div>
+                                        <span className='text-sm'>Aqui será colocado o Lugar de execução</span>
+                                    </div>
+                                    <div>
+                                        <p className='text-start text-xs font-bold'>OBS: O(A) Contratado(a) deverá possuir e utilizar e/ou fornecer aos seus funcionários e/ou colaboradores todo o Equipamento de
+                                            Proteção Individual, bem como certificações e/ou cursos/treinamentos exigíveis para a execução dos serviços, conforme Normas
+                                            de Segurança do Trabalho. Fica eleito o foro de Fátima do Sul-MS, para dirimir toda e qualquer dúvida oriunda desta Ordem de
+                                            Serviços, inclusive para cobrança dos honorários, com expressa renúncia a qualquer outro, por mais especial ou privilegiado que
+                                            seja, ou venha a ser
+                                        </p>
+                                    </div>
+                                    <div className='grid grid-rows-2'>
+                                        <div className='text-sm font-bold tracking-tighter text-end p-2'>
+                                        FÁTIMA DO SUL - MS, 22/12/2023.
                                         </div>
-                                        <tr className='grid grid-cols-8'>
-                                            <td className='col-span-6 text-end text-sm'>Total Serviços:</td>
-                                            <td className='text-sm text-end'> {formatCurrency(somaServicos)}</td>
-                                        </tr>
+                                        <div className='grid grid-cols-2 justify-items-center'>
+                                            <div className='text-center text-xs space-y-0 pb-14'>
+                                                <p>_________________________________________</p>
+                                                <p>{EmpreitadaCtx.FORNECEDOR?.NOME}</p>
+                                                <p>CNPJ: {EmpreitadaCtx.FORNECEDOR?.CPF_CNPJ}</p>
+                                            </div>
+                                            <div className='text-center text-xs space-y-0'>
+                                                <p>_________________________________________</p>
+                                                <p>ADM</p>
+                                                <p>comercial@ekipeservicos.com.br</p>
+                                                <p>(67) 99618-6079 - (67) 99618-6021</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div>
-                            <div className='grid grid-cols-8 font-bold'>
-                                <span className='text-sm'>Observação: </span>
-                                <span className='text-sm col-span-5 text-end'> Valor Total:</span>
-                                <span className='text-sm text-end'> 100,00</span>
-                            </div>
-                            <span className='text-start text-xs'>Observacao</span>
+                                </div>
 
-                            <div className='text-end pt-16 grid-rows-3'>
-                                <div>
-                                    <span className='font-bold text-xl' >Funcionario</span>
-                                </div>
-                                <div>
-                                    <span>comercial@ekipeservicos.com.br</span>
-                                </div>
-                                <div>
-                                    <span>(67) 99618-6079 - (67) 99618-6021</span>
-                                </div>
                             </div>
                         </div>
                     </div>

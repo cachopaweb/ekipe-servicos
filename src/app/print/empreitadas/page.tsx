@@ -5,7 +5,7 @@ import { useReactToPrint } from 'react-to-print';
 import logo from '../../../../assets/logo.png'
 import { useAppData } from '@/app/contexts/app_context';
 import { useEffect, useRef, useState } from 'react';
-import { converterDataFormato, formatCurrency, toastMixin } from '../../functions/utils'
+import { formatCurrency, toastMixin, DataHoje} from '../../functions/utils'
 
 const PrintEmpreitadas = () => {
     const componentRef = useRef<HTMLDivElement>(null);
@@ -61,7 +61,7 @@ const PrintEmpreitadas = () => {
                                     </div>
                                     <div className='grid grid-cols-2'>
                                         <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.CPF_CNPJ}</span>
-                                        <span className='truncate text-xs'>{EmpreitadaCtx!.FORNECEDOR!.CODIGO}</span>
+                                        <span className='truncate text-xs'>{EmpreitadaCtx!.EMP_CODIGO}</span>
                                     </div>
                                 </div>
                             </div>
@@ -136,7 +136,7 @@ const PrintEmpreitadas = () => {
                             <div className='box-border border-black border'>
                                 <div className='divide-solid divide-y divide-black'>
                                     <div>
-                                        <span className='text-sm'>Aqui será colocado o Lugar de execução</span>
+                                        <span className='text-sm'> Local de execução dos serviços: {EmpreitadaCtx.EMP_LOCAL_EXECUCAO_SERVICOS}</span>
                                     </div>
                                     <div>
                                         <p className='text-start text-xs font-bold'>OBS: O(A) Contratado(a) deverá possuir e utilizar e/ou fornecer aos seus funcionários e/ou colaboradores todo o Equipamento de
@@ -148,7 +148,7 @@ const PrintEmpreitadas = () => {
                                     </div>
                                     <div className='grid grid-rows-2'>
                                         <div className='text-sm font-bold tracking-tighter text-end p-2'>
-                                        FÁTIMA DO SUL - MS, 22/12/2023.
+                                        FÁTIMA DO SUL - MS, {''+DataHoje()}.
                                         </div>
                                         <div className='grid grid-cols-2 justify-items-center'>
                                             <div className='text-center text-xs space-y-0 pb-14'>
@@ -158,7 +158,6 @@ const PrintEmpreitadas = () => {
                                             </div>
                                             <div className='text-center text-xs space-y-0'>
                                                 <p>_________________________________________</p>
-                                                <p>ADM</p>
                                                 <p>comercial@ekipeservicos.com.br</p>
                                                 <p>(67) 99618-6079 - (67) 99618-6021</p>
                                             </div>

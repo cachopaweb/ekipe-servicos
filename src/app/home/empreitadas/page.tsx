@@ -29,8 +29,7 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
         setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
     }, [refDivServicos.current]);
     /////
-    const [localExecucao, setLocalExecucao] = useState('');
-    const [obsEmpreitadas, setObsEmpreitadas] = useState('');
+
     const [listaEmpreitadas, setListaEmpreitadas] = useState<EmpreitadasModel[]>([]);
     const [cliForSelecionado, setCliForSelecionado] = useState<CliForModel>({ CODIGO: 0, NOME: 'GENERICO' });
     const [showModalPesquisaCliFor, setShowModalPesquisaCliFor] = useState(false);
@@ -260,6 +259,8 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
     }
 
     const BuildBody = () => {
+        const [localExecucao, setLocalExecucao] = useState('');
+        const [obsEmpreitadas, setObsEmpreitadas] = useState('');
         const excluirServico = (id: number) => {
             const idServico = listaEmpreitadas[indiceEmpreitada].ITENS!.findIndex(e => e.ES_CODIGO === id);
             const lista = Array.from(listaEmpreitadas[indiceEmpreitada].ITENS!);

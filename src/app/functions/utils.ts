@@ -42,6 +42,17 @@ async function IncrementaGenerator(generator: string): Promise<number>{
     }
 }
 
+function DataHoje(): string {
+    const dataAtual = new Date();
+
+    const dia = String(dataAtual.getDate()).padStart(2, '0');
+    const mes = String(dataAtual.getMonth() + 1).padStart(2, '0'); 
+    const ano = String(dataAtual.getFullYear());
+
+    const dataFormatada = `${dia}/${mes}/${ano}`;
+
+    return dataFormatada;
+}
 function FormatDate(data: Date | string): string{
     if(data instanceof Date){
         let dataFmt = data.toLocaleDateString().split('/');
@@ -93,4 +104,4 @@ var toastMixin = Swal.mixin({
     }
 });
 
-export { GeraCodigo, Status, FormatDate, IncrementaGenerator, toastMixin, formatCurrency, converterDataFormato }
+export { GeraCodigo, Status, FormatDate, IncrementaGenerator, toastMixin, formatCurrency, converterDataFormato, DataHoje };

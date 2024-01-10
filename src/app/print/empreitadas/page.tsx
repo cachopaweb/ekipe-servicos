@@ -13,7 +13,6 @@ const PrintEmpreitadas = () => {
     const { EmpreitadaCtx } = useAppData()
     const [somaItens, setSomaItens] = useState(0);
     const [carregando, setCarregando] = useState(true);
-    const [titulo, setTitulo] = useState('Orçamento');
 
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
@@ -43,7 +42,7 @@ const PrintEmpreitadas = () => {
                 <div>
                     <Image className='p-10' src={logo} height={80} alt="Logo" />
                     <div className='divide-solid divide-y divide-black'>
-                        <h1 className='text-center text-2xl font-bold'>{titulo}</h1>
+                        <h1 className='text-center text-2xl font-bold'>ORDEM DE SERVIÇO</h1>
                         <div className='box-border border'>
                             <div className='grid grid-cols-2'>
                                 <div className='grid grid-rows-2'>

@@ -519,6 +519,12 @@ export default function Orcamentos() {
             }
         }, [produtoSelecionado])
 
+        const edtNomeProdutoKeyDown = (e: keyBoardInputEvent) => {
+            if (e.key === 'Enter') {
+                const edtUM = document.getElementById('edtUM');
+                edtUM?.focus();
+            }
+        }
         const edtQuantidadeKeyDown = (e: keyBoardInputEvent) => {
             if (e.key === 'Enter') {
                 const edtValorProduto = document.getElementById('edtValorProduto');
@@ -618,11 +624,14 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="produto">Produto</label>
-                            <input value={produto.ORE_NOME} readOnly className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
+                            <input value={produto.ORE_NOME}
+                            onKeyDown={edtNomeProdutoKeyDown}
+                            onChange={(e) => produtoSelecionado.PRO_CODIGO == 1 ? setProduto({ ...produto, ORE_NOME: String(e.target.value).toUpperCase() }):null}
+                            className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
-                            <select value={produto.ORE_EMBALAGEM} onChange={(e) => setProduto({ ...produto, ORE_EMBALAGEM: e.target.value })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
+                            <select id="edtUM" value={produto.ORE_EMBALAGEM} onChange={(e) => setProduto({ ...produto, ORE_EMBALAGEM: e.target.value })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
                         </div>

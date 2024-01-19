@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from "react";
+
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
 import Pesquisa_produto from "../../pesquisas/pesquisa_produto";
 import { ClienteModel } from "../../models/cliente_model";
@@ -19,6 +20,8 @@ import ProdutoRepository from "@/app/repositories/produto_repository";
 import { useAppData } from "@/app/contexts/app_context";
 import PrintOrcamentos from "@/app/print/orcamento/page";
 import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
+import axios from "axios";
+import api from "@/app/services/api";
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -34,6 +37,7 @@ export default function Orcamentos() {
     const [atendente, setAtendente] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     ////servico  
     const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
     const [codigoOrdem, setCodigoOrdem] = useState(0);
@@ -708,6 +712,30 @@ export default function Orcamentos() {
     }
 
     const ModalListarArquivos = () => {
+
+        const handleUpload = async () => {
+            const apiUpload = axios.create({ baseURL: '/api' })
+            if (!selectedFiles) {
+                toastMixin.fire('Nenhum arquivo selecionado!', 'Atenção', 'warning');
+                return;
+              }
+              const files = selectedFiles;
+              const formData = new FormData();
+            
+              for (const file of Array.from(files)) {
+                formData.append('files', file);
+              }
+            
+            
+            apiUpload.post('/uploads',{
+                body: formData,
+              });
+        }
+
+        const handleFileChange = (event:any) => {
+            setSelectedFiles(Array.from(event.target.files));
+          };
+
         return (
             <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
                 title="Listar Arquivos"
@@ -717,7 +745,7 @@ export default function Orcamentos() {
                         <div className="flex flex-col">
                             <div className="flex flex-col p-1">
                                 <label htmlFor="arquivos">Arquivos</label>
-                                <input type="file" id="arquivosid" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
+                                <input type="file" id="arquivosid" multiple onChange={handleFileChange} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
                             </div>
                             <div className="flex flex-col p-1">
                                 <label htmlFor="arquivos">Observação</label>
@@ -725,7 +753,9 @@ export default function Orcamentos() {
                             </div>
                         </div>
                         <div className="flex itens-center justify-center gap-4">
-                            <button className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Salvar Arquivos</button>
+                            <button
+                            onClick={handleUpload}
+                            className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Salvar Arquivos</button>
                         </div>
                     </div>
                 }

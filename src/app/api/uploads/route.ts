@@ -1,33 +1,32 @@
-import ftp from "basic-ftp";
-import { NextRequest, NextResponse } from "next/server";
+import * as ftp from "basic-ftp";
+
+type TypeFileData = {
+    name: string
+}
 
 export async function POST(request: Request): Promise<Response> {
-    console.log("inicio");
-    console.log(request);
-    console.log("Fim");
     const formData = await request.formData();
   
-    //console.log(formData.getAll('files'));
-
-    console.log("inicio");
-    console.log(formData);
-    console.log("Fim");
-   /* const client = new ftp.Client();
+    const filesData = formData.getAll('files'); 
+    console.log(filesData);
+    const client = new ftp.Client();
     client.ftp.verbose = true;
     try {
         await client.access({
-            host: "myftpserver.com",
-            user: "very",
-            password: "password",
-            secure: true
+            host: "portalsoft.sytes.net",
+            user: "portal_ftp",
+            password: "portal3694",
+            secure: false
         })
-        console.log(await client.list())
-        await client.uploadFrom("README.md", "README_FTP.md")
-        await client.downloadTo("README_COPY.md", "README_FTP.md")
+        // filesData.map(item => {
+        //     const file = item as TypeFileData;
+        //     const stremFile = item;
+        //     await client.uploadFrom(file, "ekipe-servicos-uploads/"+file.name);
+        // });        
+        // await client.downloadTo("README_COPY.md", "README_FTP.md")
     }
     catch(err) {
         console.log(err)
-    }*/
-
+    }
     return Response.json({message: 'enviado com sucesso'});
   }

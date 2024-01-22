@@ -2,6 +2,9 @@ import ftp from "basic-ftp";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: Request): Promise<Response> {
+    console.log("inicio");
+    console.log(request);
+    console.log("Fim");
     const formData = await request.formData();
   
     //console.log(formData.getAll('files'));

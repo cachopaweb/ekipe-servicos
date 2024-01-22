@@ -725,11 +725,16 @@ export default function Orcamentos() {
               for (const file of Array.from(files)) {
                 formData.append('files', file);
               }
+              let config = {
+                method: "post",
+                url: '/api/uploads',
+               
+                data: formData,
+              };
+          
             
-            
-            apiUpload.post('/uploads',{
-                body: formData,
-              });
+            await axios(config);
+            //apiUpload.post('/uploads', formData);
         }
 
         const handleFileChange = (event:any) => {

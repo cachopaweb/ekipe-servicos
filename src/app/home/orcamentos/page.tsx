@@ -21,7 +21,6 @@ import { useAppData } from "@/app/contexts/app_context";
 import PrintOrcamentos from "@/app/print/orcamento/page";
 import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
 import axios from "axios";
-import api from "@/app/services/api";
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -51,7 +50,7 @@ export default function Orcamentos() {
     const [codFatura, setCodFatura] = useState(0);
     const [foiFaturado, setFoiFaturado] = useState(false);
     const [showModalimprimir, setShowModalImprimir] = useState(false);
-    const [showModalPesquisaOS, setShowModalPesquisaOS] = useState(false);    
+    const [showModalPesquisaOS, setShowModalPesquisaOS] = useState(false);
 
     useEffect(() => {
         buscaOrdemServidor();
@@ -89,8 +88,7 @@ export default function Orcamentos() {
     }
 
     function imprimeOrcamento() {
-        if(ordem != null)
-        {
+        if (ordem != null) {
             setOrdemCtx(ordem!);
             setShowModalImprimir(true);
         }
@@ -275,7 +273,7 @@ export default function Orcamentos() {
     }
 
     const buscarOrdem = async (e: keyBoardInputEvent) => {
-        if (e.key === 'ArrowDown'){
+        if (e.key === 'ArrowDown') {
             setShowModalPesquisaOS(true)
         }
         if (e.key === 'Enter') {
@@ -629,9 +627,9 @@ export default function Orcamentos() {
                         <div className="flex flex-col p-2">
                             <label htmlFor="produto">Produto</label>
                             <input value={produto.ORE_NOME}
-                            onKeyDown={edtNomeProdutoKeyDown}
-                            onChange={(e) => produtoSelecionado.PRO_CODIGO == 1 ? setProduto({ ...produto, ORE_NOME: String(e.target.value).toUpperCase() }):null}
-                            className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
+                                onKeyDown={edtNomeProdutoKeyDown}
+                                onChange={(e) => produtoSelecionado.PRO_CODIGO == 1 ? setProduto({ ...produto, ORE_NOME: String(e.target.value).toUpperCase() }) : null}
+                                className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
@@ -718,28 +716,23 @@ export default function Orcamentos() {
             if (!selectedFiles) {
                 toastMixin.fire('Nenhum arquivo selecionado!', 'Atenção', 'warning');
                 return;
-              }
-              const files = selectedFiles;
-              const formData = new FormData();
-            
-              for (const file of Array.from(files)) {
+            }
+            const files = selectedFiles;
+            const formData = new FormData();
+
+            for (const file of Array.from(files)) {
                 formData.append('files', file);
-              }
-            //   let config = {
-            //     method: "post",
-            //     url: '/api/uploads',
-               
-            //     data: formData,
-            //   };
-          
-            
-            // await axios(config);
-            apiUpload.post('/uploads', formData);
+            }
+
+            const response = await apiUpload.post('/uploads', formData);
+            if (response.status === 200){
+                toastMixin.fire(response.data.message, 'Sucesso', 'success')
+            }
         }
 
-        const handleFileChange = (event:any) => {
+        const handleFileChange = (event: any) => {
             setSelectedFiles(Array.from(event.target.files));
-          };
+        };
 
         return (
             <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
@@ -759,8 +752,8 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex itens-center justify-center gap-4">
                             <button
-                            onClick={handleUpload}
-                            className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Salvar Arquivos</button>
+                                onClick={handleUpload}
+                                className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Salvar Arquivos</button>
                         </div>
                     </div>
                 }
@@ -768,7 +761,7 @@ export default function Orcamentos() {
         );
     }
 
-    const ModalImprimir = ()=>{
+    const ModalImprimir = () => {
         return (
             <Modal showModal={showModalimprimir} setShowModal={setShowModalImprimir}
                 title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
@@ -792,7 +785,7 @@ export default function Orcamentos() {
                         onClick={e => setShowModalEmpreitadas(true)}
                     >
                         <i className="fas fa-hand-holding-usd"></i>
-                        <span>Empreitadas</span>                        
+                        <span>Empreitadas</span>
                     </button>
                     <button
                         className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
@@ -807,7 +800,7 @@ export default function Orcamentos() {
                     >
                         <i className="fas fa-print"></i>
                         <span>Imprimir</span>
-                    </button>                                         
+                    </button>
                 </div>
             </>
         );
@@ -843,7 +836,7 @@ export default function Orcamentos() {
                     </div>
                     <div>
                         <button onClick={faturamentoOS} disabled={(codFatura > 0) || codigoOrdem === 0} className={`p-0 w-32 h-12 text-white text-bold ${(codFatura > 0) || codigoOrdem === 0 ? 'bg-gray-400' : 'bg-black'} rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}>Faturar</button>
-                    </div>                    
+                    </div>
                 </div>
             </>
         );
@@ -868,12 +861,12 @@ export default function Orcamentos() {
                                     <i className="fa fa-solid fa-floppy-disk text-white"></i>
                                 </button>
                                 {showModalSalvar && <ModalSalvar />}
-                                {showModalPesquisaOS && <PesquisaOrdem 
-                                                            OrdemSelecionado={codigoOrdem} 
-                                                            setOrdemSelecionado={setCodigoOrdem} 
-                                                            showModal={showModalPesquisaOS} 
-                                                            setShowModal={setShowModalPesquisaOS} 
-                                                        />}
+                                {showModalPesquisaOS && <PesquisaOrdem
+                                    OrdemSelecionado={codigoOrdem}
+                                    setOrdemSelecionado={setCodigoOrdem}
+                                    showModal={showModalPesquisaOS}
+                                    setShowModal={setShowModalPesquisaOS}
+                                />}
                             </div>
                         </div>
                         <div className="flex flex-1 flex-col p-1">
@@ -930,7 +923,7 @@ export default function Orcamentos() {
                     </div>
                     <div className="sm:flex gap-2 h-82 p-2">
                         <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
-                            <Atalhos />                            
+                            <Atalhos />
                         </div>
                         <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
                             <Totalizador />
@@ -984,15 +977,15 @@ export default function Orcamentos() {
                     valorTotal={totalProdutos() + totalServicos()} />}
             />}
             {showModalimprimir && <ModalImprimir />}
-            {showModalEmpreitadas && 
-            <Modal showModal={showModalEmpreitadas} setShowModal={setShowModalEmpreitadas}
-                title="Empreitadas"
-                showButtonExit={false}
-                body={
-                    <Empreitadas ordemServico={ordem!} />
-                }
-            />}
-            {showModalListaArquivos && <ModalListarArquivos />}                               
+            {showModalEmpreitadas &&
+                <Modal showModal={showModalEmpreitadas} setShowModal={setShowModalEmpreitadas}
+                    title="Empreitadas"
+                    showButtonExit={false}
+                    body={
+                        <Empreitadas ordemServico={ordem!} />
+                    }
+                />}
+            {showModalListaArquivos && <ModalListarArquivos />}
         </div >
     );
 }

@@ -58,7 +58,7 @@ export default function Orcamentos() {
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if ((codigoOrdem > 0) && (codigoOrdem.toString().length > 3))
+            if (codigoOrdem > 0)
                 buscaOrdemServidor()
         }, 1000)
         return () => clearTimeout(timeout);
@@ -273,9 +273,6 @@ export default function Orcamentos() {
     }
 
     const buscarOrdem = async (e: keyBoardInputEvent) => {
-        if (e.key === 'ArrowDown') {
-            setShowModalPesquisaOS(true)
-        }
         if (e.key === 'Enter') {
             buscaOrdemServidor()
         }
@@ -859,6 +856,13 @@ export default function Orcamentos() {
                                     disabled={listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0}
                                 >
                                     <i className="fa fa-solid fa-floppy-disk text-white"></i>
+                                </button>
+                                <button
+                                    className={`bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
+                                    type="button"
+                                    onClick={e=> setShowModalPesquisaOS(true)}                                    
+                                >
+                                    <i className="fas fa-magnifying-glass text-white"></i>
                                 </button>
                                 {showModalSalvar && <ModalSalvar />}
                                 {showModalPesquisaOS && <PesquisaOrdem

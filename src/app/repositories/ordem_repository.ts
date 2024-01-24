@@ -117,7 +117,7 @@ export default class OrdemRepository {
 
     async pesquisaOrdem(textoBusca: string, tipoBusca: string, porPeriodo: boolean, status: string, data1: Date, data2: Date): Promise<OrdemModel[]> {
         try {
-            let SQL = `SELECT ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
+            let SQL = `SELECT FIRST 10 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
                        ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS 
                        FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO WHERE [PERIODO][STATUS][BUSCA] 
                        ORDER BY [ORDEM]`;
@@ -126,12 +126,12 @@ export default class OrdemRepository {
                     case "Nome":
                         {
                             SQL = SQL.replace('[BUSCA]', ` AND CLI_NOME LIKE '%${textoBusca}%'`);
-                            SQL = SQL.replace('[ORDEM]', 'CLI_NOME, ORD_CODIGO DESC');
+                            // SQL = SQL.replace('[ORDEM]', 'CLI_NOME, ORD_CODIGO DESC');
                             break;
                         }
                     case "Solicitacao": {
                         SQL = SQL.replace('[BUSCA]', ` AND ORD_SOLICITACAO LIKE '%${textoBusca}%'`);
-                        SQL = SQL.replace('[ORDEM]', 'ORD_SOLICITACAO, ORD_CODIGO DESC');
+                        // SQL = SQL.replace('[ORDEM]', 'ORD_SOLICITACAO, ORD_CODIGO DESC');
                         break;
                     };
                 }
@@ -147,7 +147,7 @@ export default class OrdemRepository {
             else
                 SQL = SQL.replace('[STATUS]', '');
             // Para o caso da string não ter sido substituída ainda
-            SQL = SQL.replace('[ORDEM]', 'ORD_DATA DESC, ORD_CODIGO DESC');
+            SQL = SQL.replace('[ORDEM]', 'ORD_CODIGO DESC');
             const response = await api.post('/dataset', {'sql': SQL})
             let data = [];
             if (response.data instanceof Array){

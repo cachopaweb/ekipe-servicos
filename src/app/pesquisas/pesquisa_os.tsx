@@ -82,6 +82,12 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
         setCodOrdemSelecionada(codigoOrdem);
     }
 
+    const selecionarOrdem = (model: OrdemModel) => {
+        selecionarOrdemModel(model);
+        setOrdemSelecionado(model.ORD_CODIGO)
+        setShowModal(false)
+    }
+
     return (
         <>
             <Modal
@@ -96,7 +102,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                     setShowModal(false)
                 }}
                 body={
-                    <div className="flex flex-col">
+                    <div className="flex flex-col w-[900px] h-[500px] overflow-x-hidden">
                         <div className="bg-white rounded-lg shadow-md m-2">
                             <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Filtro busca OS</h2>
                             <div className="sm:flex gap-2">
@@ -163,8 +169,9 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORD_VALOR)}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORD_ESTADO}</td>
                                             <td className="sm:px-4 sm:py-2 text-left">
-                                                <div>
+                                                <div className="flex flex-row gap-2">
                                                     <button onClick={() => selecionarOrdemModel(item)} className="bg-green-700 p-2 text-xs rounded-xl shadow-sm text-white">Ver Detalhes</button>
+                                                    <button onClick={() => selecionarOrdem(item)} className="bg-red-700 p-2 text-xs rounded-xl shadow-sm text-white">Escolher</button>
                                                 </div>
                                             </td>
                                         </tr>

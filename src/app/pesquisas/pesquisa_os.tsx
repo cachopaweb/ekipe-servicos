@@ -102,7 +102,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                     setShowModal(false)
                 }}
                 body={
-                    <div className="flex flex-col w-[900px] h-[500px] overflow-x-hidden">
+                    <div className="flex flex-col w-[900px] h-[500px] ">
                         <div className="bg-white rounded-lg shadow-md m-2">
                             <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Filtro busca OS</h2>
                             <div className="sm:flex gap-2">
@@ -133,7 +133,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                 </div>
                             </div>
                         </div>
-                        <div>
+                        <div className="overflow-x-hidden h-[200px]">
 
                             <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
                                 <thead className="text-white">

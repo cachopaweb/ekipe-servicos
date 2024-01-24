@@ -21,6 +21,7 @@ import { useAppData } from "@/app/contexts/app_context";
 import PrintOrcamentos from "@/app/print/orcamento/page";
 import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
 import axios from "axios";
+import ArquivoModel from "@/app/models/arquivo_model";
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -37,6 +38,7 @@ export default function Orcamentos() {
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
     ////servico  
     const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
     const [codigoOrdem, setCodigoOrdem] = useState(0);
@@ -707,6 +709,7 @@ export default function Orcamentos() {
     }
 
     const ModalListarArquivos = () => {
+        const[observacaoArquivos, setObservacaoArquivos] = useState('');
 
         const handleUpload = async () => {
             const apiUpload = axios.create({ baseURL: '/api' })
@@ -720,8 +723,17 @@ export default function Orcamentos() {
             for (const file of Array.from(files)) {
                 formData.append('files', file);
             }
-
-            const response = await apiUpload.post('/uploads', formData);
+            const arq: ArquivoModel = {
+                AO_CAMINHO : '',
+                AO_CODIGO : 0,
+                AO_OBS : observacaoArquivos,
+                AO_OS : ordem?.ORD_CODIGO!,
+            };
+            formData.append('arquivo', JSON.stringify(arq));
+            const response = await apiUpload.post('/uploads', formData,
+            {
+                params:arq
+            });
             if (response.status === 200){
                 toastMixin.fire(response.data.message, 'Sucesso', 'success')
             }
@@ -730,7 +742,6 @@ export default function Orcamentos() {
         const handleFileChange = (event: any) => {
             setSelectedFiles(Array.from(event.target.files));
         };
-
         return (
             <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
                 title="Listar Arquivos"
@@ -744,7 +755,8 @@ export default function Orcamentos() {
                             </div>
                             <div className="flex flex-col p-1">
                                 <label htmlFor="arquivos">Observação</label>
-                                <textarea id="arquivosid" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
+
+                                <textarea id="arquivoObs" value={observacaoArquivos} onChange={e => setObservacaoArquivos(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
                             </div>
                         </div>
                         <div className="flex itens-center justify-center gap-4">

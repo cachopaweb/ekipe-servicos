@@ -1,3 +1,5 @@
+import ArquivoModel from "@/app/models/arquivo_model";
+import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import * as ftp from "basic-ftp";
 import { Readable } from "stream";
 
@@ -6,6 +8,8 @@ export const config = {
       bodyParser: false,
     },
 };
+
+const caminho = "/ekipe_servicos/uploads/";
   
 type TypeFileData = {
     name: string,
@@ -13,6 +17,7 @@ type TypeFileData = {
 }
 
 const uploadFile = async (file: TypeFileData)=>{
+
     const client = new ftp.Client();
     client.ftp.verbose = false;
     await client.access({
@@ -21,12 +26,14 @@ const uploadFile = async (file: TypeFileData)=>{
          password: "portal3694",
          secure: false,             
     })
-    await client.uploadFrom(file.data, "/ekipe_servicos/uploads/"+file.name);
+    await client.uploadFrom(file.data, caminho+file.name);
 }
 
 export async function POST(request: Request): Promise<Response> {
     const formData = await request.formData();
-    const filesData = formData.getAll('files');       
+    const filesData = formData.getAll('files');
+    const arq = JSON.parse(formData.get('arquivo')!.toString());
+
     try {        
         const list = filesData.map(async item => {
             const file = item as File;
@@ -39,7 +46,9 @@ export async function POST(request: Request): Promise<Response> {
              };            
         });     
         Promise.all(list).then((item)=> {
-            item.forEach(async file=> {                
+            item.forEach(async file=> {  
+                arq.AO_CAMINHO = caminho+file.name;
+                await ArquivoRepository.setArquivoRepository(arq);      
                 uploadFile(file)
             });        
         });

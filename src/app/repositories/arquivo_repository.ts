@@ -7,11 +7,12 @@ export default class ArquivoRepository{
       arquivo.AO_CODIGO = await GeraCodigo("ARQUIVOS_OS", "AO_CODIGO");
         try {          
           const response = await api.post('/dataset', {
-            'sql': `UPDATE OR INSERT INTO ARQUIVOS_OS (AO_CODIGO, AO_OS, AO_CAMINHO, AO_OBS) VALUES (${arquivo.AO_CODIGO}, ${arquivo.AO_OS}, ${arquivo.AO_CAMINHO}, ${arquivo.AO_OBS}) MATCHING (AO_CODIGO)`
+            'sql': `UPDATE OR INSERT INTO ARQUIVOS_OS (AO_CODIGO, AO_OS, AO_CAMINHO, AO_OBS) VALUES (${arquivo.AO_CODIGO}, ${arquivo.AO_OS}, '${arquivo.AO_CAMINHO}', '${arquivo.AO_OBS}') MATCHING (AO_CODIGO)`
           });          
           return response.status === 200;
         } catch (error) {
-            throw new Error('erro ao setar ArquivoModel.\n'+String(error));
+          throw new Error('Erro ao enviar:\n'+String(error));
+            return false;
         }
     }
 }

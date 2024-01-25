@@ -15,4 +15,16 @@ export default class ArquivoRepository{
             return false;
         }
     }
+
+    static async getArquivoRepository(AO_OS:number): Promise<ArquivoModel[]>{
+        try {          
+          const response = await api.post('/dataset', {
+            'sql': `SELECT * FROM ARQUIVOS_OS WHERE AO_OS =  ${AO_OS} `
+          });          
+          return response.data as ArquivoModel[];
+        } catch (error) {
+          throw new Error('Erro ao enviar:\n'+String(error));
+            return [];
+        }
+    }
 }

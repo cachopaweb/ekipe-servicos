@@ -26,6 +26,13 @@ async function GeraCodigo(tabela: string, campo: string): Promise<number>{
     }
 }
 
+function getFileName(path:string): string{
+
+    const partesDoCaminho = path.split('/');
+    return partesDoCaminho[partesDoCaminho.length - 1];
+
+
+}
 async function IncrementaGenerator(generator: string): Promise<number>{
     try
     {
@@ -104,4 +111,4 @@ var toastMixin = Swal.mixin({
     }
 });
 
-export { GeraCodigo, Status, FormatDate, IncrementaGenerator, toastMixin, formatCurrency, converterDataFormato, DataHoje };
+export { GeraCodigo, Status, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, converterDataFormato, DataHoje };

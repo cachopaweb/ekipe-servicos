@@ -8,7 +8,7 @@ import { ProdutoModel } from "../../models/produto_model";
 import OrdEstModel from "../../models/ord_est_model";
 import OrdSerModel from "../../models/ord_ser_model";
 import Modal from "../../components/modal";
-import { FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin } from "@/app/functions/utils";
+import { FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin, getFileName } from "@/app/functions/utils";
 import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
@@ -22,6 +22,7 @@ import PrintOrcamentos from "@/app/print/orcamento/page";
 import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
 import axios from "axios";
 import ArquivoModel from "@/app/models/arquivo_model";
+import ArquivoRepository from "@/app/repositories/arquivo_repository";
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -709,7 +710,71 @@ export default function Orcamentos() {
     }
 
     const ModalListarArquivos = () => {
-        const[observacaoArquivos, setObservacaoArquivos] = useState('');
+
+        const ModalMostrarArquivos = () => {
+            const [listaArquivos, setListaArquivos] = useState<ArquivoModel[]>([]);
+            const [carregando, setCarregando] = useState(true);
+
+            const buscaArquivos = async () => {
+                const lista =  await ArquivoRepository.getArquivoRepository(codigoOrdem);
+                setListaArquivos(lista);
+            }
+
+            useEffect(() => {
+                setCarregando(true);
+                buscaArquivos();
+                setCarregando(false);
+
+            }, [])
+            return (
+                carregando ?
+                <>
+                Carregando...
+                </>
+                :
+                <Modal showModal={showMostrarArquivos} setShowModal={setShowMostrarArquivos}
+                    title="Arquivos Enviados"
+                    showButtonExit={false}
+                    body={
+                        <div>
+                            <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                                <thead className="text-white">
+                                    {
+                                        <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                            <th className="p-3 text-left">Cód.</th>
+                                            <th className="p-3 text-left w-full">Nome</th>
+                                            <th className="p-3 text-left">Observação</th>
+                                            <th className="p-3 text-left">Download</th>
+                                        </tr>
+                                    }
+                                </thead>
+                                <tbody className="flex-1 sm:flex-none">
+                                    {listaArquivos.map((item) =>
+                                        <tr key={item.AO_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_CODIGO}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{getFileName(item.AO_CAMINHO)}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_OBS}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                                <button
+                                                    className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => {}}
+                                                >
+                                                    <i className="fas fa-download text-white "></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                />
+            );
+
+        }
+        const [showMostrarArquivos, setShowMostrarArquivos] = useState(false);
+        const [observacaoArquivos, setObservacaoArquivos] = useState('');
 
         const handleUpload = async () => {
             const apiUpload = axios.create({ baseURL: '/api' })
@@ -724,17 +789,17 @@ export default function Orcamentos() {
                 formData.append('files', file);
             }
             const arq: ArquivoModel = {
-                AO_CAMINHO : '',
-                AO_CODIGO : 0,
-                AO_OBS : observacaoArquivos,
-                AO_OS : ordem?.ORD_CODIGO!,
+                AO_CAMINHO: '',
+                AO_CODIGO: 0,
+                AO_OBS: observacaoArquivos,
+                AO_OS: ordem?.ORD_CODIGO!,
             };
             formData.append('arquivo', JSON.stringify(arq));
             const response = await apiUpload.post('/uploads', formData,
-            {
-                params:arq
-            });
-            if (response.status === 200){
+                {
+                    params: arq
+                });
+            if (response.status === 200) {
                 toastMixin.fire(response.data.message, 'Sucesso', 'success')
             }
         }
@@ -743,30 +808,36 @@ export default function Orcamentos() {
             setSelectedFiles(Array.from(event.target.files));
         };
         return (
-            <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
-                title="Listar Arquivos"
-                showButtonExit={false}
-                body={
-                    <div>
-                        <div className="flex flex-col">
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="arquivos">Arquivos</label>
-                                <input type="file" id="arquivosid" multiple onChange={handleFileChange} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
-                            </div>
-                            <div className="flex flex-col p-1">
-                                <label htmlFor="arquivos">Observação</label>
+            <div>
+                <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
+                    title="Listar Arquivos"
+                    showButtonExit={false}
+                    body={
+                        <div>
+                            <div className="flex flex-col">
+                                <div className="flex flex-col p-1">
+                                    <label htmlFor="arquivos">Arquivos</label>
+                                    <input type="file" id="arquivosid" multiple onChange={handleFileChange} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
+                                </div>
+                                <div className="flex flex-col p-1">
+                                    <label htmlFor="arquivos">Observação</label>
 
-                                <textarea id="arquivoObs" value={observacaoArquivos} onChange={e => setObservacaoArquivos(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
+                                    <textarea id="arquivoObs" value={observacaoArquivos} onChange={e => setObservacaoArquivos(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
+                                </div>
+                            </div>
+                            <div className=" grid itens-center justify-center gap-4 grid-cols-2	">
+                                <button
+                                    onClick={e => setShowMostrarArquivos(true)}
+                                    className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Mostrar Arquivos</button>
+                                <button
+                                    onClick={handleUpload}
+                                    className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Salvar Arquivos</button>
                             </div>
                         </div>
-                        <div className="flex itens-center justify-center gap-4">
-                            <button
-                                onClick={handleUpload}
-                                className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Salvar Arquivos</button>
-                        </div>
-                    </div>
-                }
-            />
+                    }
+                />
+                {showMostrarArquivos && <ModalMostrarArquivos />}
+            </div>
         );
     }
 
@@ -872,7 +943,7 @@ export default function Orcamentos() {
                                 <button
                                     className={`bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
                                     type="button"
-                                    onClick={e=> setShowModalPesquisaOS(true)}                                    
+                                    onClick={e => setShowModalPesquisaOS(true)}
                                 >
                                     <i className="fas fa-magnifying-glass text-white"></i>
                                 </button>

@@ -23,6 +23,8 @@ import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
 import axios from "axios";
 import ArquivoModel from "@/app/models/arquivo_model";
 import ArquivoRepository from "@/app/repositories/arquivo_repository";
+import Link from "next/link";
+import { UrlObject } from "url";
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -716,7 +718,7 @@ export default function Orcamentos() {
             const [carregando, setCarregando] = useState(true);
 
             const buscaArquivos = async () => {
-                const lista =  await ArquivoRepository.getArquivoRepository(codigoOrdem);
+                const lista = await ArquivoRepository.getArquivoRepository(codigoOrdem);
                 setListaArquivos(lista);
             }
 
@@ -726,50 +728,77 @@ export default function Orcamentos() {
                 setCarregando(false);
 
             }, [])
+
+            async function download(path: string) {
+               return await downloadFile(path);
+            }
+            async function downloadFile(path: string) {
+                const apiDownload = axios.create({ baseURL: '/api' })
+                const formData = new FormData();
+                formData.append('download', path);
+                const response = await apiDownload.get('/downloads', {
+                    headers: { path: path },
+                    responseType: 'stream'
+                });
+                const url = window.URL.createObjectURL(new Blob([response.data]))
+                /*const link = document.getElementById('link_download') as HTMLAnchorElement;
+                link.href = url;*/
+                
+                return url;
+            
+            }
+
             return (
                 carregando ?
-                <>
-                Carregando...
-                </>
-                :
-                <Modal showModal={showMostrarArquivos} setShowModal={setShowMostrarArquivos}
-                    title="Arquivos Enviados"
-                    showButtonExit={false}
-                    body={
-                        <div>
-                            <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
-                                <thead className="text-white">
-                                    {
-                                        <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                            <th className="p-3 text-left">Cód.</th>
-                                            <th className="p-3 text-left w-full">Nome</th>
-                                            <th className="p-3 text-left">Observação</th>
-                                            <th className="p-3 text-left">Download</th>
-                                        </tr>
-                                    }
-                                </thead>
-                                <tbody className="flex-1 sm:flex-none">
-                                    {listaArquivos.map((item) =>
-                                        <tr key={item.AO_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
-                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_CODIGO}</td>
-                                            <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{getFileName(item.AO_CAMINHO)}</td>
-                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_OBS}</td>
-                                            <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
-                                                <button
-                                                    className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => {}}
-                                                >
-                                                    <i className="fas fa-download text-white "></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                />
+                    <>
+                        Carregando...
+                    </>
+                    :
+                    <Modal showModal={showMostrarArquivos} setShowModal={setShowMostrarArquivos}
+                        title="Arquivos Enviados"
+                        showButtonExit={false}
+                        body={
+                            <div>
+                                <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                                    <thead className="text-white">
+                                        {
+                                            <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                                <th className="p-3 text-left">Cód.</th>
+                                                <th className="p-3 text-left w-full">Nome</th>
+                                                <th className="p-3 text-left">Observação</th>
+                                                <th className="p-3 text-left">Download</th>
+                                            </tr>
+                                        }
+                                    </thead>
+                                    <tbody className="flex-1 sm:flex-none">
+                                        {listaArquivos.map((item) =>
+                                            <tr key={item.AO_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                                <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_CODIGO}</td>
+                                                <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{getFileName(item.AO_CAMINHO)}</td>
+                                                <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_OBS}</td>
+                                                <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                                    <button
+                                                        className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                        type="button"
+                                                        onClick={() => downloadFile(item.AO_CAMINHO)}
+                                                    >
+                                                        <i className="fas fa-download text-white "></i>
+                                                        <Link
+
+                                                            href={download(item.AO_CAMINHO)}
+                                                            download="Example-PDF-document"
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    />
             );
 
         }

@@ -24,7 +24,6 @@ import axios from "axios";
 import ArquivoModel from "@/app/models/arquivo_model";
 import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import Link from "next/link";
-import { UrlObject } from "url";
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -729,10 +728,40 @@ export default function Orcamentos() {
 
             }, [])
 
-            async function download(path: string) {
-               return await downloadFile(path);
-            }
             async function downloadFile(path: string) {
+                fetch('/api/downloads', {
+                    method: 'GET',
+                    
+                    headers: {
+                      'Content-Type': 'application/pdf',
+                      'path': path
+                    },
+                  })
+                  .then((response) => response.blob())
+                  .then((blob) => {
+                    // Create blob link to download
+                    const url = window.URL.createObjectURL(
+                      new Blob([blob]),
+                    );
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute(
+                      'download',
+                      getFileName(path),
+                    );
+                
+                    // Append to html link element page
+                    document.body.appendChild(link);
+                
+                    // Start download
+                    link.click();
+                
+                  });
+                            
+            }
+
+
+            async function download_File(path: string) {
                 const apiDownload = axios.create({ baseURL: '/api' })
                 const formData = new FormData();
                 formData.append('download', path);
@@ -741,11 +770,7 @@ export default function Orcamentos() {
                     responseType: 'stream'
                 });
                 const url = window.URL.createObjectURL(new Blob([response.data]))
-                /*const link = document.getElementById('link_download') as HTMLAnchorElement;
-                link.href = url;*/
-                
-                return url;
-            
+                            
             }
 
             return (
@@ -784,8 +809,7 @@ export default function Orcamentos() {
                                                     >
                                                         <i className="fas fa-download text-white "></i>
                                                         <Link
-
-                                                            href={download(item.AO_CAMINHO)}
+                                                        href={''}
                                                             download="Example-PDF-document"
                                                             target="_blank"
                                                             rel="noreferrer"

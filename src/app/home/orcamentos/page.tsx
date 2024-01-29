@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useRef, useState } from "react";
-
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
 import Pesquisa_produto from "../../pesquisas/pesquisa_produto";
 import { ClienteModel } from "../../models/cliente_model";
@@ -25,6 +24,7 @@ import ArquivoModel from "@/app/models/arquivo_model";
 import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import Link from "next/link";
 
+const streamToBlob = require('stream-to-blob');
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
     const [ordem, setOrdem] = useState<OrdemModel | null>(null);
@@ -731,17 +731,17 @@ export default function Orcamentos() {
             async function downloadFile(path: string) {
                 fetch('/api/downloads', {
                     method: 'GET',
-                    
                     headers: {
-                      'Content-Type': 'application/pdf',
-                      'path': path
+                      'Content-Type': 'application/octet-stream',
+                      'from': path,
                     },
                   })
                   .then((response) => response.blob())
                   .then((blob) => {
+                    const x = streamToBlob(blob)
                     // Create blob link to download
-                    const url = window.URL.createObjectURL(
-                      new Blob([blob]),
+                    const url = URL.createObjectURL(
+                      x,
                     );
                     const link = document.createElement('a');
                     link.href = url;

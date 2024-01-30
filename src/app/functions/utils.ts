@@ -1,5 +1,6 @@
 import Swal from "sweetalert2";
 import api from "../services/api";
+import { Stream } from "stream";
 
 enum Status{ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
 
@@ -25,6 +26,30 @@ async function GeraCodigo(tabela: string, campo: string): Promise<number>{
         throw new Error(`Erro ao gerar codigo tabela: ${tabela}, campo: ${campo}`);
     }
 }
+
+// Função para converter um Readable stream para Blob
+function streamToBlob(stream:Stream) {
+    return new Promise((resolve, reject) => {
+      const chunks:any = [];
+  
+      // Evento de dados do stream
+      stream.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+  
+      // Evento de conclusão do stream
+      stream.on('end', () => {
+        // Cria um Blob a partir dos chunks coletados
+        const blob = new Blob(chunks, { type: 'application/octet-stream' });
+        resolve(blob);
+      });
+  
+      // Evento de erro do stream
+      stream.on('error', (error) => {
+        reject(error);
+      });
+    });
+  }
 
 function getFileName(path:string): string{
 
@@ -111,4 +136,4 @@ var toastMixin = Swal.mixin({
     }
 });
 
-export { GeraCodigo, Status, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, converterDataFormato, DataHoje };
+export { GeraCodigo, Status, streamToBlob, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, converterDataFormato, DataHoje };

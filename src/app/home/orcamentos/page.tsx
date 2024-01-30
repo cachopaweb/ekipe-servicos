@@ -24,7 +24,6 @@ import ArquivoModel from "@/app/models/arquivo_model";
 import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import Link from "next/link";
 
-const streamToBlob = require('stream-to-blob');
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
     const [ordem, setOrdem] = useState<OrdemModel | null>(null);
@@ -729,35 +728,27 @@ export default function Orcamentos() {
             }, [])
 
             async function downloadFile(path: string) {
-                fetch('/api/downloads', {
+                const response = await fetch('/api/downloads', {
                     method: 'GET',
                     headers: {
                       'Content-Type': 'application/octet-stream',
                       'from': path,
                     },
-                  })
-                  .then((response) => response.blob())
-                  .then((blob) => {
-                    const x = streamToBlob(blob)
+                  });
+                  const blob = await response.blob();
                     // Create blob link to download
-                    const url = URL.createObjectURL(
-                      x,
+                    const url = window.URL.createObjectURL(
+                      blob as Blob
                     );
                     const link = document.createElement('a');
                     link.href = url;
-                    link.setAttribute(
-                      'download',
-                      getFileName(path),
-                    );
+                    link.download = 'logo.png';
                 
                     // Append to html link element page
                     document.body.appendChild(link);
                 
                     // Start download
-                    link.click();
-                
-                  });
-                            
+                    link.click();   
             }
 
 

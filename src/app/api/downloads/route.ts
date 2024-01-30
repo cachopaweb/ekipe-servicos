@@ -5,7 +5,6 @@ import { Readable } from "stream";
 import arq from 'C:/Temp/logo.png'
 import { NextApiResponse, NextApiRequest } from "next";
 import { IncomingHttpHeaders } from "http";
-import * as path from 'path';
 
 
 interface Header extends IncomingHttpHeaders {
@@ -16,9 +15,42 @@ export async function GET(request: NextApiRequest, response:NextApiResponse) {
 
 
 
-  const stream = await getFile({from:'logo.png'}, response);
+  const client = new ftp.Client();
+  const nameFile = 'logo.png';
+  client.ftp.verbose = true;
+  const readableStream = new Readable();
+  const localFile = 'C:/Temp/' + getFileName(nameFile);
+  // const blob = await fs.openAsBlob(localFile);
+  //console.log('Type: '+blob.type);
+  try {
+    await client.access({
+      host: "portalsoft.sytes.net",
+      user: "portal_ftp",
+      password: "portal3694",
+      secure: false,
+    })
+    fs.mkdir('C:/Temp', (e) => {
+    });
+    //await client.downloadTo("/Temp/" + getFileName(from!), from!);
+  }
 
-  return Response.json(stream, {
+
+  catch (err) {
+    console.log(err)
+  }
+
+    const filePath = localFile;
+    const fileStream = fs.createReadStream(filePath);
+    await fileStream.forEach(e => {
+      readableStream.push(e);
+    })
+    fileStream.pipe(response);
+
+    response.on('finish', () => {
+      fileStream.close();
+    });
+
+  return response.json({readableStream,
     headers: { 'Content-Type': 'application/octet-stream',
     'Content-Disposition': 'attachment; filename=logo.png'}
   })
@@ -78,12 +110,12 @@ async function getFile({from}: IncomingHttpHeaders, response: NextApiResponse) {
     await fileStream.forEach(e => {
       readableStream.push(e);
     })
+    fileStream.pipe(response);
 
+    response.on('finish', () => {
+      fileStream.close();
+    });
     return readableStream;
-
-
-
-
 }
 
 

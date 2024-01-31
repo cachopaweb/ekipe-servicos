@@ -10,13 +10,14 @@ import { UsuarioModel } from "./models/usuario_model";
 import logo from '../../assets/logo.png'
 import UsuarioRepository from "./repositories/usuario_repository";
 import { toastMixin } from "./functions/utils";
+import { useAppData } from "./contexts/app_context";
 
 export default function Login() {
   const [user, setUser] = useState('');
   const [passw, setPassw] = useState('');
   const [users, setUsers] = useState<UsuarioModel[]>([]);
   const router = useRouter();
-
+  const {setUsuarioLogado} = useAppData();
   useEffect(() => {
     getUsers();
   }, [])
@@ -45,6 +46,13 @@ export default function Login() {
       const sucess: boolean = await repository.login(user, passw);
       if (sucess) {
         toastMixin.fire('Aguarde...', 'Logando no servidor', 'info')
+        users.forEach(usuario =>{
+          if(usuario.USU_LOGIN == user)
+          {
+            localStorage.setItem('usuario_logado', JSON.stringify(usuario));
+            setUsuarioLogado(usuario);
+          }
+        })
         router.push('/home')
       } else {
         toastMixin.fire('Falha ao logar', 'usuário ou senha incorretos', 'error')

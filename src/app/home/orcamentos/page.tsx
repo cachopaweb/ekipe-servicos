@@ -23,7 +23,7 @@ import axios from "axios";
 import ArquivoModel from "@/app/models/arquivo_model";
 import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import Link from "next/link";
-import { UsuarioModel } from "@/app/models/usuario_model";
+
 
 export default function Orcamentos() {
     const { setOrdemCtx } = useAppData();
@@ -32,6 +32,8 @@ export default function Orcamentos() {
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
     const [showModalPesquisaProduto, setShowModalPesquisaProduto] = useState(false);
     const [showModalSalvar, setShowModalSalvar] = useState(false);
+    const [servicoEdt, setServicoEdt] = useState<OrdSerModel>({ OS_CODIGO: 0, OS_NOME: '', OS_ORD: 0, OS_QUANTIDADE: 0, OS_SER: 0, OS_UNIDADE_MED: '', OS_VALOR: 0, })
+    const [showModalEdtServico, setShowModalEdtServico] = useState(false);
     const [showModalEmpreitadas, setShowModalEmpreitadas] = useState(false);
     const [showModalListaArquivos, setShowModalListaArquivos] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
@@ -40,7 +42,7 @@ export default function Orcamentos() {
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const {usuarioLogado, setUsuarioLogado} = useAppData();
+    const { usuarioLogado, setUsuarioLogado } = useAppData();
     ////servico  
     const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
     const [codigoOrdem, setCodigoOrdem] = useState(0);
@@ -56,6 +58,7 @@ export default function Orcamentos() {
     const [showModalimprimir, setShowModalImprimir] = useState(false);
     const [showModalPesquisaOS, setShowModalPesquisaOS] = useState(false);
     const [isDownloadFile, setIsDownloadFile] = useState(false);
+    const [nomeFuncionario, setNomeFuncionario] = useState('');
     useEffect(() => {
         buscaOrdemServidor();
     }, [foiFaturado])
@@ -82,8 +85,11 @@ export default function Orcamentos() {
         carregaUnidadesMed()
         const edtCodigoOrdem = document.getElementById('edtCodigoOrdem') as HTMLInputElement;
         edtCodigoOrdem!.select();
-        edtCodigoOrdem!.focus()
-        setUsuarioLogado(localStorage.getItem('usuario_logado') as unknown as UsuarioModel)
+        edtCodigoOrdem!.focus();
+        const funcionario = JSON.parse(localStorage.getItem('usuario_logado')!);
+        setNomeFuncionario(funcionario.FUN_NOME);
+
+
     }, [])
 
     const listaStatus = () => {
@@ -283,6 +289,52 @@ export default function Orcamentos() {
         }
     }
 
+    const ModalEdtServico = () => {
+        const [osNome, setOsNome] = useState(servicoEdt.OS_NOME);
+        const [osQuantidade, setOsQuantidade] = useState(servicoEdt.OS_QUANTIDADE);
+        const [osUnidadeMedida, setOsUnidadeMedida] = useState(servicoEdt.OS_UNIDADE_MED);
+
+        return (
+            <Modal showModal={showModalEdtServico} setShowModal={setShowModalEdtServico}
+                title="Editar Serviço"
+                showButtonExit={false}
+                body={
+                    <div className="grid grid-rows divide-y divide-black w-[500px]">
+                        <span className="font-bold mb-4">{servicoEdt.OS_CODIGO}</span>
+                        <div className="grid grid-rows divide-y">
+                            <div className="grid grid-rows">
+                                <span className="mt-2">Serviço: </span>
+                                <input value={osNome} onChange={(e) => setOsNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
+                                </input>
+                            </div>
+                            <div className="grid grid-rows">
+                                <span className="mt-2">Quantidade </span>
+                                <input value={osQuantidade} onChange={(e) => setOsQuantidade(Number.parseInt(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                                </input>
+                            </div>
+                            <div className="grid grid-rows">
+                                <span className="mt-2">Unidade de Medida: </span>
+                                <select value={osUnidadeMedida} onChange={(e) => setOsUnidadeMedida(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
+                                {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
+                            </select>
+                            </div>
+
+
+                            <button
+                                className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                                type="button"
+                                onClick={() => setShowModalEdtServico(false)}
+                            >
+                                <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                }
+            />);
+
+    }
+
     const ModalSalvar = () => {
         return (
             <Modal showModal={showModalSalvar} setShowModal={setShowModalSalvar}
@@ -336,6 +388,15 @@ export default function Orcamentos() {
             lista.splice(idServico, 1);
             setListaServicosInseridos(lista);
         }
+
+
+        const editaServico = (servico: OrdSerModel) => {
+            setServicoEdt(servico);
+            setShowModalEdtServico(true);
+
+
+        }
+
 
         const inserirServico = (servico: OrdSerModel) => {
             try {
@@ -473,13 +534,23 @@ export default function Orcamentos() {
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
-                                        <button
-                                            className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                            type="button"
-                                            onClick={() => excluirServico(item.OS_CODIGO)}
-                                        >
-                                            <i className="fas fa-trash text-white "></i>
-                                        </button>
+                                        <div className="grid grid-rows-2">
+                                            <button
+                                                className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                type="button"
+                                                onClick={() => excluirServico(item.OS_CODIGO)}
+                                            >
+                                                <i className="fas fa-trash text-white "></i>
+
+                                            </button>
+                                            <button
+                                                className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                type="button"
+                                                onClick={() => editaServico(item)}
+                                            >
+                                                <i className="fas fa-pencil text-white "></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
@@ -845,19 +916,19 @@ export default function Orcamentos() {
         };
         return (
 
-                <div>
-                    <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
-                        title="Listar Arquivos"
-                        showButtonExit={false}
-                        body={
-                            isDownloadFile ?
+            <div>
+                <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
+                    title="Listar Arquivos"
+                    showButtonExit={false}
+                    body={
+                        isDownloadFile ?
                             <div role="status" className="place-items-center w-full">
-                            <svg aria-hidden="true" className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-                            </svg>
-                            <span className="sr-only">Loading...</span>
-                        </div>
+                                <svg aria-hidden="true" className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+                                </svg>
+                                <span className="sr-only">Loading...</span>
+                            </div>
                             :
                             <div>
                                 <div className="flex flex-col">
@@ -880,10 +951,10 @@ export default function Orcamentos() {
                                         className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Salvar Arquivos</button>
                                 </div>
                             </div>
-                        }
-                    />
-                    {showMostrarArquivos && <ModalMostrarArquivos />}
-                </div>
+                    }
+                />
+                {showMostrarArquivos && <ModalMostrarArquivos />}
+            </div>
         );
     }
 
@@ -993,7 +1064,9 @@ export default function Orcamentos() {
                                 >
                                     <i className="fas fa-magnifying-glass text-white"></i>
                                 </button>
+                                {showModalEdtServico && <ModalEdtServico />}
                                 {showModalSalvar && <ModalSalvar />}
+
                                 {showModalPesquisaOS && <PesquisaOrdem
                                     OrdemSelecionado={codigoOrdem}
                                     setOrdemSelecionado={setCodigoOrdem}
@@ -1043,7 +1116,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="atendente">Atendente</label>
-                            <input id='atendenteid' value={codigoOrdem == 0 ? usuarioLogado.FUN_NOME : atendente} onChange={(e) => setAtendente(e.target.value)} className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
+                            <input id='atendenteid' value={codigoOrdem == 0 ? nomeFuncionario : atendente} onChange={(e) => setAtendente(e.target.value)} className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
                         </div>
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="obs">Observações</label>
@@ -1119,6 +1192,7 @@ export default function Orcamentos() {
                     }
                 />}
             {showModalListaArquivos && <ModalListarArquivos />}
+
         </div >
     );
 }

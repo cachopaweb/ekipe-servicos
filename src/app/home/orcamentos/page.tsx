@@ -7,7 +7,10 @@ import { ProdutoModel } from "../../models/produto_model";
 import OrdEstModel from "../../models/ord_est_model";
 import OrdSerModel from "../../models/ord_ser_model";
 import Modal from "../../components/modal";
-import { FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin, getFileName } from "@/app/functions/utils";
+import {
+    FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin,
+    getFileName, mascaraMoedaEvent, mascaraMoeda, maskRealToNumber
+} from "@/app/functions/utils";
 import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
@@ -32,8 +35,10 @@ export default function Orcamentos() {
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
     const [showModalPesquisaProduto, setShowModalPesquisaProduto] = useState(false);
     const [showModalSalvar, setShowModalSalvar] = useState(false);
+    const [produtoEdt, setProdutoEdt] = useState<OrdEstModel>({ ORE_CODIGO:0, ORE_EMBALAGEM: '', ORE_NOME: '', ORE_ORD: 0, ORE_PRO:0, ORE_QUANTIDADE:0, ORE_VALOR:0})
     const [servicoEdt, setServicoEdt] = useState<OrdSerModel>({ OS_CODIGO: 0, OS_NOME: '', OS_ORD: 0, OS_QUANTIDADE: 0, OS_SER: 0, OS_UNIDADE_MED: '', OS_VALOR: 0, })
     const [showModalEdtServico, setShowModalEdtServico] = useState(false);
+    const [showModalEdtProduto, setShowModalEdtProduto] = useState(false);
     const [showModalEmpreitadas, setShowModalEmpreitadas] = useState(false);
     const [showModalListaArquivos, setShowModalListaArquivos] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
@@ -290,42 +295,181 @@ export default function Orcamentos() {
     }
 
     const ModalEdtServico = () => {
+
+        const titulo = "Editar Serviço " + servicoEdt.OS_CODIGO;
         const [osNome, setOsNome] = useState(servicoEdt.OS_NOME);
         const [osQuantidade, setOsQuantidade] = useState(servicoEdt.OS_QUANTIDADE);
         const [osUnidadeMedida, setOsUnidadeMedida] = useState(servicoEdt.OS_UNIDADE_MED);
+        const [osValor, setOsValor] = useState(servicoEdt.OS_VALOR);
+        const [osValorStr, setOsValorStr] = useState(mascaraMoeda(servicoEdt.OS_VALOR));
+
+        const salvar = () =>
+        {
+            var lista = listaServicosInseridos;
+            let indice = lista.indexOf(servicoEdt);
+            console.log('Indice: '+indice);
+            
+            var valor = maskRealToNumber(osValorStr);
+            var servico:OrdSerModel = {
+                OS_CODIGO: servicoEdt.OS_CODIGO,
+                OS_NOME: osNome.toUpperCase(),
+                OS_QUANTIDADE: osQuantidade,
+                OS_UNIDADE_MED : osUnidadeMedida,
+                OS_VALOR:valor,
+                OS_ORD: servicoEdt.OS_ORD,
+                OS_SER: servicoEdt.OS_SER,
+                OS_TIPO:servicoEdt.OS_TIPO,
+                OS_VALORR: servicoEdt.OS_VALORR
+            };
+            lista.splice(indice, 1);
+            lista.push(servico);
+            setListaServicosInseridos(lista);
+            
+            setShowModalEdtServico(false);
+            setShowModalSalvar(true);
+
+        }
+
 
         return (
             <Modal showModal={showModalEdtServico} setShowModal={setShowModalEdtServico}
-                title="Editar Serviço"
+                title={titulo}
                 showButtonExit={false}
                 body={
-                    <div className="grid grid-rows divide-y divide-black w-[500px]">
-                        <span className="font-bold mb-4">{servicoEdt.OS_CODIGO}</span>
-                        <div className="grid grid-rows divide-y">
-                            <div className="grid grid-rows">
-                                <span className="mt-2">Serviço: </span>
-                                <input value={osNome} onChange={(e) => setOsNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
-                                </input>
-                            </div>
-                            <div className="grid grid-rows">
-                                <span className="mt-2">Quantidade </span>
-                                <input value={osQuantidade} onChange={(e) => setOsQuantidade(Number.parseInt(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
-                                </input>
-                            </div>
-                            <div className="grid grid-rows">
-                                <span className="mt-2">Unidade de Medida: </span>
-                                <select value={osUnidadeMedida} onChange={(e) => setOsUnidadeMedida(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
+                    <div className="grid grid-rows divide-y w-[500px]">
+                        <div className="grid grid-rows">
+                            <span className="mt-2">Serviço: </span>
+                            <input value={osNome} onChange={(e) => setOsNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
+                            </input>
+                        </div>
+                        <div className="grid grid-rows">
+                            <span className="mt-2">Quantidade </span>
+                            <input value={osQuantidade} onChange={(e) => setOsQuantidade(Number.parseInt(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                            </input>
+                        </div>
+                        <div className="grid grid-rows">
+                            <span className="mt-2">Unidade de Medida: </span>
+                            <select value={osUnidadeMedida} onChange={(e) => setOsUnidadeMedida(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
-                            </div>
+                        </div>
+                        <div className="grid grid-rows">
+                            <span className="mt-2">Valor </span>
+                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24">
+                            </input>
+                        </div>
 
+                        <div className="grid grid-cols-2">
+                        <button
+                                className="bg-green-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                                type="button"
+                                onClick={() => salvar()}
+                            >
+                                <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
+                                Salvar
+                            </button>
 
                             <button
                                 className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
                                 type="button"
                                 onClick={() => setShowModalEdtServico(false)}
                             >
+                                <i className="fa fa-solid fa-ban text-white p-2"></i>
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                }
+            />);
+
+    }
+
+
+    const ModalEdtProduto = () => {
+
+        const titulo = "Editar Serviço " + produtoEdt.ORE_CODIGO;
+        const [oreNome, setOreNome] = useState(produtoEdt.ORE_NOME);
+        const [oreQuantidade, setOreQuantidade] = useState(produtoEdt.ORE_QUANTIDADE);
+        const [oreEmbalagem, setOreEmbalagem] = useState(produtoEdt.ORE_EMBALAGEM);
+        const [oreValor, setOreValor] = useState(produtoEdt.ORE_VALOR);
+        const [osValorStr, setOsValorStr] = useState(mascaraMoeda(produtoEdt.ORE_VALOR));
+
+        const salvar = () =>
+        {
+            var lista = listaProdutosInseridos;
+            let indice = lista.indexOf(produtoEdt);
+            
+            var valor = maskRealToNumber(osValorStr);
+            var produto:OrdEstModel = {
+                ORE_CODIGO: produtoEdt.ORE_CODIGO,
+                ORE_NOME: oreNome.toUpperCase(),
+                ORE_QUANTIDADE: oreQuantidade,
+                ORE_EMBALAGEM : oreEmbalagem,
+                ORE_VALOR:valor,
+                ORE_ORD: produtoEdt.ORE_ORD,
+                ORE_PRO: produtoEdt.ORE_PRO,
+                ORE_ALIQICMS: produtoEdt.ORE_ALIQICMS,
+                ORE_LUCRO: produtoEdt.ORE_LUCRO,
+                ORE_VALORC: produtoEdt.ORE_VALORC,
+                ORE_VALORCM: produtoEdt.ORE_VALORCM,
+                ORE_VALORF: produtoEdt.ORE_VALORF,
+                ORE_VALORL: produtoEdt.ORE_VALORL,
+                ORE_VALORR: produtoEdt.ORE_VALORR,
+                PRO_DESCRICAO: produtoEdt.PRO_DESCRICAO
+            };
+            lista.splice(indice, 1);
+            lista.push(produto);
+            setListaProdutosInseridos(lista);
+            setShowModalEdtProduto(false);
+            setShowModalSalvar(true);
+
+        }
+
+
+        return (
+            <Modal showModal={showModalEdtProduto} setShowModal={setShowModalEdtProduto}
+                title={titulo}
+                showButtonExit={false}
+                body={
+                    <div className="grid grid-rows divide-y w-[500px]">
+                        <div className="grid grid-rows">
+                            <span className="mt-2">Produto: </span>
+                            <input value={oreNome} onChange={(e) => setOreNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
+                            </input>
+                        </div>
+                        <div className="grid grid-rows">
+                            <span className="mt-2">Quantidade </span>
+                            <input value={oreQuantidade} onChange={(e) => setOreQuantidade(Number.parseInt(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                            </input>
+                        </div>
+                        <div className="grid grid-rows">
+                            <span className="mt-2">Unidade de Medida: </span>
+                            <select value={oreEmbalagem} onChange={(e) => setOreEmbalagem(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
+                                {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
+                            </select>
+                        </div>
+                        <div className="grid grid-rows">
+                            <span className="mt-2">Valor </span>
+                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24">
+                            </input>
+                        </div>
+
+                        <div className="grid grid-cols-2">
+                        <button
+                                className="bg-green-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                                type="button"
+                                onClick={() => salvar()}
+                            >
                                 <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
+                                Salvar
+                            </button>
+
+                            <button
+                                className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                                type="button"
+                                onClick={() => setShowModalEdtProduto(false)}
+                            >
+                                <i className="fa fa-solid fa-ban text-white p-2"></i>
                                 Cancelar
                             </button>
                         </div>
@@ -396,6 +540,7 @@ export default function Orcamentos() {
 
 
         }
+
 
 
         const inserirServico = (servico: OrdSerModel) => {
@@ -671,6 +816,13 @@ export default function Orcamentos() {
             lista.splice(idProduto, 1);
             setListaProdutosInseridos(lista);
         }
+        const editaProduto = (produto: OrdEstModel) => {
+            setProdutoEdt(produto);
+            setShowModalEdtProduto(true);
+            console.log('editaProduto');
+
+
+        }
 
         return (
             <div ref={refDivProdutos} className="bg-white rounded-lg  shadow-md">
@@ -765,13 +917,24 @@ export default function Orcamentos() {
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
-                                        <button
-                                            className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                            type="button"
-                                            onClick={() => excluirProduto(item.ORE_CODIGO)}
-                                        >
-                                            <i className="fas fa-trash text-white "></i>
-                                        </button>
+                                    <div className="grid grid-rows-2">
+                                            <button
+                                                className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                type="button"
+                                                onClick={() => excluirProduto(item.ORE_CODIGO)}
+                                            >
+                                                <i className="fas fa-trash text-white "></i>
+
+                                            </button>
+                                            <button
+                                                className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                type="button"
+                                                onClick={() => editaProduto(item)}
+                                            >
+                                                <i className="fas fa-pencil text-white "></i>
+                                            </button>
+                                        </div>
+
                                     </td>
                                 </tr>
                             )}
@@ -1018,18 +1181,18 @@ export default function Orcamentos() {
                 <div className="sm:flex justify-center items-center h-8 w-full bg-amber-300 rounded-t-md text-center shadow-lg">
                     <h2 className="text-black font-bold">Total</h2>
                 </div>
-                <div className="p-4 space-y-4">
+                <div className="p-3 space-y-3">
                     <div>
                         <h4 className="text-sm font-bold">Valor Total Produtos</h4>
-                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalProdutos())}</span>
+                        <span className="text-lg font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalProdutos())}</span>
                     </div>
                     <div>
                         <h4 className="text-sm font-bold">Valor Total Serviços</h4>
-                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalServicos())}</span>
+                        <span className="text-lg font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalServicos())}</span>
                     </div>
                     <div>
                         <h4 className="text-sm font-bold">Valor Total OS</h4>
-                        <span className="text-2xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0))}</span>
+                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0))}</span>
                     </div>
                     <div>
                         <button onClick={faturamentoOS} disabled={(codFatura > 0) || codigoOrdem === 0} className={`p-0 w-32 h-12 text-white text-bold ${(codFatura > 0) || codigoOrdem === 0 ? 'bg-gray-400' : 'bg-black'} rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}>Faturar</button>
@@ -1065,6 +1228,7 @@ export default function Orcamentos() {
                                     <i className="fas fa-magnifying-glass text-white"></i>
                                 </button>
                                 {showModalEdtServico && <ModalEdtServico />}
+                                {showModalEdtProduto && <ModalEdtProduto />}
                                 {showModalSalvar && <ModalSalvar />}
 
                                 {showModalPesquisaOS && <PesquisaOrdem

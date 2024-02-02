@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import api from "../services/api";
 import { Stream } from "stream";
+import { ChangeEvent, FormEvent } from "react";
 
 enum Status{ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
 
@@ -122,6 +123,45 @@ function converterDataFormato(data: string|null): string {
     }
   }
 
+  const mascaraMoeda = (num : Number) =>
+  {
+    num = Number(num) * 100;
+    const aux = num.toString();
+    const onlyDigits = aux
+    .split("")
+    .filter((s: string) => /\d/.test(s))
+    .join("")
+    .padStart(3, "0")
+  const digitsFloat = onlyDigits.slice(0, -2) + "." + onlyDigits.slice(-2)
+  return maskCurrency(digitsFloat)
+
+  }
+
+  const mascaraMoedaEvent = (event:ChangeEvent<HTMLInputElement>) => {
+    const onlyDigits = event.target.value
+      .split("")
+      .filter((s: string) => /\d/.test(s))
+      .join("")
+      .padStart(3, "0")
+    const digitsFloat = onlyDigits.slice(0, -2) + "." + onlyDigits.slice(-2)
+    event.target.value = maskCurrency(digitsFloat)
+  }
+  
+  const maskCurrency = (valor:any, locale = 'pt-BR', currency = 'BRL') => {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency
+    }).format(valor)
+  }
+  
+  function maskRealToNumber (mask:string)
+  {
+    let valorFormatado = mask.replace("R$", "").replaceAll(".","");
+    valorFormatado = valorFormatado.replace(",", ".");
+    const retorno = parseFloat(valorFormatado).toFixed(2);
+    return parseFloat(retorno);
+  }
+
 var toastMixin = Swal.mixin({
     toast: true,
     icon: 'success',
@@ -136,4 +176,4 @@ var toastMixin = Swal.mixin({
     }
 });
 
-export { GeraCodigo, Status, streamToBlob, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, converterDataFormato, DataHoje };
+export { GeraCodigo, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, converterDataFormato, DataHoje, maskRealToNumber };

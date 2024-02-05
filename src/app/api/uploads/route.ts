@@ -28,7 +28,9 @@ const uploadFile = async (file: TypeFileData)=>{
     })
     await client.uploadFrom(file.data, caminho+file.name);
 }
-
+/////
+export const dynamic = 'force-dynamic'
+/////
 export async function POST(request: Request): Promise<Response> {
     const formData = await request.formData();
     const filesData = formData.getAll('files');

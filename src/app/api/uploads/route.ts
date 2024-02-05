@@ -30,6 +30,11 @@ const uploadFile = async (file: TypeFileData)=>{
 }
 /////
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
+export const revalidate = false
+export const fetchCache = 'auto'
+export const runtime = 'nodejs'
+export const preferredRegion = 'auto'
 /////
 export async function POST(request: Request): Promise<Response> {
     const formData = await request.formData();

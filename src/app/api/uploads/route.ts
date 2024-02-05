@@ -3,12 +3,6 @@ import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import * as ftp from "basic-ftp";
 import { Readable } from "stream";
 
-export const config = {
-    api: {
-      bodyParser: false,
-    },
-};
-
 const caminho = "/ekipe_servicos/uploads/";
   
 type TypeFileData = {
@@ -28,14 +22,6 @@ const uploadFile = async (file: TypeFileData)=>{
     })
     await client.uploadFrom(file.data, caminho+file.name);
 }
-/////
-export const dynamic = 'force-dynamic'
-export const dynamicParams = true
-export const revalidate = false
-export const fetchCache = 'auto'
-export const runtime = 'nodejs'
-export const preferredRegion = 'auto'
-/////
 export async function POST(request: Request): Promise<Response> {
     const formData = await request.formData();
     const filesData = formData.getAll('files');

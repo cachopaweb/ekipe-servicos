@@ -102,7 +102,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                     Não existe nenhum produto ou serviço
                 </div>
                 :
-                <div className="flex flex-col w-[900px] h-[500px] ">
+                <div className="flex flex-col sm:w-[900px] sm:h-[500px] ">
                     {listaProdutosInseridos.length> 0 ? 
                                         <div ref={refDivProdutos} className="flex flex-col items-center justify-center w-full">
                                         <h2 className="text-sm text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Produtos</h2>
@@ -150,7 +150,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                         <table className="flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg mt-1 mb-5">
                             <thead className="text-white w-full">
                                 {divWidthServicos > 600 ? (
-                                    <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg w-full sm:rounded-none mb-2 sm:mb-0">
+                                    <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
                                         <th className="p-3 text-left">Cód.</th>
                                         <th className="p-3 text-left w-full">Serviço</th>
                                         <th className="p-3 text-left">Quantidade</th>
@@ -172,7 +172,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                     )
                                 }
                             </thead>
-                            <tbody className="overflow-x-hidden flex-1 sm:flex-none">
+                            <tbody className="flex-1 sm:flex-none">
                                 {listaServicosInseridos.map((item) =>
                                     <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
                                         <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_CODIGO}</td>
@@ -215,7 +215,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                     setShowModal(false)
                 }}
                 body={
-                    <div className="flex flex-col w-[900px] h-[400px] ">
+                    <div className="flex flex-col sm:w-[900px] sm:h-[400px] ">
                         <div className="bg-white rounded-lg shadow-md m-2">
                             <h2 className="text-sm rounded-t-md font-bold text-black bg-amber-400 p-2">Filtro busca OS</h2>
                             <div className="sm:flex gap-2">

@@ -156,7 +156,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                 {divWidthServicos > 600 ? (
                                     <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
                                         <th className="p-3 text-left">Cód.</th>
-                                        <th className="p-3 text-left w-full">Serviço</th>
+                                        <th className="p-3 text-left w-[30px]">Serviço</th>
                                         <th className="p-3 text-left">Quantidade</th>
                                         <th className="p-3 text-left">UM</th>
                                         <th className="p-3 text-left">Valor Unit.</th>
@@ -180,7 +180,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                 {listaServicosInseridos.map((item) =>
                                     <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
                                         <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_CODIGO}</td>
-                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3 w-[250px] sm:w-full"><p data-truncate={divWidthServicos < 600}  className="data-[truncate=true]:truncate md:text-ellipsis lg:text-ellipsis sm:text-ellipsis hover:text-clip">{item.OS_NOME}</p></td>
+                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3"><p data-truncate={divWidthServicos < 600}  className="data-[truncate=true]:truncate md:text-ellipsis lg:text-ellipsis sm:text-ellipsis hover:text-clip">{item.OS_NOME}</p></td>
                                         <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_QUANTIDADE}</td>
                                         <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_UNIDADE_MED}</td>
                                         <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>

@@ -301,7 +301,7 @@ export default function Orcamentos() {
         const [osQuantidade, setOsQuantidade] = useState(servicoEdt.OS_QUANTIDADE);
         const [osUnidadeMedida, setOsUnidadeMedida] = useState(servicoEdt.OS_UNIDADE_MED);
         const [osValor, setOsValor] = useState(servicoEdt.OS_VALOR);
-        const [osValorStr, setOsValorStr] = useState(mascaraMoeda(servicoEdt.OS_VALOR));
+        const [osValorStr, setOsValorStr] = useState(mascaraMoeda(servicoEdt.OS_VALOR / servicoEdt.OS_QUANTIDADE));
 
         const salvar = () =>
         {
@@ -315,7 +315,7 @@ export default function Orcamentos() {
                 OS_NOME: osNome.toUpperCase(),
                 OS_QUANTIDADE: osQuantidade,
                 OS_UNIDADE_MED : osUnidadeMedida,
-                OS_VALOR:valor,
+                OS_VALOR:valor * osQuantidade,
                 OS_ORD: servicoEdt.OS_ORD,
                 OS_SER: servicoEdt.OS_SER,
                 OS_TIPO:servicoEdt.OS_TIPO,
@@ -387,12 +387,12 @@ export default function Orcamentos() {
 
     const ModalEdtProduto = () => {
 
-        const titulo = "Editar Serviço " + produtoEdt.ORE_CODIGO;
+        const titulo = "Editar Produto " + produtoEdt.ORE_CODIGO;
         const [oreNome, setOreNome] = useState(produtoEdt.ORE_NOME);
         const [oreQuantidade, setOreQuantidade] = useState(produtoEdt.ORE_QUANTIDADE);
         const [oreEmbalagem, setOreEmbalagem] = useState(produtoEdt.ORE_EMBALAGEM);
         const [oreValor, setOreValor] = useState(produtoEdt.ORE_VALOR);
-        const [osValorStr, setOsValorStr] = useState(mascaraMoeda(produtoEdt.ORE_VALOR));
+        const [osValorStr, setOsValorStr] = useState(mascaraMoeda(produtoEdt.ORE_VALOR / produtoEdt.ORE_QUANTIDADE));
 
         const salvar = () =>
         {
@@ -405,7 +405,7 @@ export default function Orcamentos() {
                 ORE_NOME: oreNome.toUpperCase(),
                 ORE_QUANTIDADE: oreQuantidade,
                 ORE_EMBALAGEM : oreEmbalagem,
-                ORE_VALOR:valor,
+                ORE_VALOR:valor * oreQuantidade,
                 ORE_ORD: produtoEdt.ORE_ORD,
                 ORE_PRO: produtoEdt.ORE_PRO,
                 ORE_ALIQICMS: produtoEdt.ORE_ALIQICMS,
@@ -424,6 +424,7 @@ export default function Orcamentos() {
             setShowModalSalvar(true);
 
         }
+
 
 
         return (
@@ -450,7 +451,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Valor </span>
-                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24">
+                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value)}} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24">
                             </input>
                         </div>
 

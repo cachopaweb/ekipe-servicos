@@ -542,7 +542,11 @@ export default function Orcamentos() {
 
         }
 
-
+        const selectNome = () =>
+            {
+                (document.getElementById('edtNomeServico') as HTMLInputElement).select();
+            }
+    
 
         const inserirServico = (servico: OrdSerModel) => {
             try {
@@ -574,6 +578,8 @@ export default function Orcamentos() {
                 edtNomeServico?.focus();
             }
         }
+
+
 
         const edtNomeServicoKeydown = (e: keyBoardInputEvent) => {
             if (e.key === 'Enter') {
@@ -615,7 +621,9 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="servico">Serviço</label>
-                            <input id="edtNomeServico" onKeyDown={edtNomeServicoKeydown} value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
+                            <input id="edtNomeServico" 
+                            onFocus={selectNome}
+                             onKeyDown={edtNomeServicoKeydown} value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
@@ -714,6 +722,7 @@ export default function Orcamentos() {
             setDivWidthProdutos(refDivProdutos.current ? refDivProdutos.current.offsetWidth : 0);
         }, [refDivProdutos.current]);
 
+
         const [produto, setProduto] = useState<OrdEstModel>({
             ORE_CODIGO: 0,
             ORE_EMBALAGEM: 'PC',
@@ -742,8 +751,8 @@ export default function Orcamentos() {
 
         const edtNomeProdutoKeyDown = (e: keyBoardInputEvent) => {
             if (e.key === 'Enter') {
-                const edtUM = document.getElementById('edtUM');
-                edtUM?.focus();
+                const edtQuantidade = document.getElementById('edtQuantidade');
+                edtQuantidade?.focus();
             }
         }
         const edtQuantidadeKeyDown = (e: keyBoardInputEvent) => {
@@ -776,8 +785,11 @@ export default function Orcamentos() {
                             ORE_QUANTIDADE: 1,
                             ORE_VALOR: produtoResponse.PRO_VALORV!,
                         })
-                        const edtQuantidade = document.getElementById('edtQuantidade');
-                        edtQuantidade?.focus();
+
+                        const edtNomeProduto = document.getElementById('edtNomeProduto');
+                        edtNomeProduto?.focus();
+
+
                     }
                 } catch (error) {
                     toastMixin.fire('Erro ao buscar produto', String(error), 'error');
@@ -820,9 +832,12 @@ export default function Orcamentos() {
         const editaProduto = (produto: OrdEstModel) => {
             setProdutoEdt(produto);
             setShowModalEdtProduto(true);
-            console.log('editaProduto');
 
 
+        }
+        const selectNome = () =>
+        {
+            (document.getElementById('edtNomeProduto') as HTMLInputElement).select();
         }
 
         return (
@@ -852,7 +867,10 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="produto">Produto</label>
-                            <input value={produto.ORE_NOME}
+                            <input
+                                id='edtNomeProduto'
+                                onFocus={selectNome}
+                                value={produto.ORE_NOME}
                                 onKeyDown={edtNomeProdutoKeyDown}
                                 onChange={(e) => produtoSelecionado.PRO_CODIGO == 1 ? setProduto({ ...produto, ORE_NOME: String(e.target.value).toUpperCase() }) : null}
                                 className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />

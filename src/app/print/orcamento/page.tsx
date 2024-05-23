@@ -49,7 +49,7 @@ const PrintOrcamentos = () => {
             <div className='p-3 relative' ref={componentRef}>
                 <div >
                     <Image className='p-10' src={logo} height={80} alt="Logo" />
-                    <div className='divide-solid divide-y divide-black'>
+                    <div className='divide-solid divide-y divide-black print:pl-10'>
                         <h1 className='text-center text-2xl font-bold'>{titulo}</h1>
                         <div>
                             <div className='grid grid-cols-2'>
@@ -127,7 +127,8 @@ const PrintOrcamentos = () => {
                                         </div>
                                         <tr className='grid grid-cols-8'>
                                             <td className='col-span-6 text-end text-sm'>Total Produtos:</td>
-                                            <td className='text-sm text-end'> {formatCurrency(somaProdutos)}</td>
+                                            <div></div>
+                                            <td className='text-sm text-start'> {formatCurrency(somaProdutos)}</td>
                                         </tr>
                                     </div>
 
@@ -161,7 +162,8 @@ const PrintOrcamentos = () => {
                                         </div>
                                         <tr className='grid grid-cols-8'>
                                             <td className='col-span-6 text-end text-sm'>Total Serviços:</td>
-                                            <td className='text-sm text-end'> {formatCurrency(somaServicos)}</td>
+                                            <div></div>
+                                            <td className='text-sm text-start'> {formatCurrency(somaServicos)}</td>
                                         </tr>
                                     </div>
                                 </tbody>
@@ -171,11 +173,12 @@ const PrintOrcamentos = () => {
                             <div className='grid grid-cols-8 font-bold'>
                                 <span className='text-sm'>Observação: </span>
                                 <span className='text-sm col-span-5 text-end'> Valor Total:</span>
-                                <span className='text-sm text-end'> {formatCurrency(OrdemCtx!.ORD_VALOR)}</span>
+                                <div></div>
+                                <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_VALOR)}</span>
                             </div>
                             <span className='text-start text-xs'>{OrdemCtx!.ORD_OBS}</span>
 
-                            <div className='text-end pt-16 grid-rows-3'>
+                            <div className='text-end pt-16 grid-rows-3 pr-6'>
                                 <div>
                                     <span className='font-bold text-xl' >{OrdemCtx!.FUN_NOME}</span>
                                 </div>

@@ -47,7 +47,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
         if (!porPeriodo && textoBusca === '') {
             return;
         }
-        if (!porPeriodo && textoBusca != '' && textoBusca.length < 3) {
+        if (!porPeriodo && textoBusca != '' && textoBusca.length < 1) {
             return;
         }
         try {

@@ -652,28 +652,28 @@ export default function Orcamentos() {
                 </div>
                 <div className="flex items-center justify-center">
                     <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
-                        <thead className="text-white">
+                        <thead className="text-black w-full h-full">
                             {divWidthServicos > 600 ? (
-                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row sm:table-fixed rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left">Cód.</th>
-                                    <th className="p-3 text-left sm:w-[62.3%]">Serviço</th>
-                                    <th className="p-3 text-left">Quantidade</th>
-                                    <th className="p-3 text-left">UM</th>
-                                    <th className="p-3 text-left">Valor Unit.</th>
-                                    <th className="p-3 text-left">Valor Total</th>
-                                    <th className="p-3 text-left">Ação</th>
+                                <tr className="bg-amber-400 flex flex-col flex-nowrap sm:flex-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                    <th className="p-3 text-left sm:w-[10%]">Cód.</th>
+                                    <th className="p-3 text-left sm:w-[40%]">Serviço</th>
+                                    <th className="p-3 text-left sm:w-[8%]">Qtd</th>
+                                    <th className="p-3 text-left sm:w-[8%]">UM</th>
+                                    <th className="p-3 text-left sm:w-[13%]">Valor Unit.</th>
+                                    <th className="p-3 text-left sm:w-[13%]">Valor Total</th>
+                                    <th className="p-3 text-left sm:w-[8%]">Ação</th>
                                 </tr>
                             )
                                 :
                                 listaServicosInseridos.map(item =>
-                                    <tr key={item.OS_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row sm:table-fixed rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                        <th className="p-3 text-left">Cód.</th>
-                                        <th className="p-3 text-left">Serviço</th>
-                                        <th className="p-3 text-left">Quantidade</th>
-                                        <th className="p-3 text-left">UM</th>
-                                        <th className="p-3 text-left">Valor Unit.</th>
-                                        <th className="p-3 text-left">Valor Total</th>
-                                        <th className="p-3 text-left">Ação</th>
+                                    <tr key={item.OS_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:flex-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                        <th className="p-3 text-left h-12">Cód.</th>
+                                        <th className="p-3 text-left h-12">Serviço</th>
+                                        <th className="p-3 text-left h-12">Quantidade</th>
+                                        <th className="p-3 text-left h-12">UM</th>
+                                        <th className="p-3 text-left h-12">Valor Unit.</th>
+                                        <th className="p-3 text-left h-12">Valor Total</th>
+                                        <th className="p-3 text-left h-12">Ação</th>
                                     </tr>
                                 )
                             }
@@ -681,13 +681,14 @@ export default function Orcamentos() {
                         <tbody className="flex-1 sm:flex-none">
                             {listaServicosInseridos.map((item) =>
                                 <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:table-row sm:table-fixed mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.OS_CODIGO}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[70%]">{item.OS_NOME}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[9%]">{item.OS_QUANTIDADE}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.OS_UNIDADE_MED}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[8%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[8%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[10%]">{item.OS_CODIGO}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[40%]">{item.OS_NOME}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[8%]">{item.OS_QUANTIDADE}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[8%]">{item.OS_UNIDADE_MED}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-1 h-12 sm:h-auto sm:p-3 sm:w-[8%] text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                    {divWidthServicos > 600 ?
                                         <div className="grid grid-rows-2">
                                             <button
                                                 className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
@@ -705,6 +706,24 @@ export default function Orcamentos() {
                                                 <i className="fas fa-pencil text-white "></i>
                                             </button>
                                         </div>
+                                        :
+                                        <div className="grid grid-cols-2">
+                                        <button
+                                            className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                            type="button"
+                                            onClick={() => excluirServico(item.OS_CODIGO)}
+                                        >
+                                            <i className="fas fa-trash text-white "></i>
+
+                                        </button>
+                                        <button
+                                            className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                            type="button"
+                                            onClick={() => editaServico(item)}
+                                        >
+                                            <i className="fas fa-pencil text-white "></i>
+                                        </button>
+                                    </div>}
                                     </td>
                                 </tr>
                             )}
@@ -903,39 +922,40 @@ export default function Orcamentos() {
                 </div>
                 <div className="flex items-center justify-center">
                     <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
-                        <thead className="text-white">
+                        <thead className="text-black w-full">
                             {divWidthProdutos > 600 ? (
-                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row sm:table-fixed rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left">Cód.</th>
-                                    <th className="p-3 text-left sm:w-[62.3%]">Produto</th>
-                                    <th className="p-3 text-left ">Quantidade</th>
-                                    <th className="p-3 text-left">UM</th>
-                                    <th className="p-3 text-left">Valor Unit.</th>
-                                    <th className="p-3 text-left">Valor Total</th>
-                                    <th className="p-3 text-left">Ação</th>
+                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:flex-row sm:table-fixed rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                    <th className="p-3 text-left sm:w-[10%]">Cód.</th>
+                                    <th className="p-3 text-left sm:w-[40%]">Produto</th>
+                                    <th className="p-3 text-left sm:w-[8%]">Qtd</th>
+                                    <th className="p-3 text-left sm:w-[8%]">UM</th>
+                                    <th className="p-3 text-left sm:w-[13%]">Valor Unit.</th>
+                                    <th className="p-3 text-left sm:w-[13%]">Valor Total</th>
+                                    <th className="p-3 text-left sm:w-[8%]">Ação</th>
                                 </tr>)
                                 : listaProdutosInseridos.map(item =>
-                                    <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                        <th className="p-3 text-left">Cód.</th>
-                                        <th className="p-3 text-left">Produto</th>
-                                        <th className="p-3 text-left">Quantidade</th>
-                                        <th className="p-3 text-left">UM</th>
-                                        <th className="p-3 text-left">Valor Unit.</th>
-                                        <th className="p-3 text-left">Valor Total</th>
-                                        <th className="p-3 text-left">Ação</th>
+                                    <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:flex-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                        <th className="p-3 text-left h-12">Cód.</th>
+                                        <th className="p-3 text-left h-12">Produto</th>
+                                        <th className="p-3 text-left h-12">Quantidade</th>
+                                        <th className="p-3 text-left h-12">UM</th>
+                                        <th className="p-3 text-left h-12">Valor Unit.</th>
+                                        <th className="p-3 text-left h-12">Valor Total</th>
+                                        <th className="p-3 text-left h-12">Ação</th>
                                     </tr>)
                             }
                         </thead>
                         <tbody className="flex-1 sm:flex-none">
                             {listaProdutosInseridos.map((item) =>
                                 <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:table-row sm:table-fixed mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[5%]">{item.ORE_PRO}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 pl-5 sm:w-[65%]">{item.ORE_NOME}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[9%]">{item.ORE_QUANTIDADE}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ORE_EMBALAGEM}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[8%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[8%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[10%]">{item.ORE_PRO}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[40%]">{item.ORE_NOME}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[8%]">{item.ORE_QUANTIDADE}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[8%]">{item.ORE_EMBALAGEM}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer sm:w-[8%]">
+                                    {divWidthProdutos > 600 ?
                                     <div className="grid grid-rows-2">
                                             <button
                                                 className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
@@ -953,6 +973,25 @@ export default function Orcamentos() {
                                                 <i className="fas fa-pencil text-white "></i>
                                             </button>
                                         </div>
+                                        :
+                                        <div className="grid grid-cols-2">
+                                        <button
+                                            className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                            type="button"
+                                            onClick={() => excluirProduto(item.ORE_CODIGO)}
+                                        >
+                                            <i className="fas fa-trash text-white "></i>
+
+                                        </button>
+                                        <button
+                                            className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                            type="button"
+                                            onClick={() => editaProduto(item)}
+                                        >
+                                            <i className="fas fa-pencil text-white "></i>
+                                        </button>
+                                    </div>}
+
 
                                     </td>
                                 </tr>
@@ -1179,6 +1218,14 @@ export default function Orcamentos() {
                     >
                         <i className="fas fa-print"></i>
                         <span>Imprimir</span>
+                    </button>
+                    <button
+                        className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
+                        onClick={() => setShowModalSalvar(true)}
+                        disabled={listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0}
+                    >
+                        <i className="fa-solid fa-floppy-disk"></i>
+                        <span>Salvar</span>
                     </button>
                 </div>
             </>

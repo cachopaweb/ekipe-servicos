@@ -176,7 +176,7 @@ const PrintOrcamentos = () => {
                                 <div></div>
                                 <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_VALOR)}</span>
                             </div>
-                            <span className='text-start text-xs'>{OrdemCtx!.ORD_OBS}</span>
+                            <pre className='text-start text-xs'>{OrdemCtx!.ORD_OBS}</pre>
 
                             <div className='text-end pt-16 grid-rows-3 pr-6'>
                                 <div>

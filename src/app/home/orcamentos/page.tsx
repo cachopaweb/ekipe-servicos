@@ -512,10 +512,17 @@ export default function Orcamentos() {
     const AbaServicos = () => {
         const refDivServicos = useRef<HTMLDivElement>(null);
         const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
+        const [valorUnitarioAux, setValorUnitarioAux] = useState('');
         useEffect(() => {
             setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
         }, [refDivServicos.current]);
 
+        useEffect(() => {
+            const valorUnit = maskRealToNumber(valorUnitarioAux);
+            console.log(valorUnit);
+            setServico({ ...servico, OS_VALOR: valorUnit ? valorUnit : 0 })
+            
+        }, [valorUnitarioAux]);
 
         const [servico, setServico] = useState<OrdSerModel>({
             OS_CODIGO: 0,
@@ -637,7 +644,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="valor">Valor</label>
-                            <input id="edtValorServico" onKeyDown={edtValorServicoKeyDown} value={servico.OS_VALOR} onChange={(e) => setServico({ ...servico, OS_VALOR: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input id="edtValorServico" onKeyDown={edtValorServicoKeyDown} value={valorUnitarioAux ?? ''} onChange={event => { mascaraMoedaEvent(event), setValorUnitarioAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
                         <div>
                             <button
@@ -680,7 +687,7 @@ export default function Orcamentos() {
                         </thead>
                         <tbody className="flex-1 sm:flex-none">
                             {listaServicosInseridos.map((item) =>
-                                <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:table-row sm:table-fixed mb-2 sm:mb-0">
+                                <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[10%]">{item.OS_CODIGO}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[40%]">{item.OS_NOME}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[8%]">{item.OS_QUANTIDADE}</td>
@@ -737,10 +744,17 @@ export default function Orcamentos() {
     const AbaProdutos = () => {
         const refDivProdutos = useRef<HTMLDivElement>(null);
         const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
+        const [valorUnitarioAux, setValorUnitarioAux] = useState('');
         useEffect(() => {
             setDivWidthProdutos(refDivProdutos.current ? refDivProdutos.current.offsetWidth : 0);
         }, [refDivProdutos.current]);
 
+        useEffect(() => {
+            const valorUnit = maskRealToNumber(valorUnitarioAux);
+            console.log(valorUnit);
+            setProduto({ ...produto, ORE_VALOR: valorUnit ? valorUnit : 0 })
+            
+        }, [valorUnitarioAux]);
 
         const [produto, setProduto] = useState<OrdEstModel>({
             ORE_CODIGO: 0,
@@ -906,7 +920,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="valor">Valor</label>
-                            <input id="edtValorProduto" onKeyDown={edtValorProdutoKeyDown} value={produto.ORE_VALOR} onChange={(e) => setProduto({ ...produto, ORE_VALOR: e.target.value ? parseFloat(e.target.value) : 0 })} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input id="edtValorProduto" onKeyDown={edtValorProdutoKeyDown} value={valorUnitarioAux ?? ''} onChange={event => { mascaraMoedaEvent(event), setValorUnitarioAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
                         </div>
                         <div className="">
                             <button
@@ -947,7 +961,7 @@ export default function Orcamentos() {
                         </thead>
                         <tbody className="flex-1 sm:flex-none">
                             {listaProdutosInseridos.map((item) =>
-                                <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:table-row sm:table-fixed mb-2 sm:mb-0">
+                                <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
                                     <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[10%]">{item.ORE_PRO}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[40%]">{item.ORE_NOME}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[8%]">{item.ORE_QUANTIDADE}</td>

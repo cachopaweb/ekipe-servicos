@@ -1213,28 +1213,32 @@ export default function Orcamentos() {
                 </div>
                 <div className="p-4 space-y-4">
                     <button
-                        className={`px-4 py-3 flex items-center space-x-4 rounded-md group text-black font-bold`}
+                        className={codigoOrdem == 0 ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => setShowModalEmpreitadas(true)}
+                        disabled = {codigoOrdem == 0 ? true : false}
                     >
                         <i className="fas fa-hand-holding-usd"></i>
                         <span>Empreitadas</span>
                     </button>
                     <button
-                        className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
+                         className={codigoOrdem == 0 ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => setShowModalListaArquivos(true)}
+                        disabled = {codigoOrdem == 0 ? true : false}
                     >
                         <i className="fas fa-exchange-alt"></i>
                         <span>Listar Arquivos</span>
                     </button>
                     <button
-                        className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
+                        className={codigoOrdem == 0 ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => imprimeOrcamento()}
+                        disabled = {codigoOrdem == 0 ? true : false}
                     >
                         <i className="fas fa-print"></i>
                         <span>Imprimir</span>
                     </button>
                     <button
-                        className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
+                    className={(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
+
                         onClick={() => setShowModalSalvar(true)}
                         disabled={listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0}
                     >

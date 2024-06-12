@@ -1,20 +1,4 @@
 @tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@media print{
-    #botaoImpressao{
-        visibility: hidden;
-    }
-
-    #footerImpressao{
-        visibility: visible;
-    }
-}
-@media screen {
-    #footerImpressao{
-        visibility: hidden;
-    }
-    
-    
-}
+  @tailwind components;
+  @tailwind utilities;
+  

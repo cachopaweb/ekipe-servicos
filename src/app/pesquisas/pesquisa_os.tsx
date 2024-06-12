@@ -6,6 +6,7 @@ import OrdemModel from "../models/ordem_model";
 import { FormatDate, Status } from "../functions/utils";
 import OrdEstModel from "../models/ord_est_model";
 import OrdSerModel from "../models/ord_ser_model";
+import Tabela from "../compositionpattern/tabela";
 
 type pesquisaOrdemParams = {
     showModal: boolean;
@@ -251,8 +252,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                             </div>
                         </div>
                         <div ref={refDivOrdem} className="overflow-x-hidden h-[300px]">
-
-                            <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                        <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
                                 <thead className="text-white">
                                     {divWidthOrdem > 600 ? (
                                         <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
@@ -295,6 +295,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                     )) : <h1>Aguarde, carregando dados...</h1>}
                                 </tbody>
                             </table>
+                            
                         </div>
                         {showModalDetalhes && <ModalDetalhes />}
                     </div>

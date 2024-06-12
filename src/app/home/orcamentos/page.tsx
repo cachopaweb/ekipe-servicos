@@ -1037,7 +1037,7 @@ export default function Orcamentos() {
 
             async function downloadFile(path: string) {
                 setIsDownloadFile(true);
-                const response = await fetch('/api/download', {
+                const response = await fetch('/api/downloads', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/octet-stream',
@@ -1085,7 +1085,7 @@ export default function Orcamentos() {
                                         }
                                     </thead>
                                     <tbody className="flex-1 sm:flex-none">
-                                        {listaArquivos.map((item) =>
+                                        {listaArquivos.length > 0 ? listaArquivos.map((item) =>
                                             <tr key={item.AO_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
                                                 <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_CODIGO}</td>
                                                 <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{getFileName(item.AO_CAMINHO)}</td>
@@ -1106,7 +1106,10 @@ export default function Orcamentos() {
                                                     </button>
                                                 </td>
                                             </tr>
-                                        )}
+                                        )
+                                    :
+                                    <p>Não tem arquivo para ser mostrado</p>
+                                    }
                                     </tbody>
                                 </table>
                             </div>

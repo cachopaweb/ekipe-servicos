@@ -30,7 +30,9 @@ export default function Tabela({ itensHeader, itensRow, className }: TabelaGener
         setDivWidth(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
     }, [refDivServicos.current]);
 
-    return (
+    return(<></>)
+
+   /* return (
         <div className={cn(['', className])}>
             {
                 <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
@@ -71,6 +73,6 @@ export default function Tabela({ itensHeader, itensRow, className }: TabelaGener
             }
 
         </div>
-    );
+    );*/
 
 }

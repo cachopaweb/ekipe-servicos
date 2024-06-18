@@ -6,7 +6,7 @@ import { ClienteModel } from "../../models/cliente_model";
 import { ProdutoModel } from "../../models/produto_model";
 import OrdEstModel from "../../models/ord_est_model";
 import OrdSerModel from "../../models/ord_ser_model";
-import Modal from "../../components/modal";
+import Modal from "../../../components/component/modal";
 import {
     FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin,
     getFileName, mascaraMoedaEvent, mascaraMoeda, maskRealToNumber

@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import Modal from "../components/modal";
+import Modal from "../../components/component/modal";
 import Swal from "sweetalert2";
 import OrdemRepository from "../repositories/ordem_repository";
 import OrdemModel from "../models/ordem_model";

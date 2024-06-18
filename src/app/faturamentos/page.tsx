@@ -6,7 +6,7 @@ import PFParcelaModel from "../models/pf_parcela_model";
 import TipoPgmRepository from "../repositories/tipo_pgm_repository";
 import { GeraCodigo, keyBoardInputEvent, keyBoardSelectEvent, toastMixin } from "../functions/utils";
 import CliForModel from "../models/cli_for_model";
-import Modal from "../components/modal";
+import Modal from "../../components/component/modal";
 import OperacoesStrategy from "./contracts/operacoes_interfaces";
 
 interface FaturamentoProps {

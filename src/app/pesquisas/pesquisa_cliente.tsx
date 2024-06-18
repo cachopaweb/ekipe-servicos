@@ -1,8 +1,9 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import Modal from "../components/modal";
+import Modal from "../../components/component/modal";
 import Swal from "sweetalert2";
 import ClientRepository from "../repositories/cliente_repository";
 import { ClienteModel } from "../models/cliente_model";
+import { Cadastro_clientes } from "@/components/component/cadastro_clientes";
 
 type pesquisaClienteParams = {
     showModal: boolean;
@@ -100,6 +101,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                     </div>
                 }
             />
+            {cadastrarCliente && <Modal showModal={cadastrarCliente} setShowModal={setCadastrarCliente} title="Cadastro Cliente" body={<Cadastro_clientes />} /> }
         </>
     )
 }

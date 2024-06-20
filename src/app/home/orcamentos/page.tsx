@@ -9,7 +9,8 @@ import OrdSerModel from "../../models/ord_ser_model";
 import Modal from "../../../components/component/modal";
 import {
     FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin,
-    getFileName, mascaraMoedaEvent, mascaraMoeda, maskRealToNumber
+    getFileName, mascaraMoedaEvent, mascaraMoeda, maskRealToNumber,
+    IncrementaGenerator
 } from "@/app/functions/utils";
 import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
@@ -165,6 +166,7 @@ export default function Orcamentos() {
             codigo = await GeraCodigo('ORDENS', 'ORD_CODIGO');
         }
         try {
+            console.log('servicos: '+ listaServicosInseridos);
             let ord: OrdemModel = {
                 ORD_CODIGO: codigo,
                 ORD_DATA: FormatDate(new Date()),
@@ -202,7 +204,7 @@ export default function Orcamentos() {
                 ////
                 listaServicosInseridos.forEach(async s => {
                     if (s.OS_CODIGO === 0) {
-                        s.OS_CODIGO = await GeraCodigo('ORD_SER', 'OS_CODIGO');
+                        s.OS_CODIGO = await IncrementaGenerator('GEN_OS');
                     }
                     s.OS_ORD = codigo;
                     repository.insereServicos(codigo, s);
@@ -688,7 +690,7 @@ export default function Orcamentos() {
                         <tbody className="flex-1 sm:flex-none">
                             {listaServicosInseridos.map((item) =>
                                 <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[10%]">{item.OS_CODIGO}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[10%]">{item.OS_SER}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[40%]">{item.OS_NOME}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[8%]">{item.OS_QUANTIDADE}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[8%]">{item.OS_UNIDADE_MED}</td>

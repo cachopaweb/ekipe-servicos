@@ -3,12 +3,15 @@ import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import * as ftp from "basic-ftp";
 import { Readable } from "stream";
 
+
 const caminho = "/ekipe_servicos/uploads/";
   
 type TypeFileData = {
     name: string,
     data: Readable
 }
+
+
 
 const uploadFile = async (file: TypeFileData)=>{
 

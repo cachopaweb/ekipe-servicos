@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import Modal from "../components/modal";
+import Modal from "../../components/component/modal";
 import Swal from "sweetalert2";
 import ProdutoRepository from "../repositories/produto_repository";
 import { ProdutoModel } from "../models/produto_model";

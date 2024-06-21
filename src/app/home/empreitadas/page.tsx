@@ -1,5 +1,5 @@
 "use client"
-import Modal from "@/app/components/modal";
+import Modal from "@/components/component/modal";
 import OperacaoEmpreitadas from "@/app/faturamentos/implementations/operacao_empreitadas";
 import Faturamentos from "@/app/faturamentos/page";
 import { GeraCodigo, toastMixin } from "@/app/functions/utils";

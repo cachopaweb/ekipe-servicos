@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import Modal from "../components/modal";
+import Modal from "../../components/component/modal";
 import Swal from "sweetalert2";
 import CliForRepository from "../repositories/cli_for_repository";
 import CliForModel from "../models/cli_for_model";

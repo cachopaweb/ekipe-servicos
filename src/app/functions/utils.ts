@@ -59,21 +59,23 @@ function getFileName(path:string): string{
 
 
 }
+
 async function IncrementaGenerator(generator: string): Promise<number>{
-    try
-    {
-        const response = await api.post('/dataset', {
-            'sql': `SELECT GEN_ID('${generator}', 1) COD FROM 'RDB$DATABASE'`
-        })
-        if (response.status === 200){
-            return (response.data['COD'] as number) + 1;
-        }else{
-            return 1;
-        }
-    }catch(e){
-        throw new Error(`Erro ao gerar generator tabela, Generator: ${generator}`)
-    }
+  try
+  {
+      const response = await api.post('/dataset', {
+          'sql': `SELECT GEN_ID(${generator}, 1) COD FROM RDB$DATABASE`
+      })
+      if (response.status === 200){
+          return (response.data['COD'] as number) + 1;
+      }else{
+          return 1;
+      }
+  }catch(e){
+      throw new Error(`Erro ao gerar generator tabela, Generator: ${generator}`)
+  }
 }
+
 
 function DataHoje(): string {
     const dataAtual = new Date();

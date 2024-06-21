@@ -9,9 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-slot": "^1.0.2",
     "axios": "^1.5.1",
     "basic-ftp": "^5.0.4",
     "blob-to-stream": "^1.0.3",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.390.0",
     "next": "^14.0.5-canary.59",
     "node-fetch": "^3.3.2",
     "react": "^18",
@@ -19,7 +25,9 @@
     "react-intl": "^6.5.5",
     "react-to-print": "^2.14.15",
     "stream-to-blob": "^2.0.1",
-    "sweetalert2": "^11.6.13"
+    "sweetalert2": "^11.6.13",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/ftp": "^0.3.36",

@@ -1,5 +1,5 @@
 import { Dispatch, KeyboardEventHandler, MouseEventHandler, SetStateAction, useEffect, useState } from "react";
-import { keyBoardDivEvent } from "../functions/utils";
+import { keyBoardDivEvent } from "../../app/functions/utils";
 
 type modalParams = {
   showModal: boolean;

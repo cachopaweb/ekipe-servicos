@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 
 export function Cadastro_clientes() {
   return (
-    <div className="p-4 sm:w-[800px]">
+    <div className="overflow-scroll">
+    <div className="p-4 sm:w-[800px] sm:h-96">
       <div className="border rounded-md p-4 space-y-4">
         <h2 className="text-xl font-bold">Cadastro de Clientes</h2>        
         <div className="grid grid-cols-2 gap-4">
@@ -289,6 +290,7 @@ export function Cadastro_clientes() {
           </div>
         </p>
       </div>
+    </div>
     </div>
   )
 }

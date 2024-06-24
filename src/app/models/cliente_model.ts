@@ -1,6 +1,29 @@
+export enum TipoPessoa {
+  FISICA = 'FÍSICA',
+  JURIDICA = 'JURÍDICA'
+}
+
+export enum Fidelidade {
+  NENHUMA = 'Nenhuma',
+  RUIM = 'Ruim',
+  REGULAR = 'Regular',
+  BOM = 'Bom',
+  OTIMO = 'Otimo'
+}
+
+
+export enum Situacao {
+  LIVRE = 'Livre',
+  OBSERVACAO =  'Observação',
+  BLOQUEADO = 'Bloqueado'
+}
+
+
 export class ClienteModel {
   CODIGO: number;
   NOME: string;
+  RAZAOSOCIAL?: string;
+  TIPO?: TipoPessoa | string;
   CPF_CNPJ?: string;
   RG?: string;
   FONE?: string;
@@ -9,6 +32,12 @@ export class ClienteModel {
   NUMERO?: string;
   BAIRRO?: string;
   CIDADE?: string;
+  CEP?:string;
+  FIDELIDADE?: Fidelidade;
+  INADIPLENCIA?:number;
+  DESCONTO?:number;
+  SITUACAO?: Situacao;
+  LIMITE?:number;
   constructor(codigo: number, nome: string){
     this.CODIGO = codigo;
     this.NOME = nome;

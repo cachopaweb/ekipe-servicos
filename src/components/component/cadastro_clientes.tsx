@@ -8,8 +8,45 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { useEffect, useState } from "react"
+import { ClienteModel, Fidelidade, Situacao, TipoPessoa } from "@/app/models/cliente_model"
+import { GeraCodigo, mascaraMoedaEvent, maskRealToNumber } from "@/app/functions/utils"
+import { InputMask, useMask } from '@react-input/mask';
+
+
+
 
 export function Cadastro_clientes() {
+
+  const [cliente, setCliente] = useState<ClienteModel>({CODIGO:0, NOME:''})
+  const [ehCpf, setEhCpf] = useState(true);
+  const [valorLimiteAux, setvalorLimiteAux] = useState('');
+
+  const inputRefCpf = useMask({ mask: '___.___.___-__', replacement: { _: /\d/ } });
+  const inputRefCnpj = useMask({ mask: '__.___.___/____-__', replacement: { _: /\d/ } });
+  const inputRefCep = useMask({ mask: '_____-___', replacement: { _: /\d/ } });
+  const inputRefFone = useMask({ mask: '(__)_____-____', replacement: { _: /\d/ } });
+  useEffect(()=>{
+    inicializaCliente();
+  }, [])
+
+  
+  useEffect(()=>{
+    cliente.TIPO == TipoPessoa.FISICA ? setEhCpf(true) : setEhCpf(false);
+    console.log(cliente.NOME);
+  }, [cliente])
+
+  useEffect(() => {
+    const valor = maskRealToNumber(valorLimiteAux);
+    setCliente({ ...cliente, LIMITE: valor ? valor : 0 })
+}, [valorLimiteAux]);
+
+  async function inicializaCliente(){
+    let cod = await GeraCodigo('CLIENTES', 'CLI_CODIGO');
+    setCliente({...cliente, CODIGO:cod, TIPO: TipoPessoa.FISICA,
+       FIDELIDADE:Fidelidade.NENHUMA});
+  }
+
   return (
     <div className="overflow-scroll">
     <div className="p-4 sm:w-[800px] sm:h-96">
@@ -21,98 +58,118 @@ export function Cadastro_clientes() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="codigo">Código</Label>
-                <Input id="codigo" defaultValue="284" />
+                <Input id="codigo" disabled={true} defaultValue={cliente.CODIGO} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tipo">Tipo</Label>
-                <Select>
+                <Select value={cliente.TIPO}  onValueChange={(e) => setCliente({...cliente, TIPO:e})} >
                   <SelectTrigger id="tipo">
                     <SelectValue placeholder="Jurídica" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="juridica">Jurídica</SelectItem>
-                    <SelectItem value="fisica">Física</SelectItem>
+                    <SelectItem value={TipoPessoa.FISICA}>Física</SelectItem>
+                    <SelectItem value={TipoPessoa.JURIDICA}>Jurídica</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cpf_cnpj">CPF/CNPJ</Label>
-                <Input id="cpf_cnpj" defaultValue="26.408.161/0001-02" />
+                <Input ref={ehCpf ? inputRefCpf : inputRefCnpj}
+                placeholder={ehCpf ? 'Digite seu CPF' : 'Digite seu CNPJ'}
+                value={cliente.CPF_CNPJ}
+                onChange={(e) => setCliente({...cliente, CPF_CNPJ:e.target.value})}
+                />
+                
               </div>
               <div className="space-y-2">
                 <Label htmlFor="rg">RG</Label>
-                <Input id="rg" defaultValue="0000000" />
+                <Input id="rg" value={cliente.RG} onChange={(e) => setCliente({...cliente, RG:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nome_fantasia">Nome (Fantasia)</Label>
-                <Input id="nome_fantasia" defaultValue="SICREDI ADM" />
+                <Input id="nome_fantasia" value={cliente.NOME}
+                 onChange={(e) => setCliente({...cliente, NOME:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="razao_social">Razão Social</Label>
-                <Input id="razao_social" />
+                <Input id="razao_social" value={cliente.RAZAOSOCIAL}
+                 onChange={(e) => setCliente({...cliente, RAZAOSOCIAL:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endereco">Endereço</Label>
-                <Input id="endereco" defaultValue="WEIMAR GONCALVES TORRES" />
+                <Input id="endereco" value={cliente.ENDERECO}
+                 onChange={(e) => setCliente({...cliente, ENDERECO:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="numero">Número</Label>
-                <Input id="numero" defaultValue="2047" />
+                <Input id="numero" value={cliente.NUMERO} type="number"
+                 onChange={(e) => setCliente({...cliente, NUMERO:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bairro">Bairro</Label>
-                <Input id="bairro" defaultValue="CENTRO" />
+                <Input id="bairro" value={cliente.BAIRRO}
+                 onChange={(e) => setCliente({...cliente, BAIRRO:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cidade">Cidade</Label>
-                <Input id="cidade" defaultValue="DOURADOS-MS" />
+                <Input id="numero" value={cliente.CIDADE}
+                 onChange={(e) => setCliente({...cliente, CIDADE:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cep">CEP</Label>
-                <Input id="cep" defaultValue="79800-021" />
+                <Input ref={inputRefCep}
+                value={cliente.CEP}
+                onChange={(e) => setCliente({...cliente, CEP:e.target.value})}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fone">Fone</Label>
-                <Input id="fone" />
+                <Input ref={inputRefFone}
+                value={cliente.FONE}
+                onChange={(e) => setCliente({...cliente, FONE:e.target.value})}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fidelidade">Fidelidade</Label>
-                <Select>
+                <Select value={cliente.FIDELIDADE}  onValueChange={(e) => setCliente({...cliente, FIDELIDADE:e as Fidelidade})}>
                   <SelectTrigger id="fidelidade">
-                    <SelectValue placeholder="Nenhuma" />
+                    <SelectValue placeholder={cliente.FIDELIDADE} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nenhuma">Nenhuma</SelectItem>
-                    <SelectItem value="baixa">Baixa</SelectItem>
-                    <SelectItem value="media">Média</SelectItem>
-                    <SelectItem value="alta">Alta</SelectItem>
+                    <SelectItem value={Fidelidade.NENHUMA}>Nenhuma</SelectItem>
+                    <SelectItem value={Fidelidade.RUIM}>Ruim</SelectItem>
+                    <SelectItem value={Fidelidade.REGULAR}>Regular</SelectItem>
+                    <SelectItem value={Fidelidade.BOM}>Bom</SelectItem>
+                    <SelectItem value={Fidelidade.OTIMO}>Otimo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="inadimplencia">Inadimplência</Label>
-                <Input id="inadimplencia" defaultValue="0" />
+                <Input id="inadiplencia" value={cliente.INADIPLENCIA} type="number"
+                 onChange={(e) => setCliente({...cliente, INADIPLENCIA:parseInt(e.target.value)})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="desconto">Desconto</Label>
-                <Input id="desconto" defaultValue="0" />
+                <Input id="desconto" value={cliente.DESCONTO} type="number"
+                 onChange={(e) => setCliente({...cliente, DESCONTO:parseInt(e.target.value)})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="situacao">Situação</Label>
-                <Select>
+                <Select value={cliente.SITUACAO}  onValueChange={(e) => setCliente({...cliente, SITUACAO:e as Situacao})}>
                   <SelectTrigger id="situacao">
                     <SelectValue placeholder="Livre" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="livre">Livre</SelectItem>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="bloqueado">Bloqueado</SelectItem>
+                    <SelectItem value={Situacao.LIVRE}>Livre</SelectItem>
+                    <SelectItem value={Situacao.OBSERVACAO}>Observação</SelectItem>
+                    <SelectItem value={Situacao.BLOQUEADO}>Bloqueado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="limite">Limite</Label>
-                <Input id="limite" defaultValue="R$ 0,00" />
+                <Input id="edtValorProduto" value={valorLimiteAux?? ''} onChange={event => { mascaraMoedaEvent(event), setvalorLimiteAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="data_nasc">Data Nasc</Label>

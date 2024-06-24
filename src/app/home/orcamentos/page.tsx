@@ -753,7 +753,6 @@ export default function Orcamentos() {
 
         useEffect(() => {
             const valorUnit = maskRealToNumber(valorUnitarioAux);
-            console.log(valorUnit);
             setProduto({ ...produto, ORE_VALOR: valorUnit ? valorUnit : 0 })
             
         }, [valorUnitarioAux]);

@@ -38,6 +38,15 @@ export class ClienteModel {
   DESCONTO?:number;
   SITUACAO?: Situacao;
   LIMITE?:number;
+  DATANASCIMENTO?:string;
+  PAI?:string;
+  MAE?: string;
+  CONJUGE?:string;
+  INDICEIE?:string;
+  INSCRICAOESTADUAL?:string;
+  INSCRICAOMUNICIPAL?:string;
+  SUFRAMA?: string;
+  ESTADO?:string;
   constructor(codigo: number, nome: string){
     this.CODIGO = codigo;
     this.NOME = nome;

@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useEffect, useState } from "react"
 import { ClienteModel, Fidelidade, Situacao, TipoPessoa } from "@/app/models/cliente_model"
-import { GeraCodigo, mascaraMoedaEvent, maskRealToNumber } from "@/app/functions/utils"
+import { FormatDate, GeraCodigo, formatDateDB, mascaraMoedaEvent, maskRealToNumber } from "@/app/functions/utils"
 import { InputMask, useMask } from '@react-input/mask';
+import dayjs from 'dayjs'
 
 
 
@@ -21,20 +22,32 @@ export function Cadastro_clientes() {
   const [cliente, setCliente] = useState<ClienteModel>({CODIGO:0, NOME:''})
   const [ehCpf, setEhCpf] = useState(true);
   const [valorLimiteAux, setvalorLimiteAux] = useState('');
+  const [dataNascimento, setDataNascimento ] = useState<string | null>(null);
 
   const inputRefCpf = useMask({ mask: '___.___.___-__', replacement: { _: /\d/ } });
   const inputRefCnpj = useMask({ mask: '__.___.___/____-__', replacement: { _: /\d/ } });
   const inputRefCep = useMask({ mask: '_____-___', replacement: { _: /\d/ } });
   const inputRefFone = useMask({ mask: '(__)_____-____', replacement: { _: /\d/ } });
+
+
   useEffect(()=>{
     inicializaCliente();
   }, [])
 
+    
+  useEffect(()=>{
+    if(dataNascimento != null)
+    {
+      setCliente({...cliente, DATANASCIMENTO:formatDateDB(dataNascimento)});
+    }
+  }, [dataNascimento])
   
   useEffect(()=>{
     cliente.TIPO == TipoPessoa.FISICA ? setEhCpf(true) : setEhCpf(false);
     console.log(cliente.NOME);
   }, [cliente])
+
+
 
   useEffect(() => {
     const valor = maskRealToNumber(valorLimiteAux);
@@ -173,60 +186,60 @@ export function Cadastro_clientes() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="data_nasc">Data Nasc</Label>
-                <Input id="data_nasc" type="date" />
+                <Input id="data_nasc" type="date" onChange={e => setDataNascimento(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pai">Pai</Label>
-                <Input id="pai" />
+                <Input id="pai" value={cliente.PAI}
+                 onChange={(e) => setCliente({...cliente, PAI:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mae">Mãe</Label>
-                <Input id="mae" />
+                <Input id="mae" value={cliente.MAE}
+                 onChange={(e) => setCliente({...cliente, MAE:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="conjuge">Cônjuge</Label>
-                <Input id="conjuge" />
+                <Input id="conjuge" value={cliente.CONJUGE}
+                 onChange={(e) => setCliente({...cliente, CONJUGE:e.target.value})} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="insc_estadual">Indicador da Insc. Estadual</Label>
-                <Select>
-                  <SelectTrigger id="insc_estadual">
+                <Label htmlFor="ind_insc_estadual">Indicador da Insc. Estadual</Label>
+                <Select value={cliente.INDICEIE} onValueChange={(e) => setCliente({...cliente, INDICEIE:e})}>
+                  <SelectTrigger id="ind_insc_estadual">
                     <SelectValue placeholder="9" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">1</SelectItem>
-                    <SelectItem value="2">2</SelectItem>
-                    <SelectItem value="3">3</SelectItem>
-                    <SelectItem value="4">4</SelectItem>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="6">6</SelectItem>
-                    <SelectItem value="7">7</SelectItem>
-                    <SelectItem value="8">8</SelectItem>
-                    <SelectItem value="9">9</SelectItem>
+                    <SelectItem value="1">1 - Contribuinte do ICMS</SelectItem>
+                    <SelectItem value="2">2 - Contribuinte Isento de Inscrição no Cadastro de Contribuintes do ICMS</SelectItem>
+                    <SelectItem value="9">9 - Não Contribuinte, pode ou não possuir IE</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="insc_estadual_num">Inscr. Estadual</Label>
-                <Input id="insc_estadual_num" />
+                <Label htmlFor="insc_estadual">Inscr. Estadual</Label>
+                <Input id="insc_estadual" value={cliente.INSCRICAOESTADUAL}
+                 onChange={(e) => setCliente({...cliente, INSCRICAOESTADUAL:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="insc_municipal">Inscr. Munic.</Label>
-                <Input id="insc_municipal" />
+                <Input id="insc_municipal" value={cliente.INSCRICAOMUNICIPAL}
+                 onChange={(e) => setCliente({...cliente, INSCRICAOMUNICIPAL:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="suframa">SUFRAMA</Label>
-                <Input id="suframa" />
+                <Input id="suframa" value={cliente.SUFRAMA}
+                 onChange={(e) => setCliente({...cliente, SUFRAMA:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="estado">Estado</Label>
-                <Select>
+                <Select value={cliente.ESTADO}  onValueChange={(e) => setCliente({...cliente, ESTADO:e})}>
                   <SelectTrigger id="estado">
                     <SelectValue placeholder="ATIVO" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ativo">ATIVO</SelectItem>
-                    <SelectItem value="inativo">INATIVO</SelectItem>
+                    <SelectItem value="ATIVO">ATIVO</SelectItem>
+                    <SelectItem value="INATIVO">INATIVO</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import api from "../services/api";
 import { Stream } from "stream";
+import dayjs from 'dayjs'
 import { ChangeEvent, FormEvent } from "react";
 
 enum Status{ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
@@ -98,6 +99,23 @@ function FormatDate(data: Date | string): string{
     }
 }
 
+/* A Função abaixo pega um valor EM STRING do tipo date 
+e transforma no formato 'dd.mm.yyyy' para enviar ao banco 
+de dados
+*/
+
+ function formatDateDB(data:string)
+ {
+  var aux = dayjs(data);
+  let mesAux = aux.month() + 1;
+  let dia = aux.date().toString().length > 1 ? aux.date().toString() : '0'+aux.date().toString();
+  let mes = mesAux.toString().length > 1 ? mesAux.toString() : '0'+mesAux.toString();
+  let dataString = dia+'.'+mes+'.'+aux.year();
+
+  return dataString;
+
+ }
+
 function formatCurrency(value?:number)
 {
 
@@ -178,4 +196,5 @@ var toastMixin = Swal.mixin({
     }
 });
 
-export { GeraCodigo, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, converterDataFormato, DataHoje, maskRealToNumber };
+export { GeraCodigo, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
+  converterDataFormato, DataHoje, maskRealToNumber, formatDateDB };

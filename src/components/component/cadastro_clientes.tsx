@@ -10,28 +10,36 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useEffect, useState } from "react"
 import { ClienteModel, Fidelidade, Situacao, TipoPessoa } from "@/app/models/cliente_model"
-import { FormatDate, GeraCodigo, formatDateDB, mascaraMoedaEvent, maskRealToNumber } from "@/app/functions/utils"
+import { FormatDate, GeraCodigo, dataFormatadaValueInput, formatDateDB, mascaraMoedaEvent, maskRealToNumber } from "@/app/functions/utils"
 import { InputMask, useMask } from '@react-input/mask';
 import dayjs from 'dayjs'
+import ClientRepository from "@/app/repositories/cliente_repository"
+
+interface propsCadastroClientes{
+  id?:number;
+};
 
 
+export function Cadastro_clientes({id}:propsCadastroClientes) {
 
-
-export function Cadastro_clientes() {
-
-  const [cliente, setCliente] = useState<ClienteModel>({CODIGO:0, NOME:''})
+  const [cliente, setCliente] = useState<ClienteModel>({CODIGO:0, NOME:''});
   const [ehCpf, setEhCpf] = useState(true);
   const [valorLimiteAux, setvalorLimiteAux] = useState('');
   const [dataNascimento, setDataNascimento ] = useState<string | null>(null);
+  const [dataCadastro, setDataCadastro] = useState<string>(dataFormatadaValueInput(new Date()));
 
   const inputRefCpf = useMask({ mask: '___.___.___-__', replacement: { _: /\d/ } });
   const inputRefCnpj = useMask({ mask: '__.___.___/____-__', replacement: { _: /\d/ } });
   const inputRefCep = useMask({ mask: '_____-___', replacement: { _: /\d/ } });
-  const inputRefFone = useMask({ mask: '(__)_____-____', replacement: { _: /\d/ } });
+  const inputRefFone = useMask({ mask: '(__)____-____', replacement: { _: /\d/ } });
+  const inputRefCel = useMask({ mask: '(__)_____-____', replacement: { _: /\d/ } });
 
 
   useEffect(()=>{
-    inicializaCliente();
+
+    id==0 ?  inicializaNovoCliente(): inicializaCliente();
+
+    
   }, [])
 
     
@@ -54,10 +62,20 @@ export function Cadastro_clientes() {
     setCliente({ ...cliente, LIMITE: valor ? valor : 0 })
 }, [valorLimiteAux]);
 
-  async function inicializaCliente(){
+  async function inicializaNovoCliente(){
     let cod = await GeraCodigo('CLIENTES', 'CLI_CODIGO');
     setCliente({...cliente, CODIGO:cod, TIPO: TipoPessoa.FISICA,
-       FIDELIDADE:Fidelidade.NENHUMA});
+       FIDELIDADE:Fidelidade.NENHUMA,});
+  }
+
+
+  async function inicializaCliente(){
+    var rep = new ClientRepository();
+    let cliAux = await rep.getClienteById(id??0);
+    console.log(cliAux);
+    let dataAux = dayjs(cliAux.DATACADASTRO).toDate();
+    setDataCadastro(dataFormatadaValueInput(dataAux));
+    setCliente(cliAux);
   }
 
   return (
@@ -71,7 +89,7 @@ export function Cadastro_clientes() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="codigo">Código</Label>
-                <Input id="codigo" disabled={true} defaultValue={cliente.CODIGO} />
+                <Input id="codigo" disabled={true} value={cliente.CODIGO} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tipo">Tipo</Label>
@@ -245,7 +263,7 @@ export function Cadastro_clientes() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="data_cadastro">Data Cadastro</Label>
-                <Input id="data_cadastro" type="date" defaultValue="2024-06-18" />
+                <Input disabled={true} id="data_cadastro" type="date" value={dataCadastro}/>
               </div>
             </div>
           </div>          
@@ -255,84 +273,19 @@ export function Cadastro_clientes() {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">E-Mail</Label>
-              <Input id="email" />
+              <Input id="email" value={cliente.EMAIL} onChange={(e) => setCliente({...cliente, EMAIL:e.target.value})} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="celular">Celular</Label>
-              <Input id="celular" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tipo_pgm">Tipo Pgm</Label>
-              <Select>
-                <SelectTrigger id="tipo_pgm">
-                  <SelectValue placeholder="1 - Pedido" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 - Pedido</SelectItem>
-                  <SelectItem value="2">2 - Consulta</SelectItem>
-                  <SelectItem value="3">3 - Outros</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cadastro">Cadastro</Label>
-              <Input id="cadastro" type="date" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="data_ultima_compra">Data Última Compra</Label>
-              <Input id="data_ultima_compra" type="date" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="desconto_adicional">Desconto</Label>
-              <Select>
-                <SelectTrigger id="desconto_adicional">
-                  <SelectValue placeholder="SIM" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sim">SIM</SelectItem>
-                  <SelectItem value="nao">NÃO</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endereco_corresp">Endereço Corresp.</Label>
-              <Input id="endereco_corresp" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bairro_corresp">Bairro Corresp.</Label>
-              <Input id="bairro_corresp" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cidade_corresp">Cidade Corresp.</Label>
-              <Input id="cidade_corresp" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="limite_titulo">Limite Titulo</Label>
-              <Input id="limite_titulo" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tipo_entr">Tipo Entr.</Label>
-              <Select>
-                <SelectTrigger id="tipo_entr">
-                  <SelectValue placeholder="1 - Retirado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 - Retirado</SelectItem>
-                  <SelectItem value="2">2 - Entregue</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="vencimento">Vencimento</Label>
-              <Input id="vencimento" type="date" defaultValue="1900-01-01" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="validade_cartao">Validade do Cartão</Label>
-              <Input id="validade_cartao" />
+              <Input ref={inputRefCel}
+                value={cliente.CELULAR}
+                onChange={(e) => setCliente({...cliente, CELULAR:e.target.value})}
+                />
             </div>
             <div className="col-span-3 space-y-2">
               <Label htmlFor="observacao">Observação</Label>
-              <Textarea id="observacao" />
+              <Textarea id="observacao" value={cliente.OBS} onChange={(e) => 
+              setCliente({...cliente, OBS: e.target.value})} />
             </div>
           </div>
         </div>
@@ -341,21 +294,12 @@ export function Cadastro_clientes() {
         <p>
         <div className="bg-white shadow-lg p-4">
             <div className="flex justify-around space-x-2">
-              <Button variant="outline" className="flex-1">
-                Inserir
+            <Button variant="default" className="flex-1">
+                Confirmar
               </Button>
               <Button variant="destructive" className="flex-1">
                 Excluir
               </Button>
-              <Button variant="default" className="flex-1">
-                Confirmar
-              </Button>
-              <Button variant="outline" className="flex-1">
-                Cancelar
-              </Button>
-              <Button variant="secondary" className="flex-1">
-                Editar
-              </Button>              
             </div>
           </div>
         </p>

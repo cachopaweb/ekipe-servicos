@@ -1,6 +1,6 @@
 export enum TipoPessoa {
-  FISICA = 'FÍSICA',
-  JURIDICA = 'JURÍDICA'
+  FISICA = 'Física',
+  JURIDICA = 'Jurídica'
 }
 
 export enum Fidelidade {
@@ -47,6 +47,9 @@ export class ClienteModel {
   INSCRICAOMUNICIPAL?:string;
   SUFRAMA?: string;
   ESTADO?:string;
+  DATACADASTRO?:string;
+  EMAIL?:string;
+  OBS?:string;
   constructor(codigo: number, nome: string){
     this.CODIGO = codigo;
     this.NOME = nome;

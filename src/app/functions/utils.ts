@@ -78,6 +78,10 @@ async function IncrementaGenerator(generator: string): Promise<number>{
 }
 
 
+/*
+  Retorna uma string com a data atual (hoje) com o formato dd/mm/yyyy
+
+*/ 
 function DataHoje(): string {
     const dataAtual = new Date();
 
@@ -89,6 +93,23 @@ function DataHoje(): string {
 
     return dataFormatada;
 }
+
+/*
+  Retorna uma string com a data atual (hoje) com o formato yyyy-mm-dd.
+  Usado para os values dos Inputs tipo date.
+
+*/ 
+function dataFormatadaValueInput(data:Date)
+{
+
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0'); 
+  const ano = String(data.getFullYear());
+
+   return `${ano}-${mes}-${dia}`;
+
+}
+
 function FormatDate(data: Date | string): string{
     if(data instanceof Date){
         let dataFmt = data.toLocaleDateString().split('/');
@@ -197,4 +218,4 @@ var toastMixin = Swal.mixin({
 });
 
 export { GeraCodigo, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
-  converterDataFormato, DataHoje, maskRealToNumber, formatDateDB };
+  converterDataFormato, DataHoje, maskRealToNumber, formatDateDB, dataFormatadaValueInput };

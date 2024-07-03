@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useEffect, useState } from "react"
 import { ClienteModel, Fidelidade, Situacao, TipoPessoa } from "@/app/models/cliente_model"
-import { FormatDate, GeraCodigo, dataFormatadaValueInput, formatDateDB, mascaraMoedaEvent, maskRealToNumber } from "@/app/functions/utils"
+import { DataHoje, FormatDate, GeraCodigo, converteDoBancoParaString, dataFormatadaHojeDotValueInput, dataFormatadaValueInput, formatDateDB, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils"
 import { InputMask, useMask } from '@react-input/mask';
 import dayjs from 'dayjs'
 import ClientRepository from "@/app/repositories/cliente_repository"
+import Modal from "./modal"
 
 interface propsCadastroClientes{
   id?:number;
@@ -22,37 +23,28 @@ interface propsCadastroClientes{
 
 export function Cadastro_clientes({id}:propsCadastroClientes) {
 
-  const [cliente, setCliente] = useState<ClienteModel>({CODIGO:0, NOME:''});
+  const [cliente, setCliente] = useState<ClienteModel>({CODIGO:0, NOME:'', ESTADO:'ATIVO'});
   const [ehCpf, setEhCpf] = useState(true);
   const [valorLimiteAux, setvalorLimiteAux] = useState('');
   const [dataNascimento, setDataNascimento ] = useState<string | null>(null);
-  const [dataCadastro, setDataCadastro] = useState<string>(dataFormatadaValueInput(new Date()));
-
+  const [dataCadastro, setDataCadastro] = useState<string | null>(formatDateDB(DataHoje()));
+  const [novoCliente, setNovoCliente] = useState(false);
   const inputRefCpf = useMask({ mask: '___.___.___-__', replacement: { _: /\d/ } });
   const inputRefCnpj = useMask({ mask: '__.___.___/____-__', replacement: { _: /\d/ } });
   const inputRefCep = useMask({ mask: '_____-___', replacement: { _: /\d/ } });
-  const inputRefFone = useMask({ mask: '(__)____-____', replacement: { _: /\d/ } });
+  const inputRefFone = useMask({ mask: '(__)_____-____', replacement: { _: /\d/ } });
   const inputRefCel = useMask({ mask: '(__)_____-____', replacement: { _: /\d/ } });
 
 
   useEffect(()=>{
-
     id==0 ?  inicializaNovoCliente(): inicializaCliente();
-
-    
   }, [])
 
     
-  useEffect(()=>{
-    if(dataNascimento != null)
-    {
-      setCliente({...cliente, DATANASCIMENTO:formatDateDB(dataNascimento)});
-    }
-  }, [dataNascimento])
   
+
   useEffect(()=>{
     cliente.TIPO == TipoPessoa.FISICA ? setEhCpf(true) : setEhCpf(false);
-    console.log(cliente.NOME);
   }, [cliente])
 
 
@@ -63,19 +55,31 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
 }, [valorLimiteAux]);
 
   async function inicializaNovoCliente(){
+    setDataCadastro(DataHoje());
+    setNovoCliente(true);
     let cod = await GeraCodigo('CLIENTES', 'CLI_CODIGO');
     setCliente({...cliente, CODIGO:cod, TIPO: TipoPessoa.FISICA,
-       FIDELIDADE:Fidelidade.NENHUMA,});
+       FIDELIDADE:Fidelidade.NENHUMA, DATACADASTRO:formatDateDB(DataHoje())});
   }
 
 
   async function inicializaCliente(){
     var rep = new ClientRepository();
     let cliAux = await rep.getClienteById(id??0);
-    console.log(cliAux);
-    let dataAux = dayjs(cliAux.DATACADASTRO).toDate();
-    setDataCadastro(dataFormatadaValueInput(dataAux));
+    setDataCadastro(converteDoBancoParaString(cliAux.DATACADASTRO??''));
     setCliente(cliAux);
+  }
+
+  const salvaCliente = async () =>{
+    var rep = new ClientRepository();
+    if(await rep.setCliente(cliente))
+      {
+        toastMixin.fire('Salvo', 'Salvo com Sucesso!', 'success')
+      }
+      else
+      {
+        toastMixin.fire('Erro!', 'Erro ao salvar!', 'error')
+      }
   }
 
   return (
@@ -108,7 +112,7 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
                 <Input ref={ehCpf ? inputRefCpf : inputRefCnpj}
                 placeholder={ehCpf ? 'Digite seu CPF' : 'Digite seu CNPJ'}
                 value={cliente.CPF_CNPJ}
-                onChange={(e) => setCliente({...cliente, CPF_CNPJ:e.target.value})}
+                onChange={(e) => setCliente({...cliente, CPF_CNPJ:e.target.value.toUpperCase()})}
                 />
                 
               </div>
@@ -118,18 +122,18 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nome_fantasia">Nome (Fantasia)</Label>
-                <Input id="nome_fantasia" value={cliente.NOME}
+                <Input id="nome_fantasia" className="uppercase" value={cliente.NOME} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
                  onChange={(e) => setCliente({...cliente, NOME:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="razao_social">Razão Social</Label>
-                <Input id="razao_social" value={cliente.RAZAOSOCIAL}
+                <Input id="razao_social" className="uppercase" value={cliente.RAZAOSOCIAL} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
                  onChange={(e) => setCliente({...cliente, RAZAOSOCIAL:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endereco">Endereço</Label>
-                <Input id="endereco" value={cliente.ENDERECO}
-                 onChange={(e) => setCliente({...cliente, ENDERECO:e.target.value})} />
+                <Input id="endereco" value={cliente.ENDERECO} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
+                 onChange={(e) => setCliente({...cliente, ENDERECO:e.target.value.toUpperCase()})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="numero">Número</Label>
@@ -138,12 +142,12 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bairro">Bairro</Label>
-                <Input id="bairro" value={cliente.BAIRRO}
+                <Input className="uppercase" id="bairro" value={cliente.BAIRRO} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
                  onChange={(e) => setCliente({...cliente, BAIRRO:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cidade">Cidade</Label>
-                <Input id="numero" value={cliente.CIDADE}
+                <Input className="uppercase" id="numero" value={cliente.CIDADE} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
                  onChange={(e) => setCliente({...cliente, CIDADE:e.target.value})} />
               </div>
               <div className="space-y-2">
@@ -203,22 +207,18 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
                 <Input id="edtValorProduto" value={valorLimiteAux?? ''} onChange={event => { mascaraMoedaEvent(event), setvalorLimiteAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="data_nasc">Data Nasc</Label>
-                <Input id="data_nasc" type="date" onChange={e => setDataNascimento(e.target.value)} />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="pai">Pai</Label>
-                <Input id="pai" value={cliente.PAI}
+                <Input id="pai" className="uppercase" value={cliente.PAI} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
                  onChange={(e) => setCliente({...cliente, PAI:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mae">Mãe</Label>
-                <Input id="mae" value={cliente.MAE}
+                <Input id="mae" className="uppercase" onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()}  value={cliente.MAE}
                  onChange={(e) => setCliente({...cliente, MAE:e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="conjuge">Cônjuge</Label>
-                <Input id="conjuge" value={cliente.CONJUGE}
+                <Input id="conjuge" className="uppercase" onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} value={cliente.CONJUGE}
                  onChange={(e) => setCliente({...cliente, CONJUGE:e.target.value})} />
               </div>
               <div className="space-y-2">
@@ -263,7 +263,7 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="data_cadastro">Data Cadastro</Label>
-                <Input disabled={true} id="data_cadastro" type="date" value={dataCadastro}/>
+                <Input disabled={true} id="data_cadastro" type="text" value={dataCadastro??''}/>
               </div>
             </div>
           </div>          
@@ -294,17 +294,15 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
         <p>
         <div className="bg-white shadow-lg p-4">
             <div className="flex justify-around space-x-2">
-            <Button variant="default" className="flex-1">
-                Confirmar
-              </Button>
-              <Button variant="destructive" className="flex-1">
-                Excluir
+            <Button variant="default" className="flex-1" onClick={salvaCliente} >
+                {novoCliente?'Cadastrar':'Alterar'}
               </Button>
             </div>
           </div>
         </p>
       </div>
     </div>
+
     </div>
   )
 }

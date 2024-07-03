@@ -78,6 +78,20 @@ async function IncrementaGenerator(generator: string): Promise<number>{
 }
 
 
+
+function converteDoBancoParaString(timestamp:string){
+
+  const date = new Date(timestamp);
+    
+  // Obtém o dia, mês e ano
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Os meses são baseados em zero, por isso é necessário adicionar 1
+  const year = date.getUTCFullYear();
+  
+  // Retorna a data formatada como "dd/mm/yyyy"
+  return `${day}/${month}/${year}`;
+}
+
 /*
   Retorna uma string com a data atual (hoje) com o formato dd/mm/yyyy
 
@@ -93,6 +107,24 @@ function DataHoje(): string {
 
     return dataFormatada;
 }
+
+
+/*
+  Retorna uma string com a data  no formato dd.mm.yyyy.
+  Usado para os values dos Inputs tipo date.
+
+*/ 
+function dataFormatadaHojeDotValueInput(data:Date)
+{
+
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0'); 
+  const ano = String(data.getFullYear());
+
+   return `${dia}.${mes}.${ano}`;
+
+}
+
 
 /*
   Retorna uma string com a data atual (hoje) com o formato yyyy-mm-dd.
@@ -115,25 +147,27 @@ function FormatDate(data: Date | string): string{
         let dataFmt = data.toLocaleDateString().split('/');
         return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
     }else{
-        let dataFmt = data.split('/');
-        return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
+        if(data ==='')
+          {
+            return '';
+          }
+          else
+          {
+            let dataFmt = data.split('/');
+            return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
+          }
     }
 }
 
-/* A Função abaixo pega um valor EM STRING do tipo date 
+/* A Função abaixo pega um valor EM STRING "dd/mm/yyyy"
 e transforma no formato 'dd.mm.yyyy' para enviar ao banco 
 de dados
 */
 
  function formatDateDB(data:string)
  {
-  var aux = dayjs(data);
-  let mesAux = aux.month() + 1;
-  let dia = aux.date().toString().length > 1 ? aux.date().toString() : '0'+aux.date().toString();
-  let mes = mesAux.toString().length > 1 ? mesAux.toString() : '0'+mesAux.toString();
-  let dataString = dia+'.'+mes+'.'+aux.year();
-
-  return dataString;
+  console.log(data.replaceAll('/','.'))
+  return data.replaceAll('/', '.');
 
  }
 
@@ -218,4 +252,4 @@ var toastMixin = Swal.mixin({
 });
 
 export { GeraCodigo, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
-  converterDataFormato, DataHoje, maskRealToNumber, formatDateDB, dataFormatadaValueInput };
+  converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput };

@@ -94,6 +94,8 @@ export default function Orcamentos() {
         edtCodigoOrdem!.focus();
         const funcionario = JSON.parse(localStorage.getItem('usuario_logado')!);
         setNomeFuncionario(funcionario.FUN_NOME);
+        console.log("codigo ordem: "+codigoOrdem);
+        console.log("Atendente: "+nomeFuncionario);
 
 
     }, [])

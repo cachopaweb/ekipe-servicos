@@ -193,7 +193,7 @@ const PrintOrcamentos = () => {
                     </div>
                     <button
                         id="botaoImpressao"
-                        className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
+                        className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold print:hidden`}
                         onClick={handlePrint}
                     >
                         <i className="fas fa-print"></i>
@@ -201,7 +201,7 @@ const PrintOrcamentos = () => {
                     </button>
                 </div>
                 <footer id="footerImpressao" className='fixed bottom-5' >
-                    <div className='font-bold text-center w-full'>
+                    <div className='font-bold text-center w-full invisible print:visible'>
                         <p>________________________________________________________________________________________________________________</p>
                         <p>Rua Presidente Dutra, 1413, Centro - Fone (67)99618-6021 / (67)99618-6079</p>
                         <p>CNPJ:07.167.610/0001-23 - Fátima do Sul - MS www.ekipeservicos.com.br</p>

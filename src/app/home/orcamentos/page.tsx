@@ -65,6 +65,7 @@ export default function Orcamentos() {
     const [showModalPesquisaOS, setShowModalPesquisaOS] = useState(false);
     const [isDownloadFile, setIsDownloadFile] = useState(false);
     const [nomeFuncionario, setNomeFuncionario] = useState('');
+    const [idFuncionario, setIdFuncionario] = useState(0);
     useEffect(() => {
         buscaOrdemServidor();
     }, [foiFaturado])
@@ -94,8 +95,7 @@ export default function Orcamentos() {
         edtCodigoOrdem!.focus();
         const funcionario = JSON.parse(localStorage.getItem('usuario_logado')!);
         setNomeFuncionario(funcionario.FUN_NOME);
-        console.log("codigo ordem: "+codigoOrdem);
-        console.log("Atendente: "+nomeFuncionario);
+        setIdFuncionario(funcionario.USU_FUN);
 
 
     }, [])
@@ -168,7 +168,6 @@ export default function Orcamentos() {
             codigo = await GeraCodigo('ORDENS', 'ORD_CODIGO');
         }
         try {
-            console.log('servicos: '+ listaServicosInseridos);
             let ord: OrdemModel = {
                 ORD_CODIGO: codigo,
                 ORD_DATA: FormatDate(new Date()),
@@ -178,7 +177,7 @@ export default function Orcamentos() {
                 ORD_DESCONTO_S: 0,
                 ORD_DEVOLUCAO_P: 'N',
                 ORD_ESTADO: statusOrdem,
-                ORD_FUN: 1,
+                ORD_FUN: idFuncionario,
                 ORD_NFS: nfs,
                 ORD_OBS: obs,
                 ORD_OBS_ADM: obs_adm,

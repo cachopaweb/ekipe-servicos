@@ -88,6 +88,8 @@ export default class OrdemRepository {
             } else {
                 data = response.data;
             }
+            console.log('produtos: ');
+            console.log(data);
             return data as OrdEstModel[];
         } catch (e) {
             throw new Error('Erro ao buscar Produtos da Ordem.' + String(e))

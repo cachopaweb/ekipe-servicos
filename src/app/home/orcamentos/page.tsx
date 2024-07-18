@@ -838,6 +838,14 @@ export default function Orcamentos() {
                     toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
                     return;
                 }
+                if (produto.ORE_PRO === 0) {
+                    toastMixin.fire('Código Zero', 'O Código do produto não pode ser Zero', 'warning')
+                    return;
+                }
+                if (!produto.ORE_VALOR) {
+                    toastMixin.fire('Valor vazio', 'Insira um valor', 'warning')
+                    return;
+                }
                 if (produto.ORE_VALOR === 0) {
                     toastMixin.fire('Valor zero', 'O Valor do produto não pode ser Zero', 'warning')
                     return;

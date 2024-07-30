@@ -15,11 +15,17 @@ type pesquisaClienteParams = {
 export default function PesquisaCliente({ showModal, setShowModal, setClienteSelecionado }: pesquisaClienteParams){ 
     const [textoPesquisado, setTextoPesquisado] = useState('');
     const [clients, setClients] = useState<ClienteModel[]>([]);
-    const [cadastrarCliente, setCadastrarCliente] = useState(false);   
+    const [cadastrarCliente, setCadastrarCliente] = useState(false);
+    const [idCadastraCliente, setIdCadastraCliente] = useState(0);   
 
     useEffect(()=>{
         buscarCliente();
     }, [textoPesquisado])
+
+    const cadastrarNovoCliente = ()=> {
+        setIdCadastraCliente(0);
+        setCadastrarCliente(true);
+    }
 
     const buscarCliente = async ()=> {
         try {
@@ -31,6 +37,10 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
         }
     }
 
+    const visualizarCliente = (model: ClienteModel)=> {
+        setIdCadastraCliente(model.CODIGO);
+        setCadastrarCliente(true);
+    }
     const selecionarCliente = (model: ClienteModel)=> {
         setClienteSelecionado(model);
         setShowModal(false);
@@ -46,7 +56,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                 body={
                     <div className=" flex flex-col">
                         <div className="flex flex-row-reverse">
-                        <button onClick={()=> setCadastrarCliente(true)} className="bg-green-700 p-2 text-xs font-bold rounded-xl shadow-sm text-white">Cadastrar Cliente</button>
+                        <button onClick={()=> cadastrarNovoCliente()} className="bg-green-700 p-2 text-xs font-bold rounded-xl shadow-sm text-white">Cadastrar Cliente</button>
                         </div>
                         <table className="table-auto">
                             <thead>
@@ -62,7 +72,10 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                                     </th>
                                     <th className="sm:px-4 sm:py-2 text-left border-b-2">
                                         <h2 className="text-ml font-bold text-gray-600">Fone</h2>
-                                    </th>                                                        
+                                    </th>
+                                    <th className="sm:px-4 sm:py-2 text-left border-b-2">
+                                        <h2 className="text-ml font-bold text-gray-600">Ver Cliente</h2>
+                                    </th>                                                          
                                     <th className="sm:px-4 sm:py-2 text-left border-b-2">
                                         <h2 className="text-ml font-bold text-gray-600">Ação</h2>
                                     </th>                                                        
@@ -88,7 +101,12 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                                             <div>
                                                 <span className="text-xs">{item.FONE}</span>
                                             </div>
-                                        </td>                                                            
+                                        </td>
+                                        <td className="sm:px-4 sm:py-2 text-left">
+                                            <div>
+                                                <button onClick={()=> visualizarCliente(item)} className="bg-green-700 p-2 text-xs rounded-xl shadow-sm text-white">Visualizar</button>
+                                            </div>
+                                        </td>                                                               
                                         <td className="sm:px-4 sm:py-2 text-left">
                                             <div>
                                                 <button onClick={()=> selecionarCliente(item)} className="bg-green-700 p-2 text-xs rounded-xl shadow-sm text-white">Escolher</button>
@@ -101,7 +119,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                     </div>
                 }
             />
-            {cadastrarCliente && <Modal showModal={cadastrarCliente} setShowModal={setCadastrarCliente} title="Cadastro Cliente" body={<Cadastro_clientes />} /> }
+            {cadastrarCliente && <Modal showModal={cadastrarCliente} setShowModal={setCadastrarCliente} title="Cadastro Cliente" body={<Cadastro_clientes id={idCadastraCliente} />} /> }
         </>
     )
 }

@@ -65,6 +65,7 @@ export default function Orcamentos() {
     const [showModalPesquisaOS, setShowModalPesquisaOS] = useState(false);
     const [isDownloadFile, setIsDownloadFile] = useState(false);
     const [nomeFuncionario, setNomeFuncionario] = useState('');
+    const [idFuncionario, setIdFuncionario] = useState(0);
     useEffect(() => {
         buscaOrdemServidor();
     }, [foiFaturado])
@@ -94,6 +95,7 @@ export default function Orcamentos() {
         edtCodigoOrdem!.focus();
         const funcionario = JSON.parse(localStorage.getItem('usuario_logado')!);
         setNomeFuncionario(funcionario.FUN_NOME);
+        setIdFuncionario(funcionario.USU_FUN);
 
 
     }, [])
@@ -166,7 +168,6 @@ export default function Orcamentos() {
             codigo = await GeraCodigo('ORDENS', 'ORD_CODIGO');
         }
         try {
-            console.log('servicos: '+ listaServicosInseridos);
             let ord: OrdemModel = {
                 ORD_CODIGO: codigo,
                 ORD_DATA: FormatDate(new Date()),
@@ -176,7 +177,7 @@ export default function Orcamentos() {
                 ORD_DESCONTO_S: 0,
                 ORD_DEVOLUCAO_P: 'N',
                 ORD_ESTADO: statusOrdem,
-                ORD_FUN: 1,
+                ORD_FUN: idFuncionario,
                 ORD_NFS: nfs,
                 ORD_OBS: obs,
                 ORD_OBS_ADM: obs_adm,
@@ -309,7 +310,7 @@ export default function Orcamentos() {
         {
             var lista = listaServicosInseridos;
             let indice = lista.indexOf(servicoEdt);
-            console.log('Indice: '+indice);
+
             
             var valor = maskRealToNumber(osValorStr);
             var servico:OrdSerModel = {
@@ -521,7 +522,6 @@ export default function Orcamentos() {
 
         useEffect(() => {
             const valorUnit = maskRealToNumber(valorUnitarioAux);
-            console.log(valorUnit);
             setServico({ ...servico, OS_VALOR: valorUnit ? valorUnit : 0 })
             
         }, [valorUnitarioAux]);
@@ -557,7 +557,7 @@ export default function Orcamentos() {
             }
     
 
-        const inserirServico = (servico: OrdSerModel) => {
+        const inserirServico = async (servico: OrdSerModel) => {
             try {
                 if (servico.OS_QUANTIDADE === 0) {
                     toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
@@ -567,8 +567,9 @@ export default function Orcamentos() {
                     toastMixin.fire('Valor zero', 'O Valor do serviço não pode ser Zero', 'warning')
                     return;
                 }
+                const codigo = await IncrementaGenerator('GEN_OS');
                 setListaServicosInseridos(item => [...item, {
-                    OS_CODIGO: 0,
+                    OS_CODIGO: codigo,
                     OS_NOME: servico.OS_NOME,
                     OS_UNIDADE_MED: servico.OS_UNIDADE_MED,
                     OS_SER: servico.OS_SER,
@@ -753,7 +754,6 @@ export default function Orcamentos() {
 
         useEffect(() => {
             const valorUnit = maskRealToNumber(valorUnitarioAux);
-            console.log(valorUnit);
             setProduto({ ...produto, ORE_VALOR: valorUnit ? valorUnit : 0 })
             
         }, [valorUnitarioAux]);
@@ -832,18 +832,27 @@ export default function Orcamentos() {
             }
         }
 
-        const inserirProduto = (produto: OrdEstModel) => {
+        const inserirProduto = async (produto: OrdEstModel) => {
             try {
                 if (produto.ORE_QUANTIDADE === 0) {
                     toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
+                    return;
+                }
+                if (produto.ORE_PRO === 0) {
+                    toastMixin.fire('Código Zero', 'O Código do produto não pode ser Zero', 'warning')
+                    return;
+                }
+                if (!produto.ORE_VALOR) {
+                    toastMixin.fire('Valor vazio', 'Insira um valor', 'warning')
                     return;
                 }
                 if (produto.ORE_VALOR === 0) {
                     toastMixin.fire('Valor zero', 'O Valor do produto não pode ser Zero', 'warning')
                     return;
                 }
+                const codigo = await IncrementaGenerator('GEN_ORE');
                 setListaProdutosInseridos(item => [...item, {
-                    ORE_CODIGO: 0,
+                    ORE_CODIGO: codigo,
                     ORE_NOME: produto.ORE_NOME,
                     ORE_EMBALAGEM: produto.ORE_EMBALAGEM,
                     ORE_PRO: produto.ORE_PRO,

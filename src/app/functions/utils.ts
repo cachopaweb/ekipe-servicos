@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import api from "../services/api";
 import { Stream } from "stream";
+import dayjs from 'dayjs'
 import { ChangeEvent, FormEvent } from "react";
 
 enum Status{ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
@@ -77,6 +78,24 @@ async function IncrementaGenerator(generator: string): Promise<number>{
 }
 
 
+
+function converteDoBancoParaString(timestamp:string){
+
+  const date = new Date(timestamp);
+    
+  // Obtém o dia, mês e ano
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Os meses são baseados em zero, por isso é necessário adicionar 1
+  const year = date.getUTCFullYear();
+  
+  // Retorna a data formatada como "dd/mm/yyyy"
+  return `${day}/${month}/${year}`;
+}
+
+/*
+  Retorna uma string com a data atual (hoje) com o formato dd/mm/yyyy
+
+*/ 
 function DataHoje(): string {
     const dataAtual = new Date();
 
@@ -88,15 +107,69 @@ function DataHoje(): string {
 
     return dataFormatada;
 }
+
+
+/*
+  Retorna uma string com a data  no formato dd.mm.yyyy.
+  Usado para os values dos Inputs tipo date.
+
+*/ 
+function dataFormatadaHojeDotValueInput(data:Date)
+{
+
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0'); 
+  const ano = String(data.getFullYear());
+
+   return `${dia}.${mes}.${ano}`;
+
+}
+
+
+/*
+  Retorna uma string com a data atual (hoje) com o formato yyyy-mm-dd.
+  Usado para os values dos Inputs tipo date.
+
+*/ 
+function dataFormatadaValueInput(data:Date)
+{
+
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0'); 
+  const ano = String(data.getFullYear());
+
+   return `${ano}-${mes}-${dia}`;
+
+}
+
 function FormatDate(data: Date | string): string{
     if(data instanceof Date){
         let dataFmt = data.toLocaleDateString().split('/');
         return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
     }else{
-        let dataFmt = data.split('/');
-        return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
+        if(data ==='')
+          {
+            return '';
+          }
+          else
+          {
+            let dataFmt = data.split('/');
+            return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
+          }
     }
 }
+
+/* A Função abaixo pega um valor EM STRING "dd/mm/yyyy"
+e transforma no formato 'dd.mm.yyyy' para enviar ao banco 
+de dados
+*/
+
+ function formatDateDB(data:string)
+ {
+  console.log(data.replaceAll('/','.'))
+  return data.replaceAll('/', '.');
+
+ }
 
 function formatCurrency(value?:number)
 {
@@ -178,4 +251,5 @@ var toastMixin = Swal.mixin({
     }
 });
 
-export { GeraCodigo, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, converterDataFormato, DataHoje, maskRealToNumber };
+export { GeraCodigo, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
+  converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput };

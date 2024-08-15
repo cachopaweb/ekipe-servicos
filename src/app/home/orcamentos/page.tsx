@@ -49,6 +49,8 @@ export default function Orcamentos() {
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const { usuarioLogado, setUsuarioLogado } = useAppData();
+    const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
+    const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
     ////servico  
     const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
     const [codigoOrdem, setCodigoOrdem] = useState(0);
@@ -514,7 +516,7 @@ export default function Orcamentos() {
 
     const AbaServicos = () => {
         const refDivServicos = useRef<HTMLDivElement>(null);
-        const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
+        
         const [valorUnitarioAux, setValorUnitarioAux] = useState('');
         useEffect(() => {
             setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
@@ -746,7 +748,7 @@ export default function Orcamentos() {
 
     const AbaProdutos = () => {
         const refDivProdutos = useRef<HTMLDivElement>(null);
-        const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
+       
         const [valorUnitarioAux, setValorUnitarioAux] = useState('');
         useEffect(() => {
             setDivWidthProdutos(refDivProdutos.current ? refDivProdutos.current.offsetWidth : 0);

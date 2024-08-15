@@ -15,23 +15,31 @@ const PrintOrcamentos = () => {
     const [somaServicos, setSomaServicos] = useState(0);
     const [carregando, setCarregando] = useState(true);
     const [titulo, setTitulo] = useState('Orçamento');
-
+    const [obs, setObs] = useState <Array<string>>([])
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
     });
+
+    function stringToLinesArray(inputString:string) {
+        if(inputString === null || inputString === undefined)
+        {
+            return [''];
+        }
+        // Usa o método split para dividir a string em linhas, usando o caractere de nova linha (\n) como delimitador
+        return inputString.split('\n');
+    }
 
     useEffect(() => {
         setCarregando(true);
         var somaProd = 0;
         var somaServ = 0;
-        console.log(OrdemCtx);
         if (OrdemCtx!.itensOrdEst.length > 0) {
             somaProd = OrdemCtx!.itensOrdEst.map(e => e.ORE_VALOR).reduce((item1, item2) => item1 + item2);
         }
         if (OrdemCtx!.itensOrdSer.length > 0) {
             somaServ = OrdemCtx!.itensOrdSer.map(e => e.OS_VALOR).reduce((item1, item2) => item1 + item2);
         }
-
+    
         setSomaProdutos(somaProd);
         setSomaServicos(somaServ);
         toastMixin.fire({
@@ -39,6 +47,7 @@ const PrintOrcamentos = () => {
         });
         OrdemCtx.ORD_FAT == null ? OrdemCtx.ORD_FAT = 0 : OrdemCtx.ORD_FAT = OrdemCtx.ORD_FAT;
         OrdemCtx.ORD_FAT == 0 ? setTitulo('Orçamento') : setTitulo('Ordem de Serviço');
+        setObs(stringToLinesArray(OrdemCtx.ORD_OBS));
         setCarregando(false);
     }, [])
 
@@ -55,22 +64,24 @@ const PrintOrcamentos = () => {
                             <div className='grid grid-cols-2'>
                                 <div className='grid grid-rows-2'>
                                     <div className='grid grid-cols-2 '>
-                                        <h1 className='font-bold my-0 text-sm'>Data</h1>
-                                        <h1 className='font-bold pr-10 my-0 text-sm'>Nome do Cliente</h1>
+                                    <h1 className='font-bold pr-10 my-0 text-sm'>Nome do Cliente</h1>
+                                    <h1 className='font-bold my-0 text-sm'>CNPJ/CPF</h1>
+                                      
+                
                                     </div>
-                                    <div className='grid grid-cols-2'>
-                                        <span className='truncate text-xs'>{converterDataFormato(OrdemCtx!.ORD_DATA)}</span>
+                                        <div className='grid grid-cols-2'>
                                         <span className='pr-10 truncate text-xs	'>{OrdemCtx!.CLI_NOME}</span>
+                                        <span className='truncate text-xs'>{OrdemCtx!.CLI_CNPJ_CPF}</span>
                                     </div>
                                 </div>
                                 <div className='grid grid-rows-2'>
                                     <div className='grid grid-cols-2'>
-                                        <h1 className='font-bold my-0 text-sm'>CNPJ/CPF</h1>
                                         <h1 className='font-bold my-0 text-sm'>Núm. Controle</h1>
+                                        <h1 className='font-bold my-0 text-sm'>Data</h1>
                                     </div>
                                     <div className='grid grid-cols-2'>
-                                        <span className='truncate text-xs'>{OrdemCtx!.CLI_CNPJ_CPF}</span>
                                         <span className='truncate text-xs'>{OrdemCtx!.ORD_CODIGO}</span>
+                                        <span className='truncate text-xs'>{converterDataFormato(OrdemCtx!.ORD_DATA)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -176,7 +187,14 @@ const PrintOrcamentos = () => {
                                 <div></div>
                                 <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_VALOR)}</span>
                             </div>
-                            <p className='text-start text-xs'>{OrdemCtx!.ORD_OBS}</p>
+                            
+                            {obs ? obs.map((obs) => 
+                                    <p className='text-start text-xs'>
+                                        {obs}
+                                    </p>                                                            
+                             ) : <></>}
+
+                            
 
                             <div className='text-end pt-16 grid-rows-3 pr-6'>
                                 <div>

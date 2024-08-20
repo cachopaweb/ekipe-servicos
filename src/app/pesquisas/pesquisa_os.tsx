@@ -13,9 +13,10 @@ type pesquisaOrdemParams = {
     setShowModal: Dispatch<SetStateAction<boolean>>;
     OrdemSelecionado: number;
     setOrdemSelecionado: Dispatch<SetStateAction<number>>;
+    setBuscouOrdem: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecionado }: pesquisaOrdemParams) {
+export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecionado,setBuscouOrdem }: pesquisaOrdemParams) {
      /////
      const refDivOrdem = useRef<HTMLDivElement>(null);
      const [divWidthOrdem, setdivWidthOrdem] = useState<number>(0);
@@ -203,6 +204,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
     const selecionarOrdem = (model: OrdemModel) => {
         selecionarOrdemModel(model);
         setOrdemSelecionado(model.ORD_CODIGO)
+        setBuscouOrdem(true);
         setShowModal(false)
     }
 
@@ -217,6 +219,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                 edtSearch={<input autoFocus value={textoBusca} onChange={(e) => setTextoBusca(e.target.value)} className="w-full uppercase p-1 m-4 border rounded-md border-spacing-1 border-amber-400" type="text" />}
                 onclickExit={()=> {
                     setOrdemSelecionado(codOrdemSelecionada)
+                    setBuscouOrdem(true);
                     setShowModal(false)
                 }}
                 body={

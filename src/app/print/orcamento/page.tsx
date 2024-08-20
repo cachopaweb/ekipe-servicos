@@ -31,6 +31,7 @@ const PrintOrcamentos = () => {
 
     useEffect(() => {
         setCarregando(true);
+
         var somaProd = 0;
         var somaServ = 0;
         if (OrdemCtx!.itensOrdEst.length > 0) {
@@ -189,7 +190,7 @@ const PrintOrcamentos = () => {
                             </div>
                             
                             {obs ? obs.map((obs) => 
-                                    <p className='text-start text-xs'>
+                                    <p key={obs} className='text-start text-xs'>
                                         {obs}
                                     </p>                                                            
                              ) : <></>}

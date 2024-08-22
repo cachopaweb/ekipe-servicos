@@ -101,7 +101,7 @@ const PrintOrcamentos = () => {
                                 </div>
                                 <div className='grid grid-rows-2'>
                                     <h1 className='font-bold my-0 text-sm'>Cidade</h1>
-                                    <span className='truncate text-xs'>{`${OrdemCtx!.CID_NOME}/${OrdemCtx!.CID_UF}`}</span>
+                                    <span className='truncate text-xs'>{`${OrdemCtx!.CID_NOME?OrdemCtx!.CID_NOME:''}/${OrdemCtx!.CID_UF?OrdemCtx!.CID_UF:''}`}</span>
                                 </div>
                                 <div className='grid grid-rows-2'>
                                     <h1 className='font-bold my-0 text-sm'>Telefone</h1>

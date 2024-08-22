@@ -28,6 +28,8 @@ import axios from "axios";
 import ArquivoModel from "@/app/models/arquivo_model";
 import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import Link from "next/link";
+import ClientRepository from "@/app/repositories/cliente_repository";
+import CidadeRepository from "@/app/repositories/cidade_repository";
 
 
 export default function Orcamentos() {
@@ -114,8 +116,6 @@ export default function Orcamentos() {
     async function imprimeOrcamento() {
 
         if (ordem != null) {
-            console.log('função imprimiOrcamento:')
-            console.log(ordem.ORD_DATA);
             setOrdemCtx(ordem!);
             setShowModalImprimir(true);
         }
@@ -129,6 +129,9 @@ export default function Orcamentos() {
     const totalServicos = () => listaServicosInseridos.length > 0 ? listaServicosInseridos.map(s => s.OS_VALOR).reduce((item1, item2) => item1 + item2) : 0;
 
     const salvaOrdem = async () => {
+        const cidadeRep = new CidadeRepository();
+        const cidade = await cidadeRep.getCidade(clienteSelecionado.CODCIDADE??0);
+
         if (statusOrdem === '') {
             toastMixin.fire('Atenção', 'Informe o estado', 'warning').finally(() => {
                 setShowModalSalvar(false);
@@ -177,7 +180,7 @@ export default function Orcamentos() {
         }
         try {
             let ord: OrdemModel | null = null;
-            
+            console.log(clienteSelecionado);
             if(buscouOrdem)
             {
                 ord= {
@@ -203,6 +206,8 @@ export default function Orcamentos() {
                     CLI_FONE: clienteSelecionado.FONE != null ? clienteSelecionado.FONE : '',
                     itensOrdEst: listaProdutosInseridos,
                     itensOrdSer: listaServicosInseridos,
+                    CID_NOME: cidade.CID_NOME,
+                    CID_UF: cidade.CID_UF
                 }
             }
             else
@@ -230,6 +235,8 @@ export default function Orcamentos() {
                     CLI_FONE: clienteSelecionado.FONE != null ? clienteSelecionado.FONE : '',
                     itensOrdEst: listaProdutosInseridos,
                     itensOrdSer: listaServicosInseridos,
+                    CID_NOME: cidade.CID_NOME,
+                    CID_UF: cidade.CID_UF
                 }
 
             }
@@ -237,11 +244,8 @@ export default function Orcamentos() {
             ////
             setOrdem(ord);
             repository.insereordem(ord);
-            console.log('função salvar:');
-            console.log(ordem?.ORD_DATA);
             if(ordem?.ORD_DATA.includes('.'))
             {
-                console.log(converterDataPontoParaTraco(ordem.ORD_DATA));
                 setOrdem({...ordem, ORD_DATA : converterDataPontoParaTraco(ordem.ORD_DATA)});
             }
             ////
@@ -294,10 +298,14 @@ export default function Orcamentos() {
             if (codigoOrdem === 0) {
                 return;
             }
+
+
+            const cliRepository = new ClientRepository();
             const repository = new OrdemRepository();
             const ord = await repository.buscaOrdem(codigoOrdem);
             setAtendente(ord.FUN_NOME!);
-            setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
+            //setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
+            setClienteSelecionado(await cliRepository.getClienteById(ord.ORD_CLI))
             setDataAbertura(new Date(ord.ORD_DATA));
             setNfs(ord.ORD_NFS ?? '');
             setObs(ord.ORD_OBS);
@@ -338,8 +346,6 @@ export default function Orcamentos() {
 
             setOrdem(ord);
             setBuscouOrdem(true);
-            console.log('BuscouOrdemServidor:');
-            console.log(ord.ORD_DATA);
         } catch (error) {
             toastMixin.fire('Erro', String(error), 'error')
         }

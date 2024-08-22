@@ -31,6 +31,7 @@ export class ClienteModel {
   ENDERECO?: string;
   NUMERO?: string;
   BAIRRO?: string;
+  CODCIDADE?:number;
   CIDADE?: string;
   CEP?:string;
   FIDELIDADE?: Fidelidade;

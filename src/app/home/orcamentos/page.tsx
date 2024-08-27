@@ -303,10 +303,12 @@ export default function Orcamentos() {
             const cliRepository = new ClientRepository();
             const repository = new OrdemRepository();
             const ord = await repository.buscaOrdem(codigoOrdem);
+            const data = new Date(ord.ORD_DATA);
             setAtendente(ord.FUN_NOME!);
             //setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
             setClienteSelecionado(await cliRepository.getClienteById(ord.ORD_CLI))
-            setDataAbertura(new Date(ord.ORD_DATA));
+            data.setDate(data.getDate() + 1);
+            setDataAbertura(data);
             setNfs(ord.ORD_NFS ?? '');
             setObs(ord.ORD_OBS);
             setObs_adm(ord.ORD_OBS_ADM);

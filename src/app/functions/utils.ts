@@ -108,6 +108,23 @@ function DataHoje(): string {
     return dataFormatada;
 }
 
+/*
+    Pega uma data no formato dd.mm.yyyy e converte para yyyy-mm-dd
+
+*/
+
+function converterDataPontoParaTraco(data:string) {
+  // Divide a string da data usando o ponto como separador
+  const partes = data.split('.');
+
+  // As partes serão: partes[0] = dia, partes[1] = mês, partes[2] = ano
+  const dia = partes[0];
+  const mes = partes[1];
+  const ano = partes[2];
+
+  // Retorna a data no formato "aaaa-mm-dd"
+  return `${ano}-${mes}-${dia}`;
+}
 
 /*
   Retorna uma string com a data  no formato dd.mm.yyyy.
@@ -166,7 +183,6 @@ de dados
 
  function formatDateDB(data:string)
  {
-  console.log(data.replaceAll('/','.'))
   return data.replaceAll('/', '.');
 
  }
@@ -251,5 +267,5 @@ var toastMixin = Swal.mixin({
     }
 });
 
-export { GeraCodigo, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
+export { GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
   converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput };

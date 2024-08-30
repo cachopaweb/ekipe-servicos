@@ -10,7 +10,8 @@ import Modal from "../../../components/component/modal";
 import {
     FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin,
     getFileName, mascaraMoedaEvent, mascaraMoeda, maskRealToNumber,
-    IncrementaGenerator
+    IncrementaGenerator,
+    converterDataPontoParaTraco
 } from "@/app/functions/utils";
 import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
@@ -27,6 +28,8 @@ import axios from "axios";
 import ArquivoModel from "@/app/models/arquivo_model";
 import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import Link from "next/link";
+import ClientRepository from "@/app/repositories/cliente_repository";
+import CidadeRepository from "@/app/repositories/cidade_repository";
 
 
 export default function Orcamentos() {
@@ -49,6 +52,10 @@ export default function Orcamentos() {
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const { usuarioLogado, setUsuarioLogado } = useAppData();
+    const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
+    const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
+    const [buscouOrdem, setBuscouOrdem] = useState(false);
+    const [salvou, setSalvou] = useState(false);
     ////servico  
     const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
     const [codigoOrdem, setCodigoOrdem] = useState(0);
@@ -106,7 +113,8 @@ export default function Orcamentos() {
         return list;
     }
 
-    function imprimeOrcamento() {
+    async function imprimeOrcamento() {
+
         if (ordem != null) {
             setOrdemCtx(ordem!);
             setShowModalImprimir(true);
@@ -121,6 +129,9 @@ export default function Orcamentos() {
     const totalServicos = () => listaServicosInseridos.length > 0 ? listaServicosInseridos.map(s => s.OS_VALOR).reduce((item1, item2) => item1 + item2) : 0;
 
     const salvaOrdem = async () => {
+        const cidadeRep = new CidadeRepository();
+        const cidade = await cidadeRep.getCidade(clienteSelecionado.CODCIDADE??0);
+
         if (statusOrdem === '') {
             toastMixin.fire('Atenção', 'Informe o estado', 'warning').finally(() => {
                 setShowModalSalvar(false);
@@ -168,33 +179,75 @@ export default function Orcamentos() {
             codigo = await GeraCodigo('ORDENS', 'ORD_CODIGO');
         }
         try {
-            let ord: OrdemModel = {
-                ORD_CODIGO: codigo,
-                ORD_DATA: FormatDate(new Date()),
-                ORD_VALOR: totalProdutos() + totalServicos(),
-                ORD_CLI: clienteSelecionado.CODIGO,
-                ORD_DESCONTO_P: 0,
-                ORD_DESCONTO_S: 0,
-                ORD_DEVOLUCAO_P: 'N',
-                ORD_ESTADO: statusOrdem,
-                ORD_FUN: idFuncionario,
-                ORD_NFS: nfs,
-                ORD_OBS: obs,
-                ORD_OBS_ADM: obs_adm,
-                ORD_SOLICITACAO: solicitacao,
-                CLI_NOME: clienteSelecionado.NOME,
-                ORD_FAT: 0,
-                CLI_CNPJ_CPF: clienteSelecionado.CPF_CNPJ!,
-                CLI_ENDERECO: clienteSelecionado.ENDERECO != null ? clienteSelecionado.ENDERECO : '',
-                CLI_NUMERO: clienteSelecionado.NUMERO != null ? clienteSelecionado.NUMERO : '',
-                CLI_BAIRRO: clienteSelecionado.BAIRRO != null ? clienteSelecionado.BAIRRO : '',
-                CLI_FONE: clienteSelecionado.FONE != null ? clienteSelecionado.FONE : '',
-                itensOrdEst: listaProdutosInseridos,
-                itensOrdSer: listaServicosInseridos,
+            let ord: OrdemModel | null = null;
+            console.log(clienteSelecionado);
+            if(buscouOrdem)
+            {
+                ord= {
+                    ORD_CODIGO: codigo,
+                    ORD_DATA: converterDataPontoParaTraco(FormatDate(dataAbertura)),
+                    ORD_VALOR: totalProdutos() + totalServicos(),
+                    ORD_CLI: clienteSelecionado.CODIGO,
+                    ORD_DESCONTO_P: 0,
+                    ORD_DESCONTO_S: 0,
+                    ORD_DEVOLUCAO_P: 'N',
+                    ORD_ESTADO: statusOrdem,
+                    ORD_FUN: idFuncionario,
+                    ORD_NFS: nfs,
+                    ORD_OBS: obs,
+                    ORD_OBS_ADM: obs_adm,
+                    ORD_SOLICITACAO: solicitacao,
+                    CLI_NOME: clienteSelecionado.NOME,
+                    ORD_FAT: 0,
+                    CLI_CNPJ_CPF: clienteSelecionado.CPF_CNPJ!,
+                    CLI_ENDERECO: clienteSelecionado.ENDERECO != null ? clienteSelecionado.ENDERECO : '',
+                    CLI_NUMERO: clienteSelecionado.NUMERO != null ? clienteSelecionado.NUMERO : '',
+                    CLI_BAIRRO: clienteSelecionado.BAIRRO != null ? clienteSelecionado.BAIRRO : '',
+                    CLI_FONE: clienteSelecionado.FONE != null ? clienteSelecionado.FONE : '',
+                    itensOrdEst: listaProdutosInseridos,
+                    itensOrdSer: listaServicosInseridos,
+                    CID_NOME: cidade.CID_NOME,
+                    CID_UF: cidade.CID_UF
+                }
             }
+            else
+            {
+                ord= {
+                    ORD_CODIGO: codigo,
+                    ORD_DATA: converterDataPontoParaTraco(FormatDate(new Date())),
+                    ORD_VALOR: totalProdutos() + totalServicos(),
+                    ORD_CLI: clienteSelecionado.CODIGO,
+                    ORD_DESCONTO_P: 0,
+                    ORD_DESCONTO_S: 0,
+                    ORD_DEVOLUCAO_P: 'N',
+                    ORD_ESTADO: statusOrdem,
+                    ORD_FUN: idFuncionario,
+                    ORD_NFS: nfs,
+                    ORD_OBS: obs,
+                    ORD_OBS_ADM: obs_adm,
+                    ORD_SOLICITACAO: solicitacao,
+                    CLI_NOME: clienteSelecionado.NOME,
+                    ORD_FAT: 0,
+                    CLI_CNPJ_CPF: clienteSelecionado.CPF_CNPJ!,
+                    CLI_ENDERECO: clienteSelecionado.ENDERECO != null ? clienteSelecionado.ENDERECO : '',
+                    CLI_NUMERO: clienteSelecionado.NUMERO != null ? clienteSelecionado.NUMERO : '',
+                    CLI_BAIRRO: clienteSelecionado.BAIRRO != null ? clienteSelecionado.BAIRRO : '',
+                    CLI_FONE: clienteSelecionado.FONE != null ? clienteSelecionado.FONE : '',
+                    itensOrdEst: listaProdutosInseridos,
+                    itensOrdSer: listaServicosInseridos,
+                    CID_NOME: cidade.CID_NOME,
+                    CID_UF: cidade.CID_UF
+                }
+
+            }
+
             ////
             setOrdem(ord);
             repository.insereordem(ord);
+            if(ordem?.ORD_DATA.includes('.'))
+            {
+                setOrdem({...ordem, ORD_DATA : converterDataPontoParaTraco(ordem.ORD_DATA)});
+            }
             ////
             if (listaServicosInseridos.length > 0) {
                 toastMixin.fire({
@@ -245,11 +298,17 @@ export default function Orcamentos() {
             if (codigoOrdem === 0) {
                 return;
             }
+
+
+            const cliRepository = new ClientRepository();
             const repository = new OrdemRepository();
             const ord = await repository.buscaOrdem(codigoOrdem);
+            const data = new Date(ord.ORD_DATA);
             setAtendente(ord.FUN_NOME!);
-            setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
-            setDataAbertura(new Date(ord.ORD_DATA));
+            //setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
+            setClienteSelecionado(await cliRepository.getClienteById(ord.ORD_CLI))
+            data.setDate(data.getDate() + 1);
+            setDataAbertura(data);
             setNfs(ord.ORD_NFS ?? '');
             setObs(ord.ORD_OBS);
             setObs_adm(ord.ORD_OBS_ADM);
@@ -285,7 +344,10 @@ export default function Orcamentos() {
                 ord.itensOrdSer = [];
             }
 
-            setOrdem(ord)
+
+
+            setOrdem(ord);
+            setBuscouOrdem(true);
         } catch (error) {
             toastMixin.fire('Erro', String(error), 'error')
         }
@@ -514,7 +576,7 @@ export default function Orcamentos() {
 
     const AbaServicos = () => {
         const refDivServicos = useRef<HTMLDivElement>(null);
-        const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
+        
         const [valorUnitarioAux, setValorUnitarioAux] = useState('');
         useEffect(() => {
             setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
@@ -746,7 +808,7 @@ export default function Orcamentos() {
 
     const AbaProdutos = () => {
         const refDivProdutos = useRef<HTMLDivElement>(null);
-        const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
+       
         const [valorUnitarioAux, setValorUnitarioAux] = useState('');
         useEffect(() => {
             setDivWidthProdutos(refDivProdutos.current ? refDivProdutos.current.offsetWidth : 0);
@@ -1334,6 +1396,7 @@ export default function Orcamentos() {
                                     setOrdemSelecionado={setCodigoOrdem}
                                     showModal={showModalPesquisaOS}
                                     setShowModal={setShowModalPesquisaOS}
+                                    setBuscouOrdem={setBuscouOrdem}
                                 />}
                             </div>
                         </div>

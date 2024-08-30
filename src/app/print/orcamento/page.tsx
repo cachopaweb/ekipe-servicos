@@ -78,11 +78,11 @@ const PrintOrcamentos = () => {
                                 <div className='grid grid-rows-2'>
                                     <div className='grid grid-cols-2'>
                                         <h1 className='font-bold my-0 text-sm'>Núm. Controle</h1>
-                                        <h1 className='font-bold my-0 text-sm'>Data</h1>
+                                        <h1 className='font-bold my-0 text-sm pl-10'>Data</h1>
                                     </div>
                                     <div className='grid grid-cols-2'>
                                         <span className='truncate text-xs'>{OrdemCtx!.ORD_CODIGO}</span>
-                                        <span className='truncate text-xs'>{converterDataFormato(OrdemCtx!.ORD_DATA)}</span>
+                                        <span className='truncate text-xs pl-10'>{converterDataFormato(OrdemCtx!.ORD_DATA)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -212,7 +212,7 @@ const PrintOrcamentos = () => {
                     </div>
                     <button
                         id="botaoImpressao"
-                        className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold print:hidden`}
+                        className={`px-4 py-3 flex items-center space-x-4 rounded-md group text-black font-bold print:hidden`}
                         onClick={handlePrint}
                     >
                         <i className="fas fa-print"></i>

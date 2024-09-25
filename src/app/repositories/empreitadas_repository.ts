@@ -5,6 +5,7 @@ import api from "../services/api";
 
 export default class EmpreitadasRepository{
     async buscaEmpreitadas(codigo: number): Promise<EmpreitadasModel[]>{
+        console.log(codigo);
         const obj = {
             'sql': 
                 `SELECT EMP_CODIGO, EMP_FOR, FOR_NOME, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, LRC_FAT2 
@@ -22,6 +23,7 @@ export default class EmpreitadasRepository{
             }
             return data as EmpreitadasModel[];
         } catch (e) {
+            console.log('erro: '+String(e));
             throw new Error('Erro ao buscar Empreitadas.'+String(e))
         }
     }

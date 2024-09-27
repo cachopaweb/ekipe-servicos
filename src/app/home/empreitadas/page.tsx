@@ -116,6 +116,8 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
                     })
                 });
             }
+            console.log('lista Serviços:');
+            console.log(listaServicos);
             setListaEmpreitadas(old => [...old, {
                 EMP_CODIGO: 0,
                 EMP_ORD: ordemServico.ORD_CODIGO,
@@ -258,6 +260,18 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
         setShowFaturamento(true);
     }
 
+    function imprimePrazoConclusao(prazoConclusao:string){
+
+
+        if(prazoConclusao.includes('/'))
+        {
+            return prazoConclusao;
+        }
+
+        return new Date(prazoConclusao).toLocaleDateString();
+
+    }
+
     const BuildBody = () => {
         const [localExecucao, setLocalExecucao] = useState('');
         const [obsEmpreitadas, setObsEmpreitadas] = useState('');
@@ -349,13 +363,14 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
                                 </thead>
                                 <tbody className="flex-1 sm:flex-none">
                                     {listaEmpreitadas.length > 0 && listaEmpreitadas[indiceEmpreitada].ITENS.map((item) =>
+                                    
                                         <tr key={item.ES_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
                                             <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{item.DESCRICAO}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_QUANTIDADE}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_UNIDADE}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ES_VALOR ?? 0 / (item.ES_QUANTIDADE ?? 1))}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ES_VALOR ?? 0)}</td>
-                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_PRAZO_CONCLUSAO != null ? new Date(item.ES_PRAZO_CONCLUSAO!).toLocaleDateString() : ''}</td>
+                                            <td className="border-grey-light border hover:bg-gray-100 p-3">{item.ES_PRAZO_CONCLUSAO != null ? imprimePrazoConclusao(item.ES_PRAZO_CONCLUSAO!) : ''}</td>
                                             <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
                                                 <button
                                                     className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"

@@ -121,7 +121,7 @@ export default class OrdemRepository {
         try {
             let SQL = `SELECT FIRST 10 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
                        ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS 
-                       FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO WHERE [PERIODO][STATUS][BUSCA] 
+                       FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO WHERE 1=1 [PERIODO][STATUS][BUSCA] 
                        ORDER BY [ORDEM]`;
             if (textoBusca != '') {
                 switch (tipoBusca) {
@@ -141,11 +141,11 @@ export default class OrdemRepository {
             else
                 SQL = SQL.replace('[BUSCA]', '');
             if (porPeriodo)
-                SQL = SQL.replace('[PERIODO]', ` ${textoBusca != '' ? 'AND' : ''} ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`)
+                SQL = SQL.replace('[PERIODO]', ` AND ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`)
             else
                 SQL = SQL.replace('[PERIODO]', '');
             if (status != '')                
-                SQL = SQL.replace('[STATUS]', ` ${porPeriodo ? 'AND' : ''} ORD_ESTADO = '${status}'`)
+                SQL = SQL.replace('[STATUS]', ` AND ORD_ESTADO = '${status}'`)
             else
                 SQL = SQL.replace('[STATUS]', '');
             // Para o caso da string não ter sido substituída ainda

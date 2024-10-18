@@ -119,7 +119,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                     </div>
                 }
             />
-            {cadastrarCliente && <Modal showModal={cadastrarCliente} setShowModal={setCadastrarCliente} title="Cadastro Cliente" body={<Cadastro_clientes id={idCadastraCliente} />} /> }
+            {cadastrarCliente && <Modal showModal={cadastrarCliente} setShowModal={setCadastrarCliente} title="Cadastro Cliente" body={<Cadastro_clientes setListarCliente={setShowModal} setCadastrarCliente={setCadastrarCliente}  id={idCadastraCliente} />} /> }
         </>
     )
 }

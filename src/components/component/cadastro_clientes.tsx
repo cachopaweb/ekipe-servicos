@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { useEffect, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { ClienteModel, Fidelidade, Situacao, TipoPessoa } from "@/app/models/cliente_model"
 import { DataHoje, FormatDate, GeraCodigo, converteDoBancoParaString, dataFormatadaHojeDotValueInput, dataFormatadaValueInput, formatDateDB, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils"
 import { InputMask, useMask } from '@react-input/mask';
@@ -20,10 +20,12 @@ import CidadeModel from "@/app/models/cidade_model"
 
 interface propsCadastroClientes{
   id?:number;
+  setCadastrarCliente: Dispatch<SetStateAction<boolean>>;
+  setListarCliente: Dispatch<SetStateAction<boolean>>;
 };
 
 
-export function Cadastro_clientes({id}:propsCadastroClientes) {
+export function Cadastro_clientes({id, setCadastrarCliente, setListarCliente}:propsCadastroClientes) {
 
   const [cliente, setCliente] = useState<ClienteModel>({CODIGO:0, NOME:'', ESTADO:'ATIVO'});
   const [ehCpf, setEhCpf] = useState(true);
@@ -122,6 +124,8 @@ useEffect(() => {
     if(await rep.setCliente(cliente))
       {
         toastMixin.fire('Salvo', 'Salvo com Sucesso!', 'success')
+        setCadastrarCliente(false);
+        setListarCliente(false);
       }
       else
       {

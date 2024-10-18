@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
 import Pesquisa_produto from "../../pesquisas/pesquisa_produto";
 import { ClienteModel } from "../../models/cliente_model";
@@ -30,6 +30,7 @@ import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import Link from "next/link";
 import ClientRepository from "@/app/repositories/cliente_repository";
 import CidadeRepository from "@/app/repositories/cidade_repository";
+import { SelectTrigger } from "@radix-ui/react-select";
 
 
 export default function Orcamentos() {
@@ -50,7 +51,7 @@ export default function Orcamentos() {
     const [atendente, setAtendente] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [selectedFiles, setSelectedFiles] = useState<Array<FileList>>([]);
     const { usuarioLogado, setUsuarioLogado } = useAppData();
     const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
     const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
@@ -94,6 +95,10 @@ export default function Orcamentos() {
             toastMixin.fire('Erro', String(error), 'error')
         }
     }
+
+    useEffect(() => {
+        setSelectedFiles([]);
+    }, [showModalListaArquivos])
 
     useEffect(() => {
         carregaUnidadesMed()
@@ -180,7 +185,6 @@ export default function Orcamentos() {
         }
         try {
             let ord: OrdemModel | null = null;
-            console.log(clienteSelecionado);
             if(buscouOrdem)
             {
                 ord= {
@@ -306,6 +310,7 @@ export default function Orcamentos() {
             const data = new Date(ord.ORD_DATA);
             setAtendente(ord.FUN_NOME!);
             //setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
+
             setClienteSelecionado(await cliRepository.getClienteById(ord.ORD_CLI))
             data.setDate(data.getDate() + 1);
             setDataAbertura(data);
@@ -388,6 +393,10 @@ export default function Orcamentos() {
             };
             lista.splice(indice, 1);
             lista.push(servico);
+            lista.sort(function(a,b){
+                return a.OS_CODIGO < b.OS_CODIGO ? -1 : a.OS_CODIGO > b.OS_CODIGO ? 1 : 0;
+            })
+
             setListaServicosInseridos(lista);
             
             setShowModalEdtServico(false);
@@ -404,7 +413,7 @@ export default function Orcamentos() {
                     <div className="grid grid-rows divide-y w-[500px]">
                         <div className="grid grid-rows">
                             <span className="mt-2">Serviço: </span>
-                            <input value={osNome} onChange={(e) => setOsNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
+                            <input value={osNome} onChange={(e) => setOsNome(e.target.value.toUpperCase())} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
                             </input>
                         </div>
                         <div className="grid grid-rows">
@@ -414,7 +423,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Unidade de Medida: </span>
-                            <select value={osUnidadeMedida} onChange={(e) => setOsUnidadeMedida(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
+                            <select value={osUnidadeMedida} onChange={(e) => setOsUnidadeMedida(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
                         </div>
@@ -484,6 +493,10 @@ export default function Orcamentos() {
             };
             lista.splice(indice, 1);
             lista.push(produto);
+            lista.sort(function(a,b){
+                return a.ORE_CODIGO < b.ORE_CODIGO ? -1 : a.ORE_CODIGO > b.ORE_CODIGO ? 1 : 0;
+            })
+
             setListaProdutosInseridos(lista);
             setShowModalEdtProduto(false);
             setShowModalSalvar(true);
@@ -500,7 +513,7 @@ export default function Orcamentos() {
                     <div className="grid grid-rows divide-y w-[500px]">
                         <div className="grid grid-rows">
                             <span className="mt-2">Produto: </span>
-                            <input value={oreNome} onChange={(e) => setOreNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
+                            <input value={oreNome} onChange={(e) => setOreNome(e.target.value.toUpperCase())} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
                             </input>
                         </div>
                         <div className="grid grid-rows">
@@ -510,7 +523,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Unidade de Medida: </span>
-                            <select value={oreEmbalagem} onChange={(e) => setOreEmbalagem(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
+                            <select value={oreEmbalagem} onChange={(e) => setOreEmbalagem(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
                         </div>
@@ -699,7 +712,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
-                            <select value={servico.OS_UNIDADE_MED} onChange={(e) => setServico({ ...servico, OS_UNIDADE_MED: e.target.value })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
+                            <select value={servico.OS_UNIDADE_MED} onChange={(e) => setServico({ ...servico, OS_UNIDADE_MED: e.target.value.toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
                         </div>
@@ -727,13 +740,13 @@ export default function Orcamentos() {
                         <thead className="text-black w-full h-full">
                             {divWidthServicos > 600 ? (
                                 <tr className="bg-amber-400 flex flex-col flex-nowrap sm:flex-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left sm:w-[10%]">Cód.</th>
-                                    <th className="p-3 text-left sm:w-[40%]">Serviço</th>
-                                    <th className="p-3 text-left sm:w-[8%]">Qtd</th>
-                                    <th className="p-3 text-left sm:w-[8%]">UM</th>
+                                    <th className="p-3 text-left sm:w-[5%]">Cód.</th>
+                                    <th className="p-3 text-left sm:w-[46%]">Serviço</th>
+                                    <th className="p-3 text-left sm:w-[5%]">Qtd</th>
+                                    <th className="p-3 text-left sm:w-[5%]">UM</th>
                                     <th className="p-3 text-left sm:w-[13%]">Valor Unit.</th>
                                     <th className="p-3 text-left sm:w-[13%]">Valor Total</th>
-                                    <th className="p-3 text-left sm:w-[8%]">Ação</th>
+                                    <th className="p-3 text-left sm:w-[11%]">Ação</th>
                                 </tr>
                             )
                                 :
@@ -753,13 +766,13 @@ export default function Orcamentos() {
                         <tbody className="flex-1 sm:flex-none">
                             {listaServicosInseridos.map((item) =>
                                 <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[10%]">{item.OS_SER}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[40%]">{item.OS_NOME}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[8%]">{item.OS_QUANTIDADE}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[8%]">{item.OS_UNIDADE_MED}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[5%]">{item.OS_SER}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[46%]">{item.OS_NOME}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[5%]">{item.OS_QUANTIDADE}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[5%]">{item.OS_UNIDADE_MED}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-1 h-12 sm:h-auto sm:p-3 sm:w-[8%] text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
+                                    <td className="border-grey-light border hover:bg-gray-100 p-1 h-12 sm:h-auto sm:p-3 sm:w-[11%] text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
                                     {divWidthServicos > 600 ?
                                         <div className="grid grid-rows-2">
                                             <button
@@ -983,7 +996,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
-                            <select id="edtUM" value={produto.ORE_EMBALAGEM} onChange={(e) => setProduto({ ...produto, ORE_EMBALAGEM: e.target.value })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
+                            <select id="edtUM" value={produto.ORE_EMBALAGEM} onChange={(e) => setProduto({ ...produto, ORE_EMBALAGEM: e.target.value.toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
                         </div>
@@ -1012,13 +1025,13 @@ export default function Orcamentos() {
                         <thead className="text-black w-full">
                             {divWidthProdutos > 600 ? (
                                 <tr className="bg-amber-400 flex flex-col flex-no wrap sm:flex-row sm:table-fixed rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left sm:w-[10%]">Cód.</th>
-                                    <th className="p-3 text-left sm:w-[40%]">Produto</th>
-                                    <th className="p-3 text-left sm:w-[8%]">Qtd</th>
-                                    <th className="p-3 text-left sm:w-[8%]">UM</th>
+                                    <th className="p-3 text-left sm:w-[5%]">Cód.</th>
+                                    <th className="p-3 text-left sm:w-[46%]">Produto</th>
+                                    <th className="p-3 text-left sm:w-[5%]">Qtd</th>
+                                    <th className="p-3 text-left sm:w-[5%]">UM</th>
                                     <th className="p-3 text-left sm:w-[13%]">Valor Unit.</th>
                                     <th className="p-3 text-left sm:w-[13%]">Valor Total</th>
-                                    <th className="p-3 text-left sm:w-[8%]">Ação</th>
+                                    <th className="p-3 text-left sm:w-[13%]">Ação</th>
                                 </tr>)
                                 : listaProdutosInseridos.map(item =>
                                     <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:flex-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
@@ -1035,13 +1048,13 @@ export default function Orcamentos() {
                         <tbody className="flex-1 sm:flex-none">
                             {listaProdutosInseridos.map((item) =>
                                 <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[10%]">{item.ORE_PRO}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[40%]">{item.ORE_NOME}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[8%]">{item.ORE_QUANTIDADE}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[8%]">{item.ORE_EMBALAGEM}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[5%]">{item.ORE_PRO}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[46%]">{item.ORE_NOME}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[5%]">{item.ORE_QUANTIDADE}</td>
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[5%]">{item.ORE_EMBALAGEM}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer sm:w-[8%]">
+                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer sm:w-[13%]">
                                     {divWidthProdutos > 600 ?
                                     <div className="grid grid-rows-2">
                                             <button
@@ -1091,6 +1104,35 @@ export default function Orcamentos() {
     }
 
     const ModalListarArquivos = () => {
+        const [nomesArquivos, setNomesArquivos] = useState<string>('');
+        const [temArquivo, setTemArquivo] = useState(false);
+
+
+
+        useEffect(() => {
+            haveFile();
+        }, [])
+
+        useEffect(() => {
+            let nomes: string = '';
+            selectedFiles.forEach(function(file) {
+                const fileAux = Array.from(file);
+                fileAux.forEach(function(f) {
+                    nomes = nomes + ' \n ' +  f.name;
+                });
+               
+            } )
+            setNomesArquivos(nomes);
+
+        }, [selectedFiles])
+
+        async function haveFile(){
+            const repArq = await ArquivoRepository.getArquivoRepository(codigoOrdem);
+            var json = JSON.stringify(repArq);
+            const flag = json == '[{}]';
+            setTemArquivo(flag);
+            
+        }
 
         const ModalMostrarArquivos = () => {
             const [listaArquivos, setListaArquivos] = useState<ArquivoModel[]>([]);
@@ -1204,7 +1246,12 @@ export default function Orcamentos() {
             const formData = new FormData();
 
             for (const file of Array.from(files)) {
-                formData.append('files', file);
+                var fileAux = Array.from(file)
+
+                fileAux.forEach(function(f){
+                    formData.append('files', f);
+                })
+                
             }
             const arq: ArquivoModel = {
                 AO_CAMINHO: '',
@@ -1218,12 +1265,16 @@ export default function Orcamentos() {
                     params: arq
                 });
             if (response.status === 200) {
+                setShowModalListaArquivos(false);
                 toastMixin.fire(response.data.message, 'Sucesso', 'success')
+                
             }
         }
 
         const handleFileChange = (event: any) => {
-            setSelectedFiles(Array.from(event.target.files));
+            let files = selectedFiles;
+            files.concat(Array.from(event.target.files));
+            setSelectedFiles([...selectedFiles, event.target.files]);
         };
         return (
 
@@ -1245,17 +1296,19 @@ export default function Orcamentos() {
                                 <div className="flex flex-col">
                                     <div className="flex flex-col p-1">
                                         <label htmlFor="arquivos">Arquivos</label>
-                                        <input type="file" id="arquivosid" multiple onChange={handleFileChange} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
+                                        <input type="file" id="arquivosid" onChange={e => handleFileChange(e)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400  sm:w-96" />
+                                        <textarea id="arquivoNames" value={nomesArquivos}  className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
                                     </div>
                                     <div className="flex flex-col p-1">
                                         <label htmlFor="arquivos">Observação</label>
 
-                                        <textarea id="arquivoObs" value={observacaoArquivos} onChange={e => setObservacaoArquivos(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
+                                        <textarea id="arquivoObs" value={observacaoArquivos} onChange={e => setObservacaoArquivos(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
                                     </div>
                                 </div>
                                 <div className=" grid itens-center justify-center gap-4 grid-cols-2	">
                                     <button
                                         onClick={e => setShowMostrarArquivos(true)}
+                                        disabled = {temArquivo}
                                         className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Mostrar Arquivos</button>
                                     <button
                                         onClick={handleUpload}
@@ -1410,11 +1463,11 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="nfServico">NF Serviço</label>
-                            <input value={nfs} onChange={(e) => setNfs(e.target.value)} className="sm:w-28 uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
+                            <input value={nfs} onChange={(e) => setNfs(e.target.value.toUpperCase())} className="sm:w-28 uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
                         </div>
                         <div className="flex flex-col p-1">
                             <label htmlFor="status">Status</label>
-                            <select id='statusid' value={statusOrdem} onChange={(e) => setStatusOrdem(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" >
+                            <select id='statusid' value={statusOrdem} onChange={(e) => setStatusOrdem(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" >
                                 {listaStatus().map(status => <option key={status} value={status}>{status}</option>)}
                             </select>
                         </div>
@@ -1441,15 +1494,15 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="atendente">Atendente</label>
-                            <input id='atendenteid' value={codigoOrdem == 0 ? nomeFuncionario : atendente} onChange={(e) => setAtendente(e.target.value)} className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
+                            <input id='atendenteid' value={codigoOrdem == 0 ? nomeFuncionario : atendente} onChange={(e) => setAtendente(e.target.value.toUpperCase())} className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
                         </div>
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="obs">Observações</label>
-                            <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+                            <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value.toLocaleUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                         </div>
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="solicitacoes">Solicitações</label>
-                            <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+                            <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                         </div>
                     </div>
                     <div className="sm:flex gap-2 h-82 p-2">

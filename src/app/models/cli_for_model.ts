@@ -8,6 +8,7 @@ export default interface CliForModel {
   NUMERO?: string;
   BAIRRO?: string;
   CIDADE?: string;
+  CODCIDADE?: number;
   UF?: string;
   INSC_ESTADUAL?: string;
   RAZAO_SOCIAL?: any;

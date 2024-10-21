@@ -8,20 +8,24 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { useEffect, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { ClienteModel, Fidelidade, Situacao, TipoPessoa } from "@/app/models/cliente_model"
 import { DataHoje, FormatDate, GeraCodigo, converteDoBancoParaString, dataFormatadaHojeDotValueInput, dataFormatadaValueInput, formatDateDB, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils"
 import { InputMask, useMask } from '@react-input/mask';
 import dayjs from 'dayjs'
 import ClientRepository from "@/app/repositories/cliente_repository"
 import Modal from "./modal"
+import CidadeRepository from "@/app/repositories/cidade_repository"
+import CidadeModel from "@/app/models/cidade_model"
 
 interface propsCadastroClientes{
   id?:number;
+  setCadastrarCliente: Dispatch<SetStateAction<boolean>>;
+  setListarCliente: Dispatch<SetStateAction<boolean>>;
 };
 
 
-export function Cadastro_clientes({id}:propsCadastroClientes) {
+export function Cadastro_clientes({id, setCadastrarCliente, setListarCliente}:propsCadastroClientes) {
 
   const [cliente, setCliente] = useState<ClienteModel>({CODIGO:0, NOME:'', ESTADO:'ATIVO'});
   const [ehCpf, setEhCpf] = useState(true);
@@ -34,6 +38,11 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
   const inputRefCep = useMask({ mask: '_____-___', replacement: { _: /\d/ } });
   const inputRefFone = useMask({ mask: '(__)_____-____', replacement: { _: /\d/ } });
   const inputRefCel = useMask({ mask: '(__)_____-____', replacement: { _: /\d/ } });
+  const [queryCity, setQueryCity] = useState('');
+  const [cidadeCliente, setCidadeCliente] = useState<CidadeModel | null>(null);
+  const [loadingCity, setLoadingCity] = useState(false);
+  const [optionsCity, setOptionsCity] = useState<Array<CidadeModel>>([]);
+
 
 
   useEffect(()=>{
@@ -54,6 +63,34 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
     setCliente({ ...cliente, LIMITE: valor ? valor : 0 })
 }, [valorLimiteAux]);
 
+
+function escolheCidade(cidade:CidadeModel){
+  setQueryCity(cidade.DESCRICAO? cidade.DESCRICAO:'');
+  setCliente({...cliente, CIDADE:cidade.DESCRICAO, CODCIDADE:cidade.CID_CODIGO})
+
+  
+}
+
+  async function buscaCidades()
+  {
+    if (queryCity.length >= 3) {
+      setLoadingCity(true);
+
+      const repo = new CidadeRepository();
+
+      const options = await repo.getBuscaCidades(queryCity);
+      setOptionsCity(options);
+      setLoadingCity(false);
+    }
+
+}
+
+
+useEffect(() => {
+    buscaCidades();
+}, [queryCity]);
+
+
   async function inicializaNovoCliente(){
     setDataCadastro(DataHoje());
     setNovoCliente(true);
@@ -65,9 +102,21 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
 
   async function inicializaCliente(){
     var rep = new ClientRepository();
+    var repCidade = new CidadeRepository();
     let cliAux = await rep.getClienteById(id??0);
     setDataCadastro(converteDoBancoParaString(cliAux.DATACADASTRO??''));
-    setCliente(cliAux);
+    var dataCadastroAux = new Date(cliAux.DATACADASTRO?cliAux.DATACADASTRO:'');
+    dataCadastroAux.setDate(dataCadastroAux.getDate()+1)
+
+    setCliente({...cliAux, DATACADASTRO: dataFormatadaHojeDotValueInput(dataCadastroAux)});
+    console.log(cliAux);
+    if(cliAux.CODCIDADE != null)
+    {
+      let cidadeAux = await repCidade.getCidadeDescricao(cliAux.CODCIDADE??0);
+      setQueryCity(cidadeAux.DESCRICAO??'');
+    }
+
+    
   }
 
   const salvaCliente = async () =>{
@@ -75,6 +124,8 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
     if(await rep.setCliente(cliente))
       {
         toastMixin.fire('Salvo', 'Salvo com Sucesso!', 'success')
+        setCadastrarCliente(false);
+        setListarCliente(false);
       }
       else
       {
@@ -121,15 +172,20 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
                 <Input id="rg" value={cliente.RG} onChange={(e) => setCliente({...cliente, RG:e.target.value})} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nome_fantasia">Nome (Fantasia)</Label>
+                <Label htmlFor="nome_fantasia">{ehCpf ? 'Nome' : 'Nome (Fantasia)' }</Label>
                 <Input id="nome_fantasia" className="uppercase" value={cliente.NOME} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
                  onChange={(e) => setCliente({...cliente, NOME:e.target.value})} />
               </div>
+              <>
+              {ehCpf ? 
+              <></> :
               <div className="space-y-2">
-                <Label htmlFor="razao_social">Razão Social</Label>
-                <Input id="razao_social" className="uppercase" value={cliente.RAZAOSOCIAL} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
-                 onChange={(e) => setCliente({...cliente, RAZAOSOCIAL:e.target.value})} />
-              </div>
+              <Label htmlFor="razao_social">Razão Social</Label>
+              <Input id="razao_social" className="uppercase" value={cliente.RAZAOSOCIAL} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
+              onChange={(e) => setCliente({...cliente, RAZAOSOCIAL:e.target.value})} />
+            </div>
+              }
+              </>
               <div className="space-y-2">
                 <Label htmlFor="endereco">Endereço</Label>
                 <Input id="endereco" value={cliente.ENDERECO} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
@@ -147,8 +203,22 @@ export function Cadastro_clientes({id}:propsCadastroClientes) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cidade">Cidade</Label>
-                <Input className="uppercase" id="numero" value={cliente.CIDADE} onInput={(e)=> e.currentTarget.value = e.currentTarget.value.toUpperCase()} 
-                 onChange={(e) => setCliente({...cliente, CIDADE:e.target.value})} />
+              <div>
+                  <Input
+                    type="text"
+                    value={queryCity}
+                    className="uppercase" 
+                    onChange={e => setQueryCity(e.target.value)}
+                    placeholder="Search..."
+                  />
+                  {loadingCity && <div>Loading...</div>}
+                  <ul>
+                    {
+                    optionsCity.map((option, index) => (
+                      <li className="cursor-pointer" onClick={e => escolheCidade(option)} key={option.CID_CODIGO}>{option.DESCRICAO}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cep">CEP</Label>

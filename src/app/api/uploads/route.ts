@@ -42,7 +42,8 @@ export async function POST(request: Request): Promise<Response> {
              };            
         });     
         Promise.all(list).then((item)=> {
-            item.forEach(async file=> {  
+            item.forEach(async file=> { 
+                
                 arq.AO_CAMINHO = caminho+file.name;
                 try{
                     await ArquivoRepository.setArquivoRepository(arq); 

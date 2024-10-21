@@ -55,19 +55,20 @@ export default class OrdemRepository {
     }
 
     async buscaOrdem(codigo: number): Promise<OrdemModel> {
-        const obj = {
-            'sql':
-                `SELECT ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, CLI_CNPJ_CPF, ORD_CLI, CLI_NOME,
+        const sql = `SELECT ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, CLI_CNPJ_CPF, ORD_CLI, CLI_NOME,
                 CLI_FONE, CLI_BAIRRO, CLI_ENDERECO, CLI_NUMERO, ORD_OBS, ORD_ESTADO, CID_NOME, CID_UF,
                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FUN_NOME 
                 FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO 
                 JOIN FUNCIONARIOS ON FUN_CODIGO = ORD_FUN 
                 JOIN CIDADES ON CID_CODIGO = CLI_CID
-                WHERE ORD_CODIGO = ${codigo}`
+                WHERE ORD_CODIGO = ${codigo}`;
+        const obj = {
+            'sql': sql
         }
         try {
             const response = await api.post('/dataset', obj)
             return response.data as OrdemModel;
+            
         } catch (e) {
             throw new Error('Erro ao buscar Ordem.' + String(e))
         }
@@ -88,8 +89,6 @@ export default class OrdemRepository {
             } else {
                 data = response.data;
             }
-            console.log('produtos: ');
-            console.log(data);
             return data as OrdEstModel[];
         } catch (e) {
             throw new Error('Erro ao buscar Produtos da Ordem.' + String(e))
@@ -160,6 +159,19 @@ export default class OrdemRepository {
             return data as OrdemModel[];
         } catch (e) {
             throw new Error('Erro ao buscar Ordem' + String(e))
+        }
+    }
+
+    async deleteServicoOrdemPorCodigo(codSer: number): Promise<boolean>{
+        const sql = `DELETE FROM ORD_SER WHERE OS_CODIGO = ${codSer}`;
+        try {
+            const response = await api.post('/dataset', {
+                'sql': sql
+            })
+                      
+            return response.status === 200;;
+        } catch (error) {
+           throw new Error('erro ao deletar serviço') 
         }
     }
 }

@@ -29,4 +29,16 @@ export default class ProdutoRepository{
            throw new Error('erro ao buscar produtos') 
         }
     }
+    async deleteProdutoOrdemPorCodigo(codPro: number): Promise<boolean>{
+        const sql = `DELETE FROM ORD_EST WHERE ORE_CODIGO = ${codPro}`;
+        try {
+            const response = await api.post('/dataset', {
+                'sql': sql
+            })
+                      
+            return response.status === 200;;
+        } catch (error) {
+           throw new Error('erro ao deletar produto') 
+        }
+    }
 }

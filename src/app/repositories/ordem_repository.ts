@@ -161,4 +161,17 @@ export default class OrdemRepository {
             throw new Error('Erro ao buscar Ordem' + String(e))
         }
     }
+
+    async deleteServicoOrdemPorCodigo(codSer: number): Promise<boolean>{
+        const sql = `DELETE FROM ORD_SER WHERE OS_CODIGO = ${codSer}`;
+        try {
+            const response = await api.post('/dataset', {
+                'sql': sql
+            })
+                      
+            return response.status === 200;;
+        } catch (error) {
+           throw new Error('erro ao deletar serviço') 
+        }
+    }
 }

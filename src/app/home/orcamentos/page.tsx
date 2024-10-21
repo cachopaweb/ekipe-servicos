@@ -40,6 +40,10 @@ export default function Orcamentos() {
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
     const [showModalPesquisaProduto, setShowModalPesquisaProduto] = useState(false);
     const [showModalSalvar, setShowModalSalvar] = useState(false);
+    const [showModalDeletaServicoOrd, setShowModalDeletaServicoOrd] = useState(false);
+    const [codServicoDeletado, setCodServicoDeletado] = useState(0);
+    const [showModalDeletaProdutoOrd, setShowModalDeletaProdutoOrd] = useState(false);
+    const [codProdutoDeletado, setCodProdutoDeletado] = useState(0);
     const [produtoEdt, setProdutoEdt] = useState<OrdEstModel>({ ORE_CODIGO:0, ORE_EMBALAGEM: '', ORE_NOME: '', ORE_ORD: 0, ORE_PRO:0, ORE_QUANTIDADE:0, ORE_VALOR:0})
     const [servicoEdt, setServicoEdt] = useState<OrdSerModel>({ OS_CODIGO: 0, OS_NOME: '', OS_ORD: 0, OS_QUANTIDADE: 0, OS_SER: 0, OS_UNIDADE_MED: '', OS_VALOR: 0, })
     const [showModalEdtServico, setShowModalEdtServico] = useState(false);
@@ -132,6 +136,54 @@ export default function Orcamentos() {
 
     const totalProdutos = () => listaProdutosInseridos.length > 0 ? listaProdutosInseridos.map(p => p.ORE_VALOR).reduce((item1, item2) => item1 + item2) : 0;
     const totalServicos = () => listaServicosInseridos.length > 0 ? listaServicosInseridos.map(s => s.OS_VALOR).reduce((item1, item2) => item1 + item2) : 0;
+
+
+    const  deletaServicoOrdem = async () => {
+        const rep = new OrdemRepository();
+        const flag : boolean = await rep.deleteServicoOrdemPorCodigo(codServicoDeletado);
+        const idServico = listaServicosInseridos.findIndex(e => e.OS_CODIGO === codServicoDeletado);
+        const lista = Array.from(listaServicosInseridos)
+
+        if (!flag) {
+            toastMixin.fire('Atenção', 'Não foi possível deletar!', 'warning');
+        }
+        else
+        {
+            toastMixin.fire({
+                title: 'Deleta Serviço',
+                text: 'Serviço deletado com Sucesso',
+                timer: 2000
+            })
+            lista.splice(idServico, 1);
+            setListaServicosInseridos(lista);
+        }
+        setCodServicoDeletado(0);
+        setShowModalDeletaServicoOrd(false);
+    }
+
+
+    const  deletaProdutoOrdem = async () => {
+        const rep = new ProdutoRepository();
+        const flag : boolean = await rep.deleteProdutoOrdemPorCodigo(codProdutoDeletado);
+        const idProd = listaProdutosInseridos.findIndex(e => e.ORE_CODIGO === codProdutoDeletado);
+        const lista = Array.from(listaProdutosInseridos)
+
+        if (!flag) {
+            toastMixin.fire('Atenção', 'Não foi possível deletar!', 'warning');
+        }
+        else
+        {
+            toastMixin.fire({
+                title: 'Deleta Produto',
+                text: 'Produto deletado com Sucesso',
+                timer: 2000
+            })
+            lista.splice(idProd, 1);
+            setListaProdutosInseridos(lista);
+        }
+        setCodProdutoDeletado(0);
+        setShowModalDeletaProdutoOrd(false);
+    }
 
     const salvaOrdem = async () => {
         const cidadeRep = new CidadeRepository();
@@ -558,6 +610,66 @@ export default function Orcamentos() {
 
     }
 
+
+    const ModalDeletaProdutOrd = () => {
+        return (
+            <Modal showModal={showModalDeletaProdutoOrd} setShowModal={setShowModalDeletaProdutoOrd}
+                title="Deseja deletar o Produto?"
+                showButtonExit={false}
+                body={
+                    <div>
+                        <button
+                            className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                            type="button"
+                            onClick={() => setShowModalDeletaProdutoOrd(false)}
+                        >
+                            <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
+                            Cancelar
+                        </button>
+                        <button
+                            className="bg-orange-500 text-white active:bg-orange-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                            type="button"
+                            onClick={deletaProdutoOrdem}
+                        >
+                            <i className="fa fa-solid fa-trash-can text-white p-2"></i>
+                            Deletar
+                        </button>
+                    </div>
+                }
+            />
+        );
+    }
+
+
+    const ModalDeletaServicoOrd = () => {
+        return (
+            <Modal showModal={showModalDeletaServicoOrd} setShowModal={setShowModalDeletaServicoOrd}
+                title="Deseja deletar o Serviço?"
+                showButtonExit={false}
+                body={
+                    <div>
+                        <button
+                            className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                            type="button"
+                            onClick={() => setShowModalDeletaServicoOrd(false)}
+                        >
+                            <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
+                            Cancelar
+                        </button>
+                        <button
+                            className="bg-orange-500 text-white active:bg-orange-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                            type="button"
+                            onClick={deletaServicoOrdem}
+                        >
+                            <i className="fa fa-solid fa-trash-can text-white p-2"></i>
+                            Deletar
+                        </button>
+                    </div>
+                }
+            />
+        );
+    }
+
     const ModalSalvar = () => {
         return (
             <Modal showModal={showModalSalvar} setShowModal={setShowModalSalvar}
@@ -612,10 +724,8 @@ export default function Orcamentos() {
         })
 
         const excluirServico = (id: number) => {
-            const idServico = listaServicosInseridos.findIndex(e => e.OS_CODIGO === id);
-            const lista = Array.from(listaServicosInseridos)
-            lista.splice(idServico, 1);
-            setListaServicosInseridos(lista);
+            setCodServicoDeletado(id);
+            setShowModalDeletaServicoOrd(true);
         }
 
 
@@ -943,10 +1053,8 @@ export default function Orcamentos() {
         }
 
         const excluirProduto = (id: number) => {
-            const idProduto = listaProdutosInseridos.findIndex(e => e.ORE_CODIGO === id);
-            const lista = Array.from(listaProdutosInseridos);
-            lista.splice(idProduto, 1);
-            setListaProdutosInseridos(lista);
+            setCodProdutoDeletado(id);
+            setShowModalDeletaProdutoOrd(true);
         }
         const editaProduto = (produto: OrdEstModel) => {
             setProdutoEdt(produto);
@@ -1443,7 +1551,8 @@ export default function Orcamentos() {
                                 {showModalEdtServico && <ModalEdtServico />}
                                 {showModalEdtProduto && <ModalEdtProduto />}
                                 {showModalSalvar && <ModalSalvar />}
-
+                                {showModalDeletaServicoOrd && <ModalDeletaServicoOrd />}
+                                {showModalDeletaProdutoOrd && <ModalDeletaProdutOrd />}
                                 {showModalPesquisaOS && <PesquisaOrdem
                                     OrdemSelecionado={codigoOrdem}
                                     setOrdemSelecionado={setCodigoOrdem}

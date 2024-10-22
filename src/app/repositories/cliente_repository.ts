@@ -35,31 +35,34 @@ export default class ClientRepository{
           'sql': SQL
         });
        let data = response.data;
+       console.log('data:');
+       console.log(data);
         return data;
       } catch (error) {
-          throw new Error('erro ao buscar clientes');
+          throw new Error('erro ao buscar cliente');
       }
   }
 
   async setCliente(cliente:ClienteModel): Promise<boolean>{
     try {
       const sql = ` update or insert into CLIENTES (CLI_CODIGO, CLI_NOME, CLI_RAZAO_SOCIAL, CLI_TIPO, CLI_CNPJ_CPF,
-          CLI_RG, CLI_FONE, CLI_CELULAR, CLI_ENDERECO, CLI_NUMERO, CLI_BAIRRO, CLI_CIDADE, CLI_CEP, CLI_FIDELIDADE, CLI_INADIMPLENCIA, CLI_DESCONTO,
+          CLI_RG, CLI_FONE, CLI_CELULAR, CLI_ENDERECO, CLI_NUMERO, CLI_BAIRRO, CLI_CIDADE, CLI_CID, CLI_CEP, CLI_FIDELIDADE, CLI_INADIMPLENCIA, CLI_DESCONTO,
           CLI_SITUACAO, CLI_LIMITE, CLI_PAI, CLI_MAE, CLI_CONJUGE, CLI_INDIC_IE, CLI_INSC_ESTADUAL, CLI_INSC_MUNICIPAL, CLI_SUFRAMA,
           CLI_ESTADO, CLI_DATAC, CLI_EMAIL, CLI_OBS)
           values (${cliente.CODIGO}, '${cliente.NOME}', '${cliente.RAZAOSOCIAL??''}', '${cliente.TIPO??''}', '${cliente.CPF_CNPJ??''}',
           '${cliente.RG??''}', '${cliente.FONE??''}', '${cliente.CELULAR??''}', '${cliente.ENDERECO??''}', '${cliente.NUMERO??''}', '${cliente.BAIRRO??''}',
-          '${cliente.CIDADE??''}', '${cliente.CEP??''}', '${cliente.FIDELIDADE}', ${cliente.INADIPLENCIA??0}, ${cliente.DESCONTO??0},
+          '${cliente.CIDADE??''}', '${cliente.CODCIDADE??''}', '${cliente.CEP??''}', '${cliente.FIDELIDADE}', ${cliente.INADIPLENCIA??0}, ${cliente.DESCONTO??0},
           '${cliente.SITUACAO??''}', ${cliente.LIMITE??0}, '${cliente.PAI??''}', '${cliente.MAE??''}', '${cliente.CONJUGE??''}',
           '${cliente.INDICEIE??''}', '${cliente.INSCRICAOESTADUAL??''}', '${cliente.INSCRICAOMUNICIPAL??''}', '${cliente.SUFRAMA??''}',
           '${cliente.ESTADO??''}', '${cliente.DATACADASTRO??''}', '${cliente.EMAIL??''}', '${cliente.OBS??''}')
-          matching (CLI_CODIGO)`;          
+          matching (CLI_CODIGO)`;   
+          console.log(sql);       
       const response = await api.post('/dataset', {
         'sql': sql
       });          
       return response.status === 200;
     } catch (error) {
-        throw new Error('erro ao setar ultima venda cliente.\n'+String(error));
+        throw new Error('erro ao salvar cliente.\n'+String(error));
     }
 }
     async setUltimaVendaCliente(data: string, codigo: number): Promise<boolean>{

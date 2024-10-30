@@ -24,6 +24,7 @@
     "node-fetch": "^3.3.2",
     "react": "^18",
     "react-dom": "^18",
+    "react-input-mask": "^2.0.4",
     "react-intl": "^6.5.5",
     "react-to-print": "^2.14.15",
     "stream-to-blob": "^2.0.1",

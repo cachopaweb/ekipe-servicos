@@ -732,8 +732,6 @@ export default function Orcamentos() {
         const editaServico = (servico: OrdSerModel) => {
             setServicoEdt(servico);
             setShowModalEdtServico(true);
-
-
         }
 
         const selectNome = () =>

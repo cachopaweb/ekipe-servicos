@@ -83,6 +83,11 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
             const repository = new TipoPgmRepository();
             const tp = await repository.buscaTipoPgm(tipo);
             setListaTipoPgm(tp);
+            if(tp)
+            {
+                setCodTipoPgm(tp[0].TP_CODIGO);
+            }
+            
         } catch (error) {
             toastMixin.fire('Erro ao buscar tipo pgm', String(error), 'error');
         }
@@ -280,7 +285,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                 <div className="sm:flex">
                     <div className="flex flex-col p-2 w-72">
                         <label htmlFor="codFatura" className="text-black font-bold text-md">Tipo Pgm</label>
-                        <select onKeyDown={keydownTipoPgm} value={codTipoPgm} onChange={e => setCodTipoPgm(e.target.value ? parseInt(e.target.value) : 0)} name="tipoPgm" id="tipoPgm" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400">
+                        <select onKeyDown={keydownTipoPgm} value={codTipoPgm} onChange={e => setCodTipoPgm(e.target.value ? Number(e.target.value) : 0)} name="tipoPgm" id="tipoPgm" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400">
                             {listaTipopgm && listaTipopgm!.map(tp => <option key={tp.TP_CODIGO} value={tp.TP_CODIGO}>{tp.TP_DESCRICAO}</option>)}
                         </select>
                     </div>

@@ -9,6 +9,7 @@ import EmpreitadasRepository from "@/app/repositories/empreitadas_repository";
 import PesquisaFornecedor from "@/app/pesquisas/pesquisa_fornecedor";
 import CliForRepository from "../../repositories/cli_for_repository";
 import EmpreitadaModal from "./empreitada";
+import { useAppData } from "@/app/contexts/app_context";
 
 interface empreitadasProps {
     ordemServico: OrdemModel;
@@ -112,7 +113,6 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
         try {
             const emp = await cacheEmpreitadas();
             setListaEmpreitadas(emp);
-            console.log(emp);
         } catch (error) {
             toastMixin.fire('Erro', 'Erro ao buscar empreitadas', 'error');
         }
@@ -147,6 +147,7 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
         const selecionaEmpreitada = (indice:number) =>{
             setEmpreitadaSelecionada({...listaEmpreitadas[indice]});
             setShowModalEmpreitada(true);
+            setIndiceEmpreitada(indice);
         }
 
         const excluirServicoEmpreitada = (id: number) => {

@@ -2,7 +2,7 @@ import EmpreitadasServicosModel from "@/app/models/empreitada_servicos_model";
 import EmpreitadasModel from "@/app/models/empreitadas_model";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input"
-import { GeraCodigo, mascaraMoeda, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils";
+import { GeraCodigo, keyBoardInputEvent, mascaraMoeda, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils";
 import Modal from "@/components/component/modal";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import { useMask } from "@react-input/mask";
@@ -27,11 +27,6 @@ interface empreitadaProps {
 
 export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSelecionada, ordem, fornecedor, showModal, setShowModal}: empreitadaProps) {
     const refDivServicos = useRef<HTMLDivElement>(null);
-    
-    useEffect(() => {
-        setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
-    }, [refDivServicos.current]);
-    
     const [empreitadaServicoEdt, setEmpreitadaServicoEdt] = useState<EmpreitadasServicosModel>({ DESCRICAO : '', ES_CODIGO : 0, ES_EMP : 0, })
     const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
     const [showModalServicos, setShowModalServicos] = useState<boolean>(false);
@@ -42,10 +37,13 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
     const [foiFaturado, setFoiFaturado] = useState(false);
     const [showModalImprimirEmpreitadas, setShowModalImprimirEmpreitadas] = useState(false);
     const [carregando, setCarregando] = useState(true);
-    const { setEmpreitadaCtx } = useAppData();
     const [empreitada, setEmpreitada] = useState<EmpreitadasModel | undefined>(empreitadaSelecionada);
     const textAreaRefLocal = useRef(null);
 
+    useEffect(() => {
+        setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
+    }, [refDivServicos.current]);
+    
     
 
 
@@ -64,6 +62,26 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
             }
 
     }
+
+            
+    const ModalImprimir = () => {
+
+        useEffect(() =>{
+            console.log('aqui');
+        },[])
+
+        return (
+            <Modal showModal={showModalImprimirEmpreitadas} setShowModal={setShowModalImprimirEmpreitadas}
+                title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
+                showButtonExit={false}
+                body={
+                    <PrintEmpreitadas 
+                    EmpreitadaCtx={empreitada?empreitada: {EMP_CODIGO:0, EMP_FOR:0, EMP_ORD:0,EMP_VALOR:0,FOR_NOME:'',ITENS:[]}} />
+                }
+            />
+        );
+    }
+
 
     const editaServico = (servico: EmpreitadasServicosModel) => {
         setEmpreitadaServicoEdt(servico);
@@ -110,26 +128,13 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
         }
     }
 
-    
     function imprimeEmpreitada() {
         if (empreitada) {
 
-            setEmpreitadaCtx(empreitada);
             setShowModalImprimirEmpreitadas(true);
         }
     }
 
-    const ModalImprimir = () => {
-        return (
-            <Modal showModal={showModalImprimirEmpreitadas} setShowModal={setShowModalImprimirEmpreitadas}
-                title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
-                showButtonExit={false}
-                body={
-                    <PrintEmpreitadas />
-                }
-            />
-        );
-    }
 
 
     function imprimePrazoConclusao(prazoConclusao:string){
@@ -364,18 +369,20 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
         const [local, setLocal] = useState(empreitada?.EMP_LOCAL_EXECUCAO_SERVICOS);
         const [obs, setObs] = useState(empreitada?.EMP_OBS);
 
+
+
         return <div className="w-full">
             <div className="flex flex-row w-full">
                 <div className="flex flex-col p-1 w-full">
                     <label htmlFor="localExecucao">Local Execução</label>
-                    <textarea  id="localExecucaoid" onBlur={e => empreitada?setEmpreitada({...empreitada,  EMP_LOCAL_EXECUCAO_SERVICOS: e.target.value.toUpperCase()}):setEmpreitada(empreitada)}
+                    <input  id="localExecucaoid" onBlur={e => empreitada?setEmpreitada({...empreitada,  EMP_LOCAL_EXECUCAO_SERVICOS: e.target.value.toUpperCase()}):setEmpreitada(empreitada)}
                      value={local} onChange={e => setLocal(e.target.value.toUpperCase())} ref={textAreaRefLocal} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-10" />
                 </div>
             </div>
             <div className="flex flex-row w-full">
                 <div className="flex flex-col p-1 w-full">
                     <label htmlFor="obsEmpreitadas">Observações</label>
-                    <textarea id="obsEmpreitadasid" onBlur={e => empreitada?setEmpreitada({...empreitada,  EMP_OBS: e.target.value.toUpperCase()}):setEmpreitada(empreitada)}
+                    <input id="obsEmpreitadasid" onBlur={e => empreitada?setEmpreitada({...empreitada,  EMP_OBS: e.target.value.toUpperCase()}):setEmpreitada(empreitada)}
                     value={obs} onChange={e => setObs(e.target.value.toLocaleUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-10" />
                 </div>
             </div>

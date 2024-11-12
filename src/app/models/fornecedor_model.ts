@@ -22,12 +22,15 @@ export enum TipoPessoa {
 export class FornecedorModel {
     CODIGO: number;
     NOME: string;
+    ESTADO?:string;
     RAZAOSOCIAL?: string;
     TIPO?: TipoPessoa | string;
     CPF_CNPJ?: string;
     FONE?: string;
     CELULAR?: string;
     ENDERECO?: string;
+    END_NUMERO?: number;
+    CONTATO?: string;
     BAIRRO?: string;
     CODCIDADE?:number;
     CIDADE?: string;

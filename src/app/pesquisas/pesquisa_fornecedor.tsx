@@ -5,6 +5,7 @@ import ClientRepository from "../repositories/fornecedor_repository";
 import { Cadastro_clientes } from "@/components/component/cadastro_clientes";
 import { FornecedorModel } from "../models/fornecedor_model";
 import FornecedorRepository from "../repositories/fornecedor_repository";
+import { Cadastro_fornecedores } from "@/components/component/cadastro_fornecedores";
 
 type pesquisaFornecedorParams = {
     showModal: boolean;
@@ -40,7 +41,7 @@ export default function PesquisaFornecedor({ showModal, setShowModal, setFornece
 
     const visualizarFornecedor = (model: FornecedorModel)=> {
         setIdCadastraFornecedor(model.CODIGO);
-        setCadastrarFornecedor(false);
+        setCadastrarFornecedor(true);
     }
     const selecionarFornecedor = (model: FornecedorModel)=> {
         setFornecedorSelecionado(model);
@@ -57,7 +58,7 @@ export default function PesquisaFornecedor({ showModal, setShowModal, setFornece
                 body={
                     <div className=" flex flex-col">
                         <div className="flex flex-row-reverse">
-                        {<button disabled={true} onClick={()=> cadastrarNovoFornecedor()} className="bg-green-700 p-2 text-xs font-bold disabled:cursor-not-allowed rounded-xl shadow-sm text-white">Cadastrar Fornecedor</button>}
+                        {<button onClick={()=> cadastrarNovoFornecedor()} className="bg-green-700 p-2 text-xs font-bold disabled:cursor-not-allowed rounded-xl shadow-sm text-white">Cadastrar Fornecedor</button>}
                         </div>
                         <table className="table-auto">
                             <thead>
@@ -120,7 +121,7 @@ export default function PesquisaFornecedor({ showModal, setShowModal, setFornece
                     </div>
                 }
             />
-            {cadastrarFornecedor && <Modal showModal={cadastrarFornecedor} setShowModal={setCadastrarFornecedor} title="Cadastro Fornecedor" body={<Cadastro_clientes  setListarCliente={setShowModal} setCadastrarCliente={setCadastrarFornecedor}  id={idCadastraFornecedor} />} /> }
+            {cadastrarFornecedor && <Modal showModal={cadastrarFornecedor} setShowModal={setCadastrarFornecedor} title="Cadastro Fornecedor" body={<Cadastro_fornecedores  setListarFornecedor={setShowModal} setCadastraFornecedor={setCadastrarFornecedor}  id={idCadastraFornecedor} />} /> }
         </>
     )
 }

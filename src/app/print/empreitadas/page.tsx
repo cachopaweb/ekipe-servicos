@@ -28,7 +28,7 @@ const PrintEmpreitadas = ({EmpreitadaCtx}:printEmpreitadaProps ) => {
         var soma = 0;
         EmpreitadaCtx.ITENS.forEach((item) => {
             if (item.ES_VALOR && item.ES_QUANTIDADE) {
-                soma = item.ES_VALOR * item.ES_QUANTIDADE;
+                soma += item.ES_VALOR;
             }
 
         })

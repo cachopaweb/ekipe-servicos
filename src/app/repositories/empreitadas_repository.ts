@@ -1,17 +1,18 @@
 import { FormatDate, GeraCodigo } from "../functions/utils";
+import Empreitadas from "../home/empreitadas/page";
 import EmpreitadasServicosModel from "../models/empreitada_servicos_model";
 import EmpreitadasModel from "../models/empreitadas_model";
 import api from "../services/api";
 
 export default class EmpreitadasRepository{
     async buscaEmpreitadas(codigo: number): Promise<EmpreitadasModel[]>{
-        console.log(codigo);
-        const obj = {
-            'sql': 
-                `SELECT EMP_CODIGO, EMP_FOR, FOR_NOME, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, LRC_FAT2 
+        const sql = `SELECT EMP_CODIGO, EMP_FOR, FOR_NOME, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, LRC_FAT2, EMP_FAT
                  FROM EMPREITADAS JOIN FORNECEDORES ON EMP_FOR = FOR_CODIGO LEFT JOIN LANCAMENTO_REC_CUS ON ((LRC_TIPO = 'C') 
                  AND (FOR_CODIGO = LRC_CLI_FOR) AND (EMP_FAT = LRC_FAT2) AND (LRC_DATAC = '01/01/1900')) WHERE EMP_ORD = ${codigo} 
-                 ORDER BY EMP_CODIGO`        
+                 ORDER BY EMP_CODIGO`
+        const obj = {
+            'sql': sql
+                     
         }
         try {
             const response = await api.post('/dataset', obj)
@@ -23,17 +24,35 @@ export default class EmpreitadasRepository{
             }
             return data as EmpreitadasModel[];
         } catch (e) {
-            console.log('erro: '+String(e));
             throw new Error('Erro ao buscar Empreitadas.'+String(e))
         }
     }
 
-    async buscaServicosEmpreitadas(codigo: number): Promise<EmpreitadasServicosModel[]>{
+
+    async buscaEmpreitadaById(id: number): Promise<EmpreitadasModel>{
+
+        const sql = `SELECT EMP_CODIGO, EMP_FOR, FOR_NOME, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, LRC_FAT2 
+                 FROM EMPREITADAS JOIN FORNECEDORES ON EMP_FOR = FOR_CODIGO LEFT JOIN LANCAMENTO_REC_CUS ON ((LRC_TIPO = 'C') 
+                 AND (FOR_CODIGO = LRC_CLI_FOR) AND (EMP_FAT = LRC_FAT2) AND (LRC_DATAC = '01/01/1900')) WHERE EMP_CODIGO = ${id}`
         const obj = {
-            'sql': 
-                `SELECT ES_CODIGO, ES_EMP, CAST(ES_DESCRICAO AS VARCHAR(1000)) DESCRICAO, ES_VALOR, ES_PRAZO_CONCLUSAO, 
+            'sql': sql
+                     
+        }
+        try {
+            const response = await api.post('/dataset', obj);
+
+            return response.data as EmpreitadasModel;
+        } catch (e) {
+            throw new Error('Erro ao buscar Empreitada.'+String(e))
+        }
+    }
+
+    async buscaServicosEmpreitadas(codigo: number): Promise<EmpreitadasServicosModel[]>{
+        const sql = `SELECT ES_CODIGO, ES_EMP, CAST(ES_DESCRICAO AS VARCHAR(1000)) DESCRICAO, ES_VALOR, ES_PRAZO_CONCLUSAO, 
                 ES_QUANTIDADE, ES_VALOR/ES_QUANTIDADE VLR_UNIT, ES_UNIDADE FROM EMPREITADAS_SERVICOS WHERE ES_EMP = ${codigo} 
-                ORDER BY ES_CODIGO`        
+                ORDER BY ES_CODIGO`;
+        const obj = {
+            'sql': sql  
         }
         try {
             const response = await api.post('/dataset', obj)
@@ -47,13 +66,17 @@ export default class EmpreitadasRepository{
         }
     }
 
-    async insereEmpreitada(empreitada: EmpreitadasModel): Promise<boolean>{        
+    async insereEmpreitada(empreitada: EmpreitadasModel): Promise<boolean>{       
+        const sql =  `UPDATE OR INSERT INTO EMPREITADAS (EMP_CODIGO, EMP_ORD, EMP_FOR, EMP_FAT, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, EMP_NFS)
+        VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR}, ${empreitada.EMP_FAT ?? 0}, '${empreitada.EMP_OBS ?? ''}', 
+        '${empreitada.EMP_LOCAL_EXECUCAO_SERVICOS ?? ''}', '${empreitada.EMP_NFS ?? ''}')
+        MATCHING (EMP_CODIGO)`;
+        console.log('Empreitadas');
+        console.log(sql);
+        
         try {                     
             const response = await api.post('/dataset', {
-                'sql': `UPDATE OR INSERT INTO EMPREITADAS (EMP_CODIGO, EMP_ORD, EMP_FOR, EMP_FAT, EMP_OBS, EMP_LOCAL_EXECUCAO_SERVICOS, EMP_NFS)
-                VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR-1000000}, ${empreitada.EMP_FAT ?? 0}, '${empreitada.EMP_OBS ?? ''}', 
-                '${empreitada.EMP_LOCAL_EXECUCAO_SERVICOS ?? ''}', '${empreitada.EMP_NFS ?? ''}')
-                MATCHING (EMP_CODIGO)`
+                'sql': sql
             })
             return response.status === 200;
         } catch (e) {

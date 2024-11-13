@@ -24,13 +24,12 @@ import ProdutoRepository from "@/app/repositories/produto_repository";
 import { useAppData } from "@/app/contexts/app_context";
 import PrintOrcamentos from "@/app/print/orcamento/page";
 import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
-import axios from "axios";
 import ArquivoModel from "@/app/models/arquivo_model";
 import ArquivoRepository from "@/app/repositories/arquivo_repository";
-import Link from "next/link";
 import ClientRepository from "@/app/repositories/cliente_repository";
 import CidadeRepository from "@/app/repositories/cidade_repository";
 import { SelectTrigger } from "@radix-ui/react-select";
+import { ModalListarArquivos } from "@/components/component/files";
 
 
 export default function Orcamentos() {
@@ -49,13 +48,13 @@ export default function Orcamentos() {
     const [showModalEdtServico, setShowModalEdtServico] = useState(false);
     const [showModalEdtProduto, setShowModalEdtProduto] = useState(false);
     const [showModalEmpreitadas, setShowModalEmpreitadas] = useState(false);
-    const [showModalListaArquivos, setShowModalListaArquivos] = useState(false);
+    const [showModalListaArquivos, setShowModalListaArquivos] = useState(false); 
     const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
     const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO', PRO_VALORV: 0 });
     const [atendente, setAtendente] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
-    const [selectedFiles, setSelectedFiles] = useState<Array<FileList>>([]);
+
     const { usuarioLogado, setUsuarioLogado } = useAppData();
     const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
     const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
@@ -75,7 +74,6 @@ export default function Orcamentos() {
     const [foiFaturado, setFoiFaturado] = useState(false);
     const [showModalimprimir, setShowModalImprimir] = useState(false);
     const [showModalPesquisaOS, setShowModalPesquisaOS] = useState(false);
-    const [isDownloadFile, setIsDownloadFile] = useState(false);
     const [nomeFuncionario, setNomeFuncionario] = useState('');
     const [idFuncionario, setIdFuncionario] = useState(0);
     useEffect(() => {
@@ -100,9 +98,6 @@ export default function Orcamentos() {
         }
     }
 
-    useEffect(() => {
-        setSelectedFiles([]);
-    }, [showModalListaArquivos])
 
     useEffect(() => {
         carregaUnidadesMed()
@@ -470,7 +465,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Quantidade </span>
-                            <input value={osQuantidade} onChange={(e) => setOsQuantidade(Number.parseInt(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                            <input value={osQuantidade} step={.01} onChange={(e) => setOsQuantidade(Number(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
                             </input>
                         </div>
                         <div className="grid grid-rows">
@@ -570,7 +565,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Quantidade </span>
-                            <input value={oreQuantidade} onChange={(e) => setOreQuantidade(Number.parseInt(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                            <input value={oreQuantidade} step={.01} onChange={(e) => setOreQuantidade(Number(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
                             </input>
                         </div>
                         <div className="grid grid-rows">
@@ -732,8 +727,6 @@ export default function Orcamentos() {
         const editaServico = (servico: OrdSerModel) => {
             setServicoEdt(servico);
             setShowModalEdtServico(true);
-
-
         }
 
         const selectNome = () =>
@@ -1211,224 +1204,7 @@ export default function Orcamentos() {
         );
     }
 
-    const ModalListarArquivos = () => {
-        const [nomesArquivos, setNomesArquivos] = useState<string>('');
-        const [temArquivo, setTemArquivo] = useState(false);
 
-
-
-        useEffect(() => {
-            haveFile();
-        }, [])
-
-        useEffect(() => {
-            let nomes: string = '';
-            selectedFiles.forEach(function(file) {
-                const fileAux = Array.from(file);
-                fileAux.forEach(function(f) {
-                    nomes = nomes + ' \n ' +  f.name;
-                });
-               
-            } )
-            setNomesArquivos(nomes);
-
-        }, [selectedFiles])
-
-        async function haveFile(){
-            const repArq = await ArquivoRepository.getArquivoRepository(codigoOrdem);
-            var json = JSON.stringify(repArq);
-            const flag = json == '[{}]';
-            setTemArquivo(flag);
-            
-        }
-
-        const ModalMostrarArquivos = () => {
-            const [listaArquivos, setListaArquivos] = useState<ArquivoModel[]>([]);
-            const [carregando, setCarregando] = useState(true);
-
-            const buscaArquivos = async () => {
-                const lista = await ArquivoRepository.getArquivoRepository(codigoOrdem);
-                setListaArquivos(lista);
-            }
-
-            useEffect(() => {
-                setCarregando(true);
-                buscaArquivos();
-                setCarregando(false);
-
-            }, [])
-
-            async function downloadFile(path: string) {
-                setIsDownloadFile(true);
-                const response = await fetch('/api/downloads', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/octet-stream',
-                        'from': path,
-                    },
-                });
-                const blob = await response.blob();
-                // Create blob link to download
-                const url = window.URL.createObjectURL(
-                    blob as Blob
-                );
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = getFileName(path);
-
-                // Append to html link element page
-                document.body.appendChild(link);
-
-                // Start download
-                link.click();
-                setIsDownloadFile(false);
-            }
-
-
-            return (
-                carregando ?
-                    <>
-                        Carregando...
-                    </>
-                    :
-                    <Modal showModal={showMostrarArquivos} setShowModal={setShowMostrarArquivos}
-                        title="Arquivos Enviados"
-                        showButtonExit={false}
-                        body={
-                            <div>
-                                <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
-                                    <thead className="text-white">
-                                        {
-                                            <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                                <th className="p-3 text-left">Cód.</th>
-                                                <th className="p-3 text-left w-full">Nome</th>
-                                                <th className="p-3 text-left">Observação</th>
-                                                <th className="p-3 text-left">Download</th>
-                                            </tr>
-                                        }
-                                    </thead>
-                                    <tbody className="flex-1 sm:flex-none">
-                                        {listaArquivos.length > 0 ? listaArquivos.map((item) =>
-                                            <tr key={item.AO_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
-                                                <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_CODIGO}</td>
-                                                <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{getFileName(item.AO_CAMINHO)}</td>
-                                                <td className="border-grey-light border hover:bg-gray-100 p-3">{item.AO_OBS}</td>
-                                                <td className="border-grey-light border hover:bg-gray-100 p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
-                                                    <button
-                                                        className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                        type="button"
-                                                        onClick={() => downloadFile(item.AO_CAMINHO)}
-                                                    >
-                                                        <i className="fas fa-download text-white "></i>
-                                                        <Link
-                                                            href={''}
-                                                            download="Example-PDF-document"
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        )
-                                    :
-                                    <p>Não tem arquivo para ser mostrado</p>
-                                    }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                    />
-            );
-
-        }
-        const [showMostrarArquivos, setShowMostrarArquivos] = useState(false);
-        const [observacaoArquivos, setObservacaoArquivos] = useState('');
-
-        const handleUpload = async () => {
-            const apiUpload = axios.create({ baseURL: '/api' })
-            if (!selectedFiles) {
-                toastMixin.fire('Nenhum arquivo selecionado!', 'Atenção', 'warning');
-                return;
-            }
-            const files = selectedFiles;
-            const formData = new FormData();
-
-            for (const file of Array.from(files)) {
-                var fileAux = Array.from(file)
-
-                fileAux.forEach(function(f){
-                    formData.append('files', f);
-                })
-                
-            }
-            const arq: ArquivoModel = {
-                AO_CAMINHO: '',
-                AO_CODIGO: 0,
-                AO_OBS: observacaoArquivos,
-                AO_OS: ordem?.ORD_CODIGO!,
-            };
-            formData.append('arquivo', JSON.stringify(arq));
-            const response = await apiUpload.post('/uploads', formData,
-                {
-                    params: arq
-                });
-            if (response.status === 200) {
-                setShowModalListaArquivos(false);
-                toastMixin.fire(response.data.message, 'Sucesso', 'success')
-                
-            }
-        }
-
-        const handleFileChange = (event: any) => {
-            let files = selectedFiles;
-            files.concat(Array.from(event.target.files));
-            setSelectedFiles([...selectedFiles, event.target.files]);
-        };
-        return (
-
-            <div>
-                <Modal showModal={showModalListaArquivos} setShowModal={setShowModalListaArquivos}
-                    title="Listar Arquivos"
-                    showButtonExit={false}
-                    body={
-                        isDownloadFile ?
-                            <div role="status" className="place-items-center w-full">
-                                <svg aria-hidden="true" className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
-                                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
-                                </svg>
-                                <span className="sr-only">Loading...</span>
-                            </div>
-                            :
-                            <div>
-                                <div className="flex flex-col">
-                                    <div className="flex flex-col p-1">
-                                        <label htmlFor="arquivos">Arquivos</label>
-                                        <input type="file" id="arquivosid" onChange={e => handleFileChange(e)} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400  sm:w-96" />
-                                        <textarea id="arquivoNames" value={nomesArquivos}  className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
-                                    </div>
-                                    <div className="flex flex-col p-1">
-                                        <label htmlFor="arquivos">Observação</label>
-
-                                        <textarea id="arquivoObs" value={observacaoArquivos} onChange={e => setObservacaoArquivos(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 h-36 sm:w-96" />
-                                    </div>
-                                </div>
-                                <div className=" grid itens-center justify-center gap-4 grid-cols-2	">
-                                    <button
-                                        onClick={e => setShowMostrarArquivos(true)}
-                                        disabled = {temArquivo}
-                                        className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Mostrar Arquivos</button>
-                                    <button
-                                        onClick={handleUpload}
-                                        className="bg-black p-2 rounded-md text-white hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">Salvar Arquivos</button>
-                                </div>
-                            </div>
-                    }
-                />
-                {showMostrarArquivos && <ModalMostrarArquivos />}
-            </div>
-        );
-    }
 
     const ModalImprimir = () => {
         return (
@@ -1450,25 +1226,25 @@ export default function Orcamentos() {
                 </div>
                 <div className="p-4 space-y-4">
                     <button
-                        className={codigoOrdem == 0 ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
+                        className={(codigoOrdem == 0 || isNaN(codigoOrdem))? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => setShowModalEmpreitadas(true)}
-                        disabled = {codigoOrdem == 0 ? true : false}
+                        disabled = {(codigoOrdem == 0 || isNaN(codigoOrdem))? true : false}
                     >
                         <i className="fas fa-hand-holding-usd"></i>
                         <span>Empreitadas</span>
                     </button>
                     <button
-                         className={codigoOrdem == 0 ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
+                         className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => setShowModalListaArquivos(true)}
-                        disabled = {codigoOrdem == 0 ? true : false}
+                        disabled = {(codigoOrdem == 0 || isNaN(codigoOrdem)) ? true : false}
                     >
                         <i className="fas fa-exchange-alt"></i>
                         <span>Listar Arquivos</span>
                     </button>
                     <button
-                        className={codigoOrdem == 0 ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
+                        className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => imprimeOrcamento()}
-                        disabled = {codigoOrdem == 0 ? true : false}
+                        disabled = {(codigoOrdem == 0 || isNaN(codigoOrdem))? true : false}
                     >
                         <i className="fas fa-print"></i>
                         <span>Imprimir</span>
@@ -1678,7 +1454,11 @@ export default function Orcamentos() {
                         <Empreitadas ordemServico={ordem!} />
                     }
                 />}
-            {showModalListaArquivos && <ModalListarArquivos />}
+            {showModalListaArquivos && <ModalListarArquivos 
+            codigoOrdem={codigoOrdem}
+            setShowModal={setShowModalListaArquivos}
+            showmodal={showModalListaArquivos}
+            />}
 
         </div >
     );

@@ -1,16 +1,21 @@
 "use client"
 import Image from 'next/image'
 import { useReactToPrint } from 'react-to-print';
-
 import logo from '../../../../assets/logo.png'
 import { useAppData } from '@/app/contexts/app_context';
 import { useEffect, useRef, useState } from 'react';
 import { formatCurrency, toastMixin, DataHoje} from '../../functions/utils'
+import EmpreitadasModel from '@/app/models/empreitadas_model';
+interface printEmpreitadaProps {
+    EmpreitadaCtx: EmpreitadasModel;
 
-const PrintEmpreitadas = () => {
+}
+
+
+const PrintEmpreitadas = ({EmpreitadaCtx}:printEmpreitadaProps ) => {
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const { EmpreitadaCtx } = useAppData()
+
     const [somaItens, setSomaItens] = useState(0);
     const [carregando, setCarregando] = useState(true);
 
@@ -23,7 +28,7 @@ const PrintEmpreitadas = () => {
         var soma = 0;
         EmpreitadaCtx.ITENS.forEach((item) => {
             if (item.ES_VALOR && item.ES_QUANTIDADE) {
-                soma = item.ES_VALOR * item.ES_QUANTIDADE;
+                soma += item.ES_VALOR;
             }
 
         })

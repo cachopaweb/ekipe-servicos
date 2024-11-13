@@ -24,7 +24,7 @@ export const ModalListarArquivos = ({codigoOrdem, setShowModal, showmodal}:props
     const [nomesArquivos, setNomesArquivos] = useState<string>('');
     const [temArquivo, setTemArquivo] = useState(false);
     const firebaseApp = app;
-    const storage = getStorage(firebaseApp, "gs://jtibearl.appspot.com");
+    const storage = getStorage(firebaseApp, process.env.NEXT_PUBLIC_FIRE_GS);
 
 
 
@@ -78,6 +78,7 @@ export const ModalListarArquivos = ({codigoOrdem, setShowModal, showmodal}:props
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = getFileName(path);
+                link.target="_blank";
     
                 // Append to html link element page
                 document.body.appendChild(link);

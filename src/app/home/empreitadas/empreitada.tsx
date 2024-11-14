@@ -234,7 +234,7 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Quantidade </span>
-                            <input value={osQuantidade} step={.01} onChange={event => {setOsQuantidade(Number(event.target.value))}} className="sm:w-24 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                            <input value={osQuantidade} step={1} onChange={event => {setOsQuantidade(Number(event.target.value))}} className="sm:w-24 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
                             </input>
                         </div>
                         <div className="grid grid-rows mb-3">

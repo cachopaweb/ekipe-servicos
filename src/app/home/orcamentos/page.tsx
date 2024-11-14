@@ -465,7 +465,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Quantidade </span>
-                            <input value={osQuantidade} step={.01} onChange={(e) => setOsQuantidade(Number(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                            <input value={osQuantidade} step={1} onChange={(e) => setOsQuantidade(Number(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
                             </input>
                         </div>
                         <div className="grid grid-rows">
@@ -565,7 +565,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Quantidade </span>
-                            <input value={oreQuantidade} step={.01} onChange={(e) => setOreQuantidade(Number(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                            <input value={oreQuantidade} step={1} onChange={(e) => setOreQuantidade(Number(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
                             </input>
                         </div>
                         <div className="grid grid-rows">

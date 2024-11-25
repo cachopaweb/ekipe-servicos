@@ -109,7 +109,6 @@ useEffect(() => {
     dataCadastroAux.setDate(dataCadastroAux.getDate()+1)
 
     setCliente({...cliAux, DATACADASTRO: dataFormatadaHojeDotValueInput(dataCadastroAux)});
-    console.log(cliAux);
     if(cliAux.CODCIDADE != null)
     {
       let cidadeAux = await repCidade.getCidadeDescricao(cliAux.CODCIDADE??0);

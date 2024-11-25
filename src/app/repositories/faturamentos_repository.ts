@@ -11,8 +11,6 @@ export default class FaturamentosRepository{
                                 ${faturamentos.FAT_PARCELAS}, ${faturamentos.FAT_JUROS}, ${faturamentos.FAT_TIPOPGM}, 
                                 ${faturamentos.FAT_TIPO}, ${faturamentos.FAT_DESCRICAO}, '${FormatDate(faturamentos.FAT_DATA)}')
                         MATCHING (FAT_CODIGO)`;
-        console.log('faturamento');
-        console.log(sql);
         
         try {
             const response = await api.post('/dataset', {

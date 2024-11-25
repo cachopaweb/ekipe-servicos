@@ -460,7 +460,7 @@ export default function Orcamentos() {
                     <div className="grid grid-rows divide-y w-[500px]">
                         <div className="grid grid-rows">
                             <span className="mt-2">Serviço: </span>
-                            <input value={osNome} onChange={(e) => setOsNome(e.target.value.toUpperCase())} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
+                            <input value={osNome} onChange={(e) => setOsNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
                             </input>
                         </div>
                         <div className="grid grid-rows">

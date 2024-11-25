@@ -71,8 +71,6 @@ export default class EmpreitadasRepository{
         VALUES (${empreitada.EMP_CODIGO}, ${empreitada.EMP_ORD}, ${empreitada.EMP_FOR}, ${empreitada.EMP_FAT ?? 0}, '${empreitada.EMP_OBS ?? ''}', 
         '${empreitada.EMP_LOCAL_EXECUCAO_SERVICOS ?? ''}', '${empreitada.EMP_NFS ?? ''}')
         MATCHING (EMP_CODIGO)`;
-        console.log('Empreitadas');
-        console.log(sql);
         
         try {                     
             const response = await api.post('/dataset', {

@@ -16,8 +16,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
 
   client.ftp.verbose = true;
   const localFile = 'C:/Temp/' + getFileName(from!);
-  // const blob = await fs.openAsBlob(localFile);
-  //console.log('Type: '+blob.type);
   try {
     await client.access({
       host: "portalsoft.sytes.net",
@@ -29,7 +27,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
     });
     await client.downloadTo("/Temp/" + getFileName(from!), from!);
   }  catch (err) {
-    console.log(err)
   }
 
 

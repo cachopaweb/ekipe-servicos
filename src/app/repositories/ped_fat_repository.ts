@@ -12,7 +12,6 @@ export default class PedFatRepository{
                                 ${pedFat.PF_VALORPG}, ${pedFat.PF_COD_CLI}, ${pedFat.PF_FUN}, ${pedFat.PF_PARCELAS}, ${pedFat.PF_FAT}, ${pedFat.PF_VALORB}, ${pedFat.PF_DESCONTO}, '${FormatDate(new Date(pedFat.PF_DATAC))}', '${pedFat.PF_CAMPO_DATAC}',
                                 '${pedFat.PF_TIPO}')
                         MATCHING (PF_CODIGO)`;
-        console.log(sql);
 
         try {
             const response = await api.post('/dataset', {

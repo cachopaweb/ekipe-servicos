@@ -23,7 +23,6 @@ export default class CliForRepository{
             CID_NOME AS CIDADE, CID_UF AS UF,
             CF_RAZAO_SOCIAL AS RAZAO_SOCIAL FROM CLIENTES_FORNECEDORES
             JOIN CIDADES ON CID_CODIGO = CF_CID WHERE (CF_CODIGO = ${busca})`;
-            console.log(sql);
         try {
           const response = await api.post('/dataset', {
             'sql': sql

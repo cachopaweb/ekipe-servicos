@@ -67,7 +67,6 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
     const ModalImprimir = () => {
 
         useEffect(() =>{
-            console.log('aqui');
         },[])
 
         return (

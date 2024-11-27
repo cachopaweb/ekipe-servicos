@@ -118,7 +118,7 @@ export default class OrdemRepository {
 
     async pesquisaOrdem(textoBusca: string, tipoBusca: string, porPeriodo: boolean, status: string, data1: Date, data2: Date): Promise<OrdemModel[]> {
         try {
-            let SQL = `SELECT FIRST 10 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
+            let SQL = `SELECT FIRST 50 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
                        ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS 
                        FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO WHERE 1=1 [PERIODO][STATUS][BUSCA] 
                        ORDER BY [ORDEM]`;
@@ -128,6 +128,11 @@ export default class OrdemRepository {
                         {
                             SQL = SQL.replace('[BUSCA]', ` AND CLI_NOME LIKE '%${textoBusca}%'`);
                             // SQL = SQL.replace('[ORDEM]', 'CLI_NOME, ORD_CODIGO DESC');
+                            break;
+                        }
+                    case "Codigo":
+                        {
+                            SQL = SQL.replace('[BUSCA]', ` AND ORD_CODIGO LIKE '%${textoBusca}%'`);
                             break;
                         }
                     case "Solicitacao": {

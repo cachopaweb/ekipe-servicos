@@ -164,7 +164,7 @@ const PrintOrcamentos = () => {
                                         <div className='divide-slate-500 divide-dashed divide-y'>
                                             {OrdemCtx!.itensOrdSer.map((item) =>
                                                 <tr className='grid grid-cols-8 ' key={item.OS_CODIGO}>
-                                                    <td className='col-span-4 text-start text-xs'>{item.OS_NOME}</td>
+                                                    <td className='col-span-4 text-justify text-xs'>{item.OS_NOME}</td>
                                                     <td className='text-start text-xs'>{item.OS_UNIDADE_MED}</td>
                                                     <td className='text-start text-xs'>{item.OS_QUANTIDADE}</td>
                                                     <td className='text-start text-xs'>{formatCurrency(item.OS_VALOR / item.OS_QUANTIDADE)}</td>

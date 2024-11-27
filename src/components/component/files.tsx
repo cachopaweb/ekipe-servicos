@@ -88,7 +88,6 @@ export const ModalListarArquivos = ({codigoOrdem, setShowModal, showmodal}:props
                 
               })
               .catch((error) => {
-                console.log(error);
                 // A full list of error codes is available at
                 // https://firebase.google.com/docs/storage/web/handle-errors
                 switch (error.code) {
@@ -217,7 +216,6 @@ export const ModalListarArquivos = ({codigoOrdem, setShowModal, showmodal}:props
             AO_OBS: observacaoArquivos,
             AO_OS: codigoOrdem,
         };
-        console.log('aqui');
         const response = await ArquivoRepository.setArquivoRepository(arq);
         if (response) {
             setShowModal(false);

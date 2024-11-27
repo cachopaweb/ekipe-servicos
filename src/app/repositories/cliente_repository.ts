@@ -35,8 +35,6 @@ export default class ClientRepository{
           'sql': SQL
         });
        let data = response.data;
-       console.log('data:');
-       console.log(data);
         return data;
       } catch (error) {
           throw new Error('erro ao buscar cliente');
@@ -55,8 +53,7 @@ export default class ClientRepository{
           '${cliente.SITUACAO??''}', ${cliente.LIMITE??0}, '${cliente.PAI??''}', '${cliente.MAE??''}', '${cliente.CONJUGE??''}',
           '${cliente.INDICEIE??''}', '${cliente.INSCRICAOESTADUAL??''}', '${cliente.INSCRICAOMUNICIPAL??''}', '${cliente.SUFRAMA??''}',
           '${cliente.ESTADO??''}', '${cliente.DATACADASTRO??''}', '${cliente.EMAIL??''}', '${cliente.OBS??''}')
-          matching (CLI_CODIGO)`;   
-          console.log(sql);       
+          matching (CLI_CODIGO)`;      
       const response = await api.post('/dataset', {
         'sql': sql
       });          

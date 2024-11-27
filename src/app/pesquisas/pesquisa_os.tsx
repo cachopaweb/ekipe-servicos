@@ -16,13 +16,13 @@ type pesquisaOrdemParams = {
     setBuscouOrdem: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecionado,setBuscouOrdem }: pesquisaOrdemParams) {
-     /////
-     const refDivOrdem = useRef<HTMLDivElement>(null);
-     const [divWidthOrdem, setdivWidthOrdem] = useState<number>(0);
-     useEffect(() => {
+export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecionado, setBuscouOrdem }: pesquisaOrdemParams) {
+    /////
+    const refDivOrdem = useRef<HTMLDivElement>(null);
+    const [divWidthOrdem, setdivWidthOrdem] = useState<number>(0);
+    useEffect(() => {
         setdivWidthOrdem(refDivOrdem.current ? refDivOrdem.current.offsetWidth : 0);
-     }, [refDivOrdem.current]);
+    }, [refDivOrdem.current]);
     const [Ordems, setOrdems] = useState<OrdemModel[]>([]);
     const [data1, setData1] = useState(new Date());
     const [data2, setData2] = useState(new Date());
@@ -36,7 +36,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
     const [showModalDetalhes, setShowModalDetalhes] = useState(false);
 
     useEffect(() => {
-        buscarOrdemModel();        
+        buscarOrdemModel();
     }, [textoBusca, data1, data2, porPeriodo, statusOrdem])
 
     const listaStatus = () => {
@@ -80,38 +80,39 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
         setShowModalDetalhes(true);
     }
 
-    const ModalDetalhes= () => {
+    const ModalDetalhes = () => {
+
         const refDivProdutos = useRef<HTMLDivElement>(null);
         const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
         useEffect(() => {
             setDivWidthProdutos(refDivProdutos.current ? refDivProdutos.current.offsetWidth : 0);
         }, [refDivProdutos.current]);
-         /////
-         const refDivServicos = useRef<HTMLDivElement>(null);
-         const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
-         useEffect(() => {
-             setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
-         }, [refDivServicos.current]);
-    
+        /////
+        const refDivServicos = useRef<HTMLDivElement>(null);
+        const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
+        useEffect(() => {
+            setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
+        }, [refDivServicos.current]);
+
         return (<>
             <Modal
-            title="Detalhes"
-            showModal={showModalDetalhes}
-            setShowModal={setShowModalDetalhes}
-            body={
-                ((listaProdutosInseridos.length === 0) && (listaServicosInseridos.length === 0))?
-                <div>
-                    Não existe nenhum produto ou serviço
-                </div>
-                :
-                <div className="flex flex-col sm:w-[900px] sm:h-[500px] ">
-                    {listaProdutosInseridos.length> 0 ? 
-                                        <div ref={refDivProdutos} className="flex flex-col items-center justify-center w-full">
-                                        <h2 className="text-sm text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Produtos</h2>
-                                        <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg mt-1 mb-5">
-                                            <thead className="text-white">
-                                                {divWidthProdutos > 600 ?
-                                                
+                title="Detalhes"
+                showModal={showModalDetalhes}
+                setShowModal={setShowModalDetalhes}
+                body={
+                    ((listaProdutosInseridos.length === 0) && (listaServicosInseridos.length === 0)) ?
+                        <div>
+                            Não existe nenhum produto ou serviço
+                        </div>
+                        :
+                        <div className="flex flex-col sm:w-[900px] sm:h-[500px] ">
+                            {listaProdutosInseridos.length > 0 ?
+                                <div ref={refDivProdutos} className="flex flex-col items-center justify-center w-full">
+                                    <h2 className="text-sm text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Produtos</h2>
+                                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg mt-1 mb-5">
+                                        <thead className="text-white">
+                                            {divWidthProdutos > 600 ?
+
                                                 (
                                                     <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
                                                         <th className="p-3 text-sm text-left">Cód.</th>
@@ -121,80 +122,80 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                                         <th className="p-3 text-sm text-left">Valor Unit.</th>
                                                         <th className="p-3 text-sm text-left">Valor Total</th>
                                                     </tr>)
-                                                    :
-                                                    
-                                                    listaProdutosInseridos.map(item =>
-                                                        <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                                            <th className="p-3 text-left">Cód.</th>
-                                                            <th className="p-3 text-left">Produto</th>
-                                                            <th className="p-3 text-left">Quantidade</th>
-                                                            <th className="p-3 text-left">UM</th>
-                                                            <th className="p-3 text-left">Valor Unit.</th>
-                                                            <th className="p-3 text-left">Valor Total</th>
-                                                        </tr>)
-                                                }
-                                            </thead>
-                                            <tbody className="flex-1 sm:flex-none">
-                                                {listaProdutosInseridos.map((item) =>
-                                                    <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
-                                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.ORE_PRO}</td>
-                                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{item.ORE_NOME}</td>
-                                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.ORE_QUANTIDADE}</td>
-                                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.ORE_EMBALAGEM}</td>
-                                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
-                                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>:<>
-                                    </> }
+                                                :
 
-                        {listaServicosInseridos.length>0 ?
-                        <div ref={refDivServicos} className="flex flex-col items-center justify-center w-full">
-                        <h2 className="text-sm text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Serviços</h2>
-                        <table className="flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg mt-1 mb-5">
-                            <thead className="text-white w-full">
-                                {divWidthServicos > 600 ? (
-                                    <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                        <th className="p-3 text-left">Cód.</th>
-                                        <th className="p-3 text-left w-[30px]">Serviço</th>
-                                        <th className="p-3 text-left">Quantidade</th>
-                                        <th className="p-3 text-left">UM</th>
-                                        <th className="p-3 text-left">Valor Unit.</th>
-                                        <th className="p-3 text-left">Valor Total</th>
-                                    </tr>
-                                )
-                                    :
-                                    listaServicosInseridos.map(item =>
-                                        <tr key={item.OS_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                            <th className="p-3 text-left">Cód.</th>
-                                            <th className="p-3 text-left">Serviço</th>
-                                            <th className="p-3 text-left">Quantidade</th>
-                                            <th className="p-3 text-left">UM</th>
-                                            <th className="p-3 text-left">Valor Unit.</th>
-                                            <th className="p-3 text-left">Valor Total</th>
-                                        </tr>
-                                    )
-                                }
-                            </thead>
-                            <tbody className="flex-1 sm:flex-none">
-                                {listaServicosInseridos.map((item) =>
-                                    <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
-                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_CODIGO}</td>
-                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3"><p data-truncate={divWidthServicos < 600}  className="data-[truncate=true]:truncate md:text-ellipsis lg:text-ellipsis sm:text-ellipsis hover:text-clip">{item.OS_NOME}</p></td>
-                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_QUANTIDADE}</td>
-                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_UNIDADE_MED}</td>
-                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
-                                        <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>                                            
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                        :<></>}
-                        
-                 </div>
+                                                listaProdutosInseridos.map(item =>
+                                                    <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                                        <th className="p-3 text-left">Cód.</th>
+                                                        <th className="p-3 text-left">Produto</th>
+                                                        <th className="p-3 text-left">Quantidade</th>
+                                                        <th className="p-3 text-left">UM</th>
+                                                        <th className="p-3 text-left">Valor Unit.</th>
+                                                        <th className="p-3 text-left">Valor Total</th>
+                                                    </tr>)
+                                            }
+                                        </thead>
+                                        <tbody className="flex-1 sm:flex-none">
+                                            {listaProdutosInseridos.map((item) =>
+                                                <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.ORE_PRO}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3 sm:w-full">{item.ORE_NOME}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.ORE_QUANTIDADE}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.ORE_EMBALAGEM}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div> : <>
+                                </>}
+
+                            {listaServicosInseridos.length > 0 ?
+                                <div ref={refDivServicos} className="flex flex-col items-center justify-center w-full">
+                                    <h2 className="text-sm text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Serviços</h2>
+                                    <table className="flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg mt-1 mb-5">
+                                        <thead className="text-white w-full">
+                                            {divWidthServicos > 600 ? (
+                                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                                    <th className="p-3 text-left">Cód.</th>
+                                                    <th className="p-3 text-left w-[30px]">Serviço</th>
+                                                    <th className="p-3 text-left">Quantidade</th>
+                                                    <th className="p-3 text-left">UM</th>
+                                                    <th className="p-3 text-left">Valor Unit.</th>
+                                                    <th className="p-3 text-left">Valor Total</th>
+                                                </tr>
+                                            )
+                                                :
+                                                listaServicosInseridos.map(item =>
+                                                    <tr key={item.OS_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
+                                                        <th className="p-3 text-left">Cód.</th>
+                                                        <th className="p-3 text-left">Serviço</th>
+                                                        <th className="p-3 text-left">Quantidade</th>
+                                                        <th className="p-3 text-left">UM</th>
+                                                        <th className="p-3 text-left">Valor Unit.</th>
+                                                        <th className="p-3 text-left">Valor Total</th>
+                                                    </tr>
+                                                )
+                                            }
+                                        </thead>
+                                        <tbody className="flex-1 sm:flex-none">
+                                            {listaServicosInseridos.map((item) =>
+                                                <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_CODIGO}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3"><p data-truncate={divWidthServicos < 600} className="data-[truncate=true]:truncate md:text-ellipsis lg:text-ellipsis sm:text-ellipsis hover:text-clip">{item.OS_NOME}</p></td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_QUANTIDADE}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{item.OS_UNIDADE_MED}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
+                                                    <td className="text-sm border-grey-light border hover:bg-gray-100 p-3">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                : <></>}
+
+                        </div>
                 }
             ></Modal>
         </>);
@@ -247,6 +248,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                     <div className="flex flex-1 flex-col p-1">
                                         <label className="text-sm" htmlFor="status">Tipo Busca</label>
                                         <select id='tipoBusca' value={tipoBusca} onChange={(e) => setTipoBusca(e.target.value)} className="text-sm uppercase p-1 border rounded-md border-spacing-1 max-h-7 border-amber-400" >
+                                        <option key="Codigo" value="Codigo">Código</option>
                                             <option key="Nome" value="Nome">Nome</option>
                                             <option key="Solicitacao" value="Solicitacao">Solicitação</option>
                                         </select>
@@ -255,7 +257,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                             </div>
                         </div>
                         <div ref={refDivOrdem} className="overflow-x-hidden h-[300px]">
-                        <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
+                            <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
                                 <thead className="text-white">
                                     {divWidthOrdem > 600 ? (
                                         <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
@@ -277,7 +279,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                                 <th className="p-3 text-left">Estado</th>
                                                 <th className="p-3 text-left">Ação</th>
                                             </tr>)
-                                    }                                    
+                                    }
                                 </thead>
                                 <tbody>
                                     {Ordems.length > 0 ? (Ordems.map((item) =>
@@ -298,7 +300,6 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                     )) : <h1>Aguarde, carregando dados...</h1>}
                                 </tbody>
                             </table>
-                            
                         </div>
                         {showModalDetalhes && <ModalDetalhes />}
                     </div>

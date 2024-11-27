@@ -130,6 +130,11 @@ export default class OrdemRepository {
                             // SQL = SQL.replace('[ORDEM]', 'CLI_NOME, ORD_CODIGO DESC');
                             break;
                         }
+                    case "Codigo":
+                        {
+                            SQL = SQL.replace('[BUSCA]', ` AND ORD_CODIGO LIKE '%${textoBusca}%'`);
+                            break;
+                        }
                     case "Solicitacao": {
                         SQL = SQL.replace('[BUSCA]', ` AND ORD_SOLICITACAO LIKE '%${textoBusca}%'`);
                         // SQL = SQL.replace('[ORDEM]', 'ORD_SOLICITACAO, ORD_CODIGO DESC');

@@ -55,7 +55,6 @@ export default function Orcamentos() {
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
 
-    const { usuarioLogado, setUsuarioLogado } = useAppData();
     const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
     const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
     const [buscouOrdem, setBuscouOrdem] = useState(false);
@@ -1377,17 +1376,27 @@ export default function Orcamentos() {
                                 }
                             </div>
                         </div>
-                        <div className="flex flex-1 flex-col p-1">
-                            <label htmlFor="atendente">Atendente</label>
-                            <input id='atendenteid' value={codigoOrdem == 0 ? nomeFuncionario : atendente} onChange={(e) => setAtendente(e.target.value.toUpperCase())} className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
-                        </div>
-                        <div className="flex flex-1 flex-col p-1">
-                            <label htmlFor="obs">Observações</label>
-                            <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value.toLocaleUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
-                        </div>
-                        <div className="flex flex-1 flex-col p-1">
-                            <label htmlFor="solicitacoes">Solicitações</label>
-                            <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+                        <div className="flex flex-col w-full">
+                            <div className="flex flex-row">
+                                <div className="flex flex-1 flex-col p-1">
+                                    <label htmlFor="atendente">Atendente</label>
+                                    <input id='atendenteid' value={codigoOrdem == 0 ? nomeFuncionario : atendente} onChange={(e) => setAtendente(e.target.value.toUpperCase())} className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
+                                </div>
+                                <div className="flex flex-1 flex-col p-1">
+                                    <label htmlFor="obs">Observações</label>
+                                    <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value.toLocaleUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+                                </div>
+                            </div>
+                            <div className="flex flex-row">
+                                <div className="flex flex-1 flex-col p-1">
+                                    <label htmlFor="solicitacoes">Solicitações</label>
+                                    <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+                                </div>
+                                <div className="flex flex-1 flex-col p-1">
+                                    <label htmlFor="solicitacoes">Anotações</label>
+                                    <textarea id="anotacaoid" value={obs_adm} onChange={(e) => setObs_adm(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div className="sm:flex gap-2 h-82 p-2">

@@ -205,7 +205,7 @@ export default function Orcamentos() {
             return;
         }
         if (listaProdutosInseridos.length === 0 && listaServicosInseridos.length === 0) {
-            toastMixin.fire('Atenção', 'Insera produtos ou serviços na OS.', 'warning').finally(() => {
+            toastMixin.fire('Atenção', 'Insere produtos ou serviços na OS.', 'warning').finally(() => {
                 setShowModalSalvar(false);
                 if (listaServicosInseridos.length === 0) {
                     setAbaAtiva('SERVICOS')
@@ -784,8 +784,9 @@ export default function Orcamentos() {
 
         const edtValorServicoKeyDown = (e: keyBoardInputEvent) => {
             if (e.key === 'Enter') {
-                const btnInsereServico = document.getElementById('btnInsereServico');
-                btnInsereServico?.focus();
+                const edtNomeServico = document.getElementById('edtNomeServico');
+                edtNomeServico?.focus();
+                inserirServico(servico);
             }
         }
 

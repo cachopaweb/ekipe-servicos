@@ -20,8 +20,7 @@ export default class FornecedorRepository{
                               MATCHING (FOR_CODIGO)`;     
       const response = await api.post('/dataset', {
         'sql': sql
-      });
-      console.log(sql);          
+      });         
       return response.status === 200;
     } catch (error) {
         throw new Error('erro ao salvar fornecedor.\n'+String(error));

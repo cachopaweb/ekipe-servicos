@@ -148,7 +148,7 @@ export default class OrdemRepository {
                 SQL = SQL.replace('[PERIODO]', ` AND ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`)
             else
                 SQL = SQL.replace('[PERIODO]', '');
-            if (status != '')                
+            if (status != '' && status != 'TODOS')                
                 SQL = SQL.replace('[STATUS]', ` AND ORD_ESTADO = '${status}'`)
             else
                 SQL = SQL.replace('[STATUS]', '');

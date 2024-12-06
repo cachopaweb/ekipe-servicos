@@ -49,7 +49,6 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
 
     useEffect(() => {
         carregaDados();
-
     }, [])
 
      function carregaDados(){
@@ -396,7 +395,7 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
         title={empreitada? empreitada.FOR_NOME: 'n'}
 
         body={carregando ? <>carregando</> : 
-            <div>
+            <div className=" h-96 w-[80rem] overflow-scroll">
             <div className="shadow-md my-4">
             <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Serviços</h2>
             <div ref={refDivServicos} className="flex items-center justify-center">

@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import PedFatModel from "../models/ped_fat_model";
 import PFParcelaModel from "../models/pf_parcela_model";
 import TipoPgmRepository from "../repositories/tipo_pgm_repository";
-import { GeraCodigo, keyBoardInputEvent, keyBoardSelectEvent, toastMixin } from "../functions/utils";
+import { GeraCodigo, IncrementaGenerator, keyBoardInputEvent, keyBoardSelectEvent, toastMixin } from "../functions/utils";
 import CliForModel from "../models/cli_for_model";
 import Modal from "../../components/component/modal";
 import OperacoesStrategy from "./contracts/operacoes_interfaces";
@@ -69,9 +69,9 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
 
     const iniciaCodFatura = async () => {
         try {
-            const cod = await GeraCodigo('FATURAMENTOS', 'FAT_CODIGO');
+            const cod = await IncrementaGenerator('GEN_FAT');
             setCodFatura(cod);
-            const codPedFat = await GeraCodigo('PED_FAT', 'PF_CODIGO');
+            const codPedFat = await IncrementaGenerator('GEN_PF');
             setCodPedFat(codPedFat);
         } catch (error) {
             toastMixin.fire('Erro ao iniciar codigo fatura', String(error), 'error');

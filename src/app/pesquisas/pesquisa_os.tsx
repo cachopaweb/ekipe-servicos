@@ -26,7 +26,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
     const [Ordems, setOrdems] = useState<OrdemModel[]>([]);
     const [data1, setData1] = useState(new Date());
     const [data2, setData2] = useState(new Date());
-    const [statusOrdem, setStatusOrdem] = useState(Status[0].toUpperCase());
+    const [statusOrdem, setStatusOrdem] = useState('TODOS');
     const [tipoBusca, setTipoBusca] = useState('Nome');
     const [textoBusca, setTextoBusca] = useState('');
     const [porPeriodo, setPorPeriodo] = useState(false);
@@ -42,6 +42,8 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
     const listaStatus = () => {
         let list = Object.values(Status).filter(v => isNaN(Number(v)));
         list = list.map(v => v.toString().toUpperCase());
+        list.unshift('TODOS');
+        console.log(list);
         return list;
     }
 

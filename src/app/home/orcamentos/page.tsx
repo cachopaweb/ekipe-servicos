@@ -323,7 +323,7 @@ export default function Orcamentos() {
                 ////
                 listaProdutosInseridos.forEach(async p => {
                     if (p.ORE_CODIGO === 0) {
-                        p.ORE_CODIGO = await GeraCodigo('ORD_EST', 'ORE_CODIGO');
+                        p.ORE_CODIGO = await IncrementaGenerator('GEN_ORE');
                     }
                     p.ORE_ORD = codigo;
                     repository.insereProdutos(codigo, p);

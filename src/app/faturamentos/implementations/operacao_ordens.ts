@@ -7,7 +7,7 @@ import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
 import CaixaModel from "@/app/models/caixa_model";
 import CaixaRepository from "@/app/repositories/caixa_repository";
-import { GeraCodigo } from "@/app/functions/utils";
+import { GeraCodigo, IncrementaGenerator } from "@/app/functions/utils";
 import DAVRepository from "@/app/repositories/dav_repository";
 import OrdEstModel from "@/app/models/ord_est_model";
 import HisProRepository from "@/app/repositories/his_pro_repository";
@@ -37,7 +37,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
 
     async getCodigoFatura() {
         try {
-            this.codFatura = await GeraCodigo('FATURAMENTOS', 'FAT_CODIGO');            
+            this.codFatura = await IncrementaGenerator('GEN_FAT');            
         } catch (error) {
             throw new Error(String(error));
         }
@@ -59,12 +59,12 @@ export default class OperacaoOrdens implements OperacoesStrategy {
             result = await repository.insereordem(ordem);
             if (ordem.itensOrdEst.length > 0){
                 const repositoryDAV = new DAVRepository();
-                this.codDAV = await GeraCodigo('DAV', 'DAV_CODIGO');
+                this.codDAV = await IncrementaGenerator('GEN_DAV');
                 repositoryDAV.insereDAV({
                     DAV_CODIGO: this.codDAV,
                     DAV_CLI: ordem.ORD_CLI,
                     DAV_CLIENTE: ordem.CLI_NOME,
-                    DAV_CPF_CNPJ: ordem.CLI_CPF_CNPJ,
+                    DAV_CPF_CNPJ: ordem.CLI_CNPJ_CPF,
                     DAV_DATA: new Date().toLocaleDateString(),
                     DAV_ESTADO: 2,
                     DAV_FATURA: this.codFatura,
@@ -100,7 +100,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     const produto = await produtoRepository.getProdutoPorCodigo(ordEst.ORE_PRO);
                     const hisProRepository = new HisProRepository();
                     hisProRepository.insereHisPro({
-                        HP_CODIGO: await GeraCodigo('HIS_PRO', 'HP_CODIGO'),
+                        HP_CODIGO: await IncrementaGenerator('GEN_HP'),
                         HP_DATA: new Date().toLocaleDateString(),
                         HP_DOC: ordEst.ORE_ORD.toString(),
                         HP_ORIGEM: `OS - ${this.nomeCliente}`,
@@ -118,7 +118,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     //insere DAVPro
                     const repositoryDAV = new DAVRepository();
                     repositoryDAV.insereDAVPro({
-                        DP_CODIGO: await GeraCodigo('DAV_PRO', 'DP_CODIGO'),
+                        DP_CODIGO: await IncrementaGenerator('GEN_DP'),
                         DP_DATA: new Date().toLocaleDateString(),
                         DP_ACRESCIMO: 0,
                         DP_ALIQICMS: ordEst.ORE_ALIQICMS!,
@@ -165,7 +165,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
 
     async inserePedFat(model: PedFatModel): Promise<boolean> {
         try {
-            this.codPedFat = await GeraCodigo('PED_FAT', 'PF_CODIGO');
+            this.codPedFat = await IncrementaGenerator('GEN_PF');
             const repository = new PedFatRepository();
             model.PF_CODIGO = this.codPedFat;
             model.PF_FAT = this.codFatura;                        
@@ -202,7 +202,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     pp.PP_PF = this.codPedFat;
                     result = await repository.inserepfParcela(pp);
                     //insere recebimento
-                    const codRecebimento = await GeraCodigo('RECEBIMENTOS', 'REC_CODIGO');
+                    const codRecebimento = await IncrementaGenerator('GEN_REC');
                     const recebimentosRepository = new RecebimentosRepository()
                     recebimentosRepository.insererecebimentos({
                         REC_CODIGO: codRecebimento,
@@ -223,7 +223,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     });
                     //se for a vista insere movimentacao
                     if (pp.PP_TP === 0){
-                        const codMov = await GeraCodigo('MOVIMENTACOES', 'MOV_CODIGO');
+                        const codMov = await IncrementaGenerator('GEN_MOV');
                         const repositoryMovimentacao = new MovimentacoesRepository();
                         result = await repositoryMovimentacao.insereMovimentacoes({
                             MOV_CODIGO: codMov,
@@ -244,7 +244,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                             PDV: 1,
                         });
                         //insere pag_pgm
-                        const codRecPgm = await GeraCodigo('REC_PGM', 'RP_CODIGO');
+                        const codRecPgm = await IncrementaGenerator('GEN_RR');
                         const repositoryRecPgm = new RecPgmRepository();
                         result = await repositoryRecPgm.insereRecPgm({
                             RP_CODIGO: codRecPgm,
@@ -260,7 +260,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                             RP_MOV: codMov
                         });
                     }else{
-                        const codRecPgm = await GeraCodigo('REC_PGM', 'RP_CODIGO');
+                        const codRecPgm = await IncrementaGenerator('GEN_RR');
                         const repositoryRecPgm = new RecPgmRepository();
                         result = await repositoryRecPgm.insereRecPgm({
                             RP_CODIGO: codRecPgm,

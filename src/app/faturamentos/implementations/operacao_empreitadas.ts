@@ -5,7 +5,7 @@ import EmpreitadasModel from "@/app/models/empreitadas_model";
 import PedFatModel from "@/app/models/ped_fat_model";
 import PFParcelaModel from "@/app/models/pf_parcela_model";
 import LancamentoReceitaCustoRepository from "@/app/repositories/lancamento_receita_custo_repository";
-import { GeraCodigo } from "@/app/functions/utils";
+import { GeraCodigo, IncrementaGenerator } from "@/app/functions/utils";
 import PedFatRepository from "@/app/repositories/ped_fat_repository";
 import PfParcelaRepository from "@/app/repositories/pf_parcela_repository";
 import Faturamento2Repository from "@/app/repositories/faturamento2_repository";
@@ -33,7 +33,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
 
     async getCodigoFatura() {
         try {
-            this.codFatura = await GeraCodigo('FATURAMENTO2', 'FAT2_CODIGO');
+            this.codFatura = await IncrementaGenerator('GEN_FAT2');
         } catch (error) {
             throw new Error(String(error));
         }
@@ -60,7 +60,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
             empreitada.EMP_FAT = this.codFatura;
             await repositoryEmpreitadas.insereEmpreitada(empreitada);            
             ////                                
-            const codLancamento = await GeraCodigo('LANCAMENTO_REC_CUS', 'LRC_CODIGO');
+            const codLancamento = await IncrementaGenerator('GEN_LRC');
             result = await repositoryLancamentoReceitaCusto.insereLancamento({
                 LRC_CODIGO: codLancamento,
                 LRC_CLI_FOR: empreitada.EMP_FOR,
@@ -129,7 +129,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
                     const pp = model[pf_parcela_model];
                     await repository.inserepfParcela(pp);
                     ////
-                    const codPagamento = await GeraCodigo('PAGAMENTOS', 'PAG_CODIGO');
+                    const codPagamento = await IncrementaGenerator('GEN_PAG');
                     //insere pagamentos
                     result = await repositoryPagamento.inserePagamentos({
                         PAG_CODIGO: codPagamento,
@@ -149,7 +149,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
                     });
                     //insere movimentacao caso for a vista
                     if (pp.PP_TP === -1){
-                        const codMov = await GeraCodigo('MOVIMENTACOES', 'MOV_CODIGO');
+                        const codMov = await IncrementaGenerator('GEN_MOV');
                         const repositoryMovimentacao = new MovimentacoesRepository();
                         result = await repositoryMovimentacao.insereMovimentacoes({
                             MOV_CODIGO: codMov,
@@ -170,7 +170,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
                             PDV: 1,
                         });
                         //insere pag_pgm
-                        const codPagPgm = await GeraCodigo('PAG_PGM', 'PP_CODIGO');
+                        const codPagPgm = await IncrementaGenerator('GEN_PP');
                         const repositoryPagPgm = new PagPgmRepository();
                         result = await repositoryPagPgm.inserePagPgm({
                             PP_CODIGO: codPagPgm,
@@ -186,7 +186,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
                             PP_MOV: codMov
                         });
                     }else{
-                        const codPagPgm = await GeraCodigo('PAG_PGM', 'PP_CODIGO');
+                        const codPagPgm = await IncrementaGenerator('GEN_PP');
                         const repositoryPagPgm = new PagPgmRepository();
                         result = await repositoryPagPgm.inserePagPgm({
                             PP_CODIGO: codPagPgm,

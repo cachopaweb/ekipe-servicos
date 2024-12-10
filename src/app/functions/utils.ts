@@ -4,7 +4,7 @@ import { Stream } from "stream";
 import dayjs from 'dayjs'
 import { ChangeEvent, FormEvent } from "react";
 
-enum Status{TODOS, ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
+enum Status{ ABERTO, ENVIADO, APROVADO, FINALIZADO, CANCELADO}
 
 
 export type keyBoardInputEvent = React.KeyboardEvent<HTMLInputElement>;

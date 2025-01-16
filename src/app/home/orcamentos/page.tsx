@@ -1,5 +1,5 @@
 "use client"
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
 import Pesquisa_produto from "../../pesquisas/pesquisa_produto";
 import { ClienteModel } from "../../models/cliente_model";
@@ -9,7 +9,7 @@ import OrdSerModel from "../../models/ord_ser_model";
 import Modal from "../../../components/component/modal";
 import {
     FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin,
-    getFileName, mascaraMoedaEvent, mascaraMoeda, maskRealToNumber,
+    mascaraMoedaEvent, mascaraMoeda, maskRealToNumber,
     IncrementaGenerator,
     converterDataPontoParaTraco
 } from "@/app/functions/utils";
@@ -24,12 +24,13 @@ import ProdutoRepository from "@/app/repositories/produto_repository";
 import { useAppData } from "@/app/contexts/app_context";
 import PrintOrcamentos from "@/app/print/orcamento/page";
 import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
-import ArquivoModel from "@/app/models/arquivo_model";
-import ArquivoRepository from "@/app/repositories/arquivo_repository";
 import ClientRepository from "@/app/repositories/cliente_repository";
 import CidadeRepository from "@/app/repositories/cidade_repository";
-import { SelectTrigger } from "@radix-ui/react-select";
 import { ModalListarArquivos } from "@/components/component/files";
+import PesquisaFornecedor from "@/app/pesquisas/pesquisa_fornecedor";
+import { FornecedorModel } from "@/app/models/fornecedor_model";
+import CliForModel from "@/app/models/cli_for_model";
+import FornecedorRepository from "@/app/repositories/fornecedor_repository";
 
 
 export default function Orcamentos() {
@@ -37,19 +38,21 @@ export default function Orcamentos() {
     const [ordem, setOrdem] = useState<OrdemModel | null>(null);
     const [dataAbertura, setDataAbertura] = useState(new Date());
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
+    const [showModalPesquisaFornecedor, setShowModalPesquisaFornecedor] = useState(false);
     const [showModalPesquisaProduto, setShowModalPesquisaProduto] = useState(false);
     const [showModalSalvar, setShowModalSalvar] = useState(false);
     const [showModalDeletaServicoOrd, setShowModalDeletaServicoOrd] = useState(false);
     const [codServicoDeletado, setCodServicoDeletado] = useState(0);
     const [showModalDeletaProdutoOrd, setShowModalDeletaProdutoOrd] = useState(false);
     const [codProdutoDeletado, setCodProdutoDeletado] = useState(0);
-    const [produtoEdt, setProdutoEdt] = useState<OrdEstModel>({ ORE_CODIGO:0, ORE_EMBALAGEM: '', ORE_NOME: '', ORE_ORD: 0, ORE_PRO:0, ORE_QUANTIDADE:0, ORE_VALOR:0})
+    const [produtoEdt, setProdutoEdt] = useState<OrdEstModel>({ ORE_CODIGO: 0, ORE_EMBALAGEM: '', ORE_NOME: '', ORE_ORD: 0, ORE_PRO: 0, ORE_QUANTIDADE: 0, ORE_VALOR: 0 })
     const [servicoEdt, setServicoEdt] = useState<OrdSerModel>({ OS_CODIGO: 0, OS_NOME: '', OS_ORD: 0, OS_QUANTIDADE: 0, OS_SER: 0, OS_UNIDADE_MED: '', OS_VALOR: 0, })
     const [showModalEdtServico, setShowModalEdtServico] = useState(false);
     const [showModalEdtProduto, setShowModalEdtProduto] = useState(false);
     const [showModalEmpreitadas, setShowModalEmpreitadas] = useState(false);
-    const [showModalListaArquivos, setShowModalListaArquivos] = useState(false); 
+    const [showModalListaArquivos, setShowModalListaArquivos] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
+    const [parceiroSelecionado, serParceiroSelecionado] = useState<FornecedorModel>({ CODIGO: 0, NOME: '' });
     const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO', PRO_VALORV: 0 });
     const [atendente, setAtendente] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
@@ -132,17 +135,16 @@ export default function Orcamentos() {
     const totalServicos = () => listaServicosInseridos.length > 0 ? listaServicosInseridos.map(s => s.OS_VALOR).reduce((item1, item2) => item1 + item2) : 0;
 
 
-    const  deletaServicoOrdem = async () => {
+    const deletaServicoOrdem = async () => {
         const rep = new OrdemRepository();
-        const flag : boolean = await rep.deleteServicoOrdemPorCodigo(codServicoDeletado);
+        const flag: boolean = await rep.deleteServicoOrdemPorCodigo(codServicoDeletado);
         const idServico = listaServicosInseridos.findIndex(e => e.OS_CODIGO === codServicoDeletado);
         const lista = Array.from(listaServicosInseridos)
 
         if (!flag) {
             toastMixin.fire('Atenção', 'Não foi possível deletar!', 'warning');
         }
-        else
-        {
+        else {
             toastMixin.fire({
                 title: 'Deleta Serviço',
                 text: 'Serviço deletado com Sucesso',
@@ -156,17 +158,16 @@ export default function Orcamentos() {
     }
 
 
-    const  deletaProdutoOrdem = async () => {
+    const deletaProdutoOrdem = async () => {
         const rep = new ProdutoRepository();
-        const flag : boolean = await rep.deleteProdutoOrdemPorCodigo(codProdutoDeletado);
+        const flag: boolean = await rep.deleteProdutoOrdemPorCodigo(codProdutoDeletado);
         const idProd = listaProdutosInseridos.findIndex(e => e.ORE_CODIGO === codProdutoDeletado);
         const lista = Array.from(listaProdutosInseridos)
 
         if (!flag) {
             toastMixin.fire('Atenção', 'Não foi possível deletar!', 'warning');
         }
-        else
-        {
+        else {
             toastMixin.fire({
                 title: 'Deleta Produto',
                 text: 'Produto deletado com Sucesso',
@@ -181,7 +182,7 @@ export default function Orcamentos() {
 
     const salvaOrdem = async () => {
         const cidadeRep = new CidadeRepository();
-        const cidade = await cidadeRep.getCidade(clienteSelecionado.CODCIDADE??0);
+        const cidade = await cidadeRep.getCidade(clienteSelecionado.CODCIDADE ?? 0);
 
         if (statusOrdem === '') {
             toastMixin.fire('Atenção', 'Informe o estado', 'warning').finally(() => {
@@ -231,9 +232,8 @@ export default function Orcamentos() {
         }
         try {
             let ord: OrdemModel | null = null;
-            if(buscouOrdem)
-            {
-                ord= {
+            if (buscouOrdem) {
+                ord = {
                     ORD_CODIGO: codigo,
                     ORD_DATA: converterDataPontoParaTraco(FormatDate(dataAbertura)),
                     ORD_VALOR: totalProdutos() + totalServicos(),
@@ -257,12 +257,12 @@ export default function Orcamentos() {
                     itensOrdEst: listaProdutosInseridos,
                     itensOrdSer: listaServicosInseridos,
                     CID_NOME: cidade.CID_NOME,
-                    CID_UF: cidade.CID_UF
+                    CID_UF: cidade.CID_UF,
+                    ORD_FORNECEDOR: parceiroSelecionado.CODIGO
                 }
             }
-            else
-            {
-                ord= {
+            else {
+                ord = {
                     ORD_CODIGO: codigo,
                     ORD_DATA: converterDataPontoParaTraco(FormatDate(new Date())),
                     ORD_VALOR: totalProdutos() + totalServicos(),
@@ -286,7 +286,8 @@ export default function Orcamentos() {
                     itensOrdEst: listaProdutosInseridos,
                     itensOrdSer: listaServicosInseridos,
                     CID_NOME: cidade.CID_NOME,
-                    CID_UF: cidade.CID_UF
+                    CID_UF: cidade.CID_UF,
+                    ORD_FORNECEDOR: parceiroSelecionado.CODIGO
                 }
 
             }
@@ -294,9 +295,8 @@ export default function Orcamentos() {
             ////
             setOrdem(ord);
             repository.insereordem(ord);
-            if(ordem?.ORD_DATA.includes('.'))
-            {
-                setOrdem({...ordem, ORD_DATA : converterDataPontoParaTraco(ordem.ORD_DATA)});
+            if (ordem?.ORD_DATA.includes('.')) {
+                setOrdem({ ...ordem, ORD_DATA: converterDataPontoParaTraco(ordem.ORD_DATA) });
             }
             ////
             if (listaServicosInseridos.length > 0) {
@@ -346,13 +346,19 @@ export default function Orcamentos() {
     const buscaOrdemServidor = async () => {
         try {
             if (codigoOrdem === 0) {
+                serParceiroSelecionado({ CODIGO: 0, NOME: '' });
                 return;
             }
 
-
+            const fornecedorRepository = new FornecedorRepository();
             const cliRepository = new ClientRepository();
             const repository = new OrdemRepository();
             const ord = await repository.buscaOrdem(codigoOrdem);
+            console.log('ord');
+            console.log(JSON.stringify(ord))
+            const parceiro = await fornecedorRepository.getFornecedorById(ord.ORD_FORNECEDOR ?? 0);
+
+            serParceiroSelecionado(parceiro);
             const data = new Date(ord.ORD_DATA);
             setAtendente(ord.FUN_NOME!);
             //setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
@@ -419,32 +425,31 @@ export default function Orcamentos() {
         const [osValor, setOsValor] = useState(servicoEdt.OS_VALOR);
         const [osValorStr, setOsValorStr] = useState(mascaraMoeda(servicoEdt.OS_VALOR / servicoEdt.OS_QUANTIDADE));
 
-        const salvar = () =>
-        {
+        const salvar = () => {
             var lista = listaServicosInseridos;
             let indice = lista.indexOf(servicoEdt);
 
-            
+
             var valor = maskRealToNumber(osValorStr);
-            var servico:OrdSerModel = {
+            var servico: OrdSerModel = {
                 OS_CODIGO: servicoEdt.OS_CODIGO,
                 OS_NOME: osNome.toUpperCase(),
                 OS_QUANTIDADE: osQuantidade,
-                OS_UNIDADE_MED : osUnidadeMedida,
-                OS_VALOR:valor * osQuantidade,
+                OS_UNIDADE_MED: osUnidadeMedida,
+                OS_VALOR: valor * osQuantidade,
                 OS_ORD: servicoEdt.OS_ORD,
                 OS_SER: servicoEdt.OS_SER,
-                OS_TIPO:servicoEdt.OS_TIPO,
+                OS_TIPO: servicoEdt.OS_TIPO,
                 OS_VALORR: servicoEdt.OS_VALORR
             };
             lista.splice(indice, 1);
             lista.push(servico);
-            lista.sort(function(a,b){
+            lista.sort(function (a, b) {
                 return a.OS_CODIGO < b.OS_CODIGO ? -1 : a.OS_CODIGO > b.OS_CODIGO ? 1 : 0;
             })
 
             setListaServicosInseridos(lista);
-            
+
             setShowModalEdtServico(false);
             setShowModalSalvar(true);
 
@@ -480,7 +485,7 @@ export default function Orcamentos() {
                         </div>
 
                         <div className="grid grid-cols-2">
-                        <button
+                            <button
                                 className="bg-green-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
                                 type="button"
                                 onClick={() => salvar()}
@@ -514,18 +519,17 @@ export default function Orcamentos() {
         const [oreValor, setOreValor] = useState(produtoEdt.ORE_VALOR);
         const [osValorStr, setOsValorStr] = useState(mascaraMoeda(produtoEdt.ORE_VALOR / produtoEdt.ORE_QUANTIDADE));
 
-        const salvar = () =>
-        {
+        const salvar = () => {
             var lista = listaProdutosInseridos;
             let indice = lista.indexOf(produtoEdt);
-            
+
             var valor = maskRealToNumber(osValorStr);
-            var produto:OrdEstModel = {
+            var produto: OrdEstModel = {
                 ORE_CODIGO: produtoEdt.ORE_CODIGO,
                 ORE_NOME: oreNome.toUpperCase(),
                 ORE_QUANTIDADE: oreQuantidade,
-                ORE_EMBALAGEM : oreEmbalagem,
-                ORE_VALOR:valor * oreQuantidade,
+                ORE_EMBALAGEM: oreEmbalagem,
+                ORE_VALOR: valor * oreQuantidade,
                 ORE_ORD: produtoEdt.ORE_ORD,
                 ORE_PRO: produtoEdt.ORE_PRO,
                 ORE_ALIQICMS: produtoEdt.ORE_ALIQICMS,
@@ -539,7 +543,7 @@ export default function Orcamentos() {
             };
             lista.splice(indice, 1);
             lista.push(produto);
-            lista.sort(function(a,b){
+            lista.sort(function (a, b) {
                 return a.ORE_CODIGO < b.ORE_CODIGO ? -1 : a.ORE_CODIGO > b.ORE_CODIGO ? 1 : 0;
             })
 
@@ -575,12 +579,12 @@ export default function Orcamentos() {
                         </div>
                         <div className="grid grid-rows">
                             <span className="mt-2">Valor </span>
-                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value)}} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24">
+                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24">
                             </input>
                         </div>
 
                         <div className="grid grid-cols-2">
-                        <button
+                            <button
                                 className="bg-green-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
                                 type="button"
                                 onClick={() => salvar()}
@@ -695,7 +699,7 @@ export default function Orcamentos() {
 
     const AbaServicos = () => {
         const refDivServicos = useRef<HTMLDivElement>(null);
-        
+
         const [valorUnitarioAux, setValorUnitarioAux] = useState('');
         useEffect(() => {
             setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
@@ -704,7 +708,7 @@ export default function Orcamentos() {
         useEffect(() => {
             const valorUnit = maskRealToNumber(valorUnitarioAux);
             setServico({ ...servico, OS_VALOR: valorUnit ? valorUnit : 0 })
-            
+
         }, [valorUnitarioAux]);
 
         const [servico, setServico] = useState<OrdSerModel>({
@@ -728,11 +732,10 @@ export default function Orcamentos() {
             setShowModalEdtServico(true);
         }
 
-        const selectNome = () =>
-            {
-                (document.getElementById('edtNomeServico') as HTMLInputElement).select();
-            }
-    
+        const selectNome = () => {
+            (document.getElementById('edtNomeServico') as HTMLInputElement).select();
+        }
+
 
         const inserirServico = async (servico: OrdSerModel) => {
             try {
@@ -809,9 +812,9 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="servico">Serviço</label>
-                            <input id="edtNomeServico" 
-                            onFocus={selectNome}
-                             onKeyDown={edtNomeServicoKeydown} value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
+                            <input id="edtNomeServico"
+                                onFocus={selectNome}
+                                onKeyDown={edtNomeServicoKeydown} value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="unidade">UM</label>
@@ -876,42 +879,42 @@ export default function Orcamentos() {
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 p-1 h-12 sm:h-auto sm:p-3 sm:w-[11%] text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
-                                    {divWidthServicos > 600 ?
-                                        <div className="grid grid-rows-2">
-                                            <button
-                                                className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                type="button"
-                                                onClick={() => excluirServico(item.OS_CODIGO)}
-                                            >
-                                                <i className="fas fa-trash text-white "></i>
+                                        {divWidthServicos > 600 ?
+                                            <div className="grid grid-rows-2">
+                                                <button
+                                                    className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => excluirServico(item.OS_CODIGO)}
+                                                >
+                                                    <i className="fas fa-trash text-white "></i>
 
-                                            </button>
-                                            <button
-                                                className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                type="button"
-                                                onClick={() => editaServico(item)}
-                                            >
-                                                <i className="fas fa-pencil text-white "></i>
-                                            </button>
-                                        </div>
-                                        :
-                                        <div className="grid grid-cols-2">
-                                        <button
-                                            className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                            type="button"
-                                            onClick={() => excluirServico(item.OS_CODIGO)}
-                                        >
-                                            <i className="fas fa-trash text-white "></i>
+                                                </button>
+                                                <button
+                                                    className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => editaServico(item)}
+                                                >
+                                                    <i className="fas fa-pencil text-white "></i>
+                                                </button>
+                                            </div>
+                                            :
+                                            <div className="grid grid-cols-2">
+                                                <button
+                                                    className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => excluirServico(item.OS_CODIGO)}
+                                                >
+                                                    <i className="fas fa-trash text-white "></i>
 
-                                        </button>
-                                        <button
-                                            className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                            type="button"
-                                            onClick={() => editaServico(item)}
-                                        >
-                                            <i className="fas fa-pencil text-white "></i>
-                                        </button>
-                                    </div>}
+                                                </button>
+                                                <button
+                                                    className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => editaServico(item)}
+                                                >
+                                                    <i className="fas fa-pencil text-white "></i>
+                                                </button>
+                                            </div>}
                                     </td>
                                 </tr>
                             )}
@@ -924,7 +927,7 @@ export default function Orcamentos() {
 
     const AbaProdutos = () => {
         const refDivProdutos = useRef<HTMLDivElement>(null);
-       
+
         const [valorUnitarioAux, setValorUnitarioAux] = useState('');
         useEffect(() => {
             setDivWidthProdutos(refDivProdutos.current ? refDivProdutos.current.offsetWidth : 0);
@@ -933,7 +936,7 @@ export default function Orcamentos() {
         useEffect(() => {
             const valorUnit = maskRealToNumber(valorUnitarioAux);
             setProduto({ ...produto, ORE_VALOR: valorUnit ? valorUnit : 0 })
-            
+
         }, [valorUnitarioAux]);
 
         const [produto, setProduto] = useState<OrdEstModel>({
@@ -1055,8 +1058,7 @@ export default function Orcamentos() {
 
 
         }
-        const selectNome = () =>
-        {
+        const selectNome = () => {
             (document.getElementById('edtNomeProduto') as HTMLInputElement).select();
         }
 
@@ -1156,42 +1158,42 @@ export default function Orcamentos() {
                                     <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
                                     <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer sm:w-[13%]">
-                                    {divWidthProdutos > 600 ?
-                                    <div className="grid grid-rows-2">
-                                            <button
-                                                className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                type="button"
-                                                onClick={() => excluirProduto(item.ORE_CODIGO)}
-                                            >
-                                                <i className="fas fa-trash text-white "></i>
+                                        {divWidthProdutos > 600 ?
+                                            <div className="grid grid-rows-2">
+                                                <button
+                                                    className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => excluirProduto(item.ORE_CODIGO)}
+                                                >
+                                                    <i className="fas fa-trash text-white "></i>
 
-                                            </button>
-                                            <button
-                                                className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                type="button"
-                                                onClick={() => editaProduto(item)}
-                                            >
-                                                <i className="fas fa-pencil text-white "></i>
-                                            </button>
-                                        </div>
-                                        :
-                                        <div className="grid grid-cols-2">
-                                        <button
-                                            className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                            type="button"
-                                            onClick={() => excluirProduto(item.ORE_CODIGO)}
-                                        >
-                                            <i className="fas fa-trash text-white "></i>
+                                                </button>
+                                                <button
+                                                    className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => editaProduto(item)}
+                                                >
+                                                    <i className="fas fa-pencil text-white "></i>
+                                                </button>
+                                            </div>
+                                            :
+                                            <div className="grid grid-cols-2">
+                                                <button
+                                                    className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => excluirProduto(item.ORE_CODIGO)}
+                                                >
+                                                    <i className="fas fa-trash text-white "></i>
 
-                                        </button>
-                                        <button
-                                            className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                            type="button"
-                                            onClick={() => editaProduto(item)}
-                                        >
-                                            <i className="fas fa-pencil text-white "></i>
-                                        </button>
-                                    </div>}
+                                                </button>
+                                                <button
+                                                    className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                                    type="button"
+                                                    onClick={() => editaProduto(item)}
+                                                >
+                                                    <i className="fas fa-pencil text-white "></i>
+                                                </button>
+                                            </div>}
 
 
                                     </td>
@@ -1226,17 +1228,17 @@ export default function Orcamentos() {
                 </div>
                 <div className="p-4 space-y-4">
                     <button
-                        className={(codigoOrdem == 0 || isNaN(codigoOrdem))? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
+                        className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => setShowModalEmpreitadas(true)}
-                        disabled = {(codigoOrdem == 0 || isNaN(codigoOrdem))? true : false}
+                        disabled={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? true : false}
                     >
                         <i className="fas fa-hand-holding-usd"></i>
                         <span>Empreitadas</span>
                     </button>
                     <button
-                         className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
+                        className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => setShowModalListaArquivos(true)}
-                        disabled = {(codigoOrdem == 0 || isNaN(codigoOrdem)) ? true : false}
+                        disabled={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? true : false}
                     >
                         <i className="fas fa-exchange-alt"></i>
                         <span>Listar Arquivos</span>
@@ -1244,13 +1246,13 @@ export default function Orcamentos() {
                     <button
                         className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
                         onClick={e => imprimeOrcamento()}
-                        disabled = {(codigoOrdem == 0 || isNaN(codigoOrdem))? true : false}
+                        disabled={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? true : false}
                     >
                         <i className="fas fa-print"></i>
                         <span>Imprimir</span>
                     </button>
                     <button
-                    className={(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
+                        className={(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
 
                         onClick={() => setShowModalSalvar(true)}
                         disabled={listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0}
@@ -1387,11 +1389,24 @@ export default function Orcamentos() {
                                     <label htmlFor="obs">Observações</label>
                                     <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value.toLocaleUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                                 </div>
-                            </div>
-                            <div className="flex flex-row">
                                 <div className="flex flex-1 flex-col p-1">
                                     <label htmlFor="solicitacoes">Solicitações</label>
                                     <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+                                </div>
+                            </div>
+                            <div className="flex flex-row">
+                                <div className="flex flex-1 flex-col p-1">
+                                    <label htmlFor="solicitacoes">Parceiro</label>
+                                    <div className="flex flex-row">
+                                        <input id="clientid" value={parceiroSelecionado.NOME} readOnly className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
+                                        <button
+                                            className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
+                                            type="button"
+                                            onClick={() => setShowModalPesquisaFornecedor(true)}
+                                        >
+                                            <i className="fas fa-magnifying-glass text-white"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="flex flex-1 flex-col p-1">
                                     <label htmlFor="solicitacoes">Anotações</label>
@@ -1464,10 +1479,19 @@ export default function Orcamentos() {
                         <Empreitadas ordemServico={ordem!} />
                     }
                 />}
-            {showModalListaArquivos && <ModalListarArquivos 
-            codigoOrdem={codigoOrdem}
-            setShowModal={setShowModalListaArquivos}
-            showmodal={showModalListaArquivos}
+            {showModalPesquisaFornecedor &&
+                <PesquisaFornecedor
+                    fornecedorSelecionado={parceiroSelecionado}
+                    setFornecedorSelecionado={serParceiroSelecionado}
+                    showModal={showModalPesquisaFornecedor}
+                    setShowModal={setShowModalPesquisaFornecedor}
+                />
+
+            }
+            {showModalListaArquivos && <ModalListarArquivos
+                codigoOrdem={codigoOrdem}
+                setShowModal={setShowModalListaArquivos}
+                showmodal={showModalListaArquivos}
             />}
 
         </div >

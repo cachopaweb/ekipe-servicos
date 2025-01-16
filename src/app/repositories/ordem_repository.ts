@@ -9,10 +9,10 @@ export default class OrdemRepository {
         const sql = {
             'sql':
                 `UPDATE OR INSERT INTO ORDENS (ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_HORA, ORD_FUN, ORD_CLI, ORD_DATAC, ORD_OBS, ORD_ESTADO,
-                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT)
+                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT, ORD_FORNECEDOR)
                  VALUES (${ordem.ORD_CODIGO}, '${ordem.ORD_DATA}', ${ordem.ORD_VALOR}, '${new Date().toLocaleTimeString()}', 
                  ${ordem.ORD_FUN}, ${ordem.ORD_CLI}, '1900-01-01', '${ordem.ORD_OBS}', '${ordem.ORD_ESTADO}', ${ordem.ORD_DESCONTO_P}, 
-                 ${ordem.ORD_DESCONTO_S}, '${ordem.ORD_DEVOLUCAO_P}', 0, '${ordem.ORD_SOLICITACAO}', '${ordem.ORD_OBS_ADM}', '${ordem.ORD_NFS}', ${ordem.ORD_FAT ?? 0})
+                 ${ordem.ORD_DESCONTO_S}, '${ordem.ORD_DEVOLUCAO_P}', 0, '${ordem.ORD_SOLICITACAO}', '${ordem.ORD_OBS_ADM}', '${ordem.ORD_NFS}', ${ordem.ORD_FAT ?? 0}, ${ordem.ORD_FORNECEDOR ?? 0})
                  MATCHING (ORD_CODIGO)`
         }
         try {
@@ -57,7 +57,7 @@ export default class OrdemRepository {
     async buscaOrdem(codigo: number): Promise<OrdemModel> {
         const sql = `SELECT ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, CLI_CNPJ_CPF, ORD_CLI, CLI_NOME,
                 CLI_FONE, CLI_BAIRRO, CLI_ENDERECO, CLI_NUMERO, ORD_OBS, ORD_ESTADO, CID_NOME, CID_UF,
-                ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FUN_NOME 
+                ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FUN_NOME, ORD_FORNECEDOR
                 FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO 
                 JOIN FUNCIONARIOS ON FUN_CODIGO = ORD_FUN 
                 JOIN CIDADES ON CID_CODIGO = CLI_CID

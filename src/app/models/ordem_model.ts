@@ -28,4 +28,5 @@ export default interface OrdemModel {
   itensOrdEst: OrdEstModel[];
   itensOrdSer: OrdSerModel[];
   ORD_FORNECEDOR?: number;
+  PARCEIRO?: string;
 }

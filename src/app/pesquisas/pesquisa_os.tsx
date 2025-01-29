@@ -6,6 +6,7 @@ import OrdemModel from "../models/ordem_model";
 import { FormatDate, Status } from "../functions/utils";
 import OrdEstModel from "../models/ord_est_model";
 import OrdSerModel from "../models/ord_ser_model";
+import { Eye, Check  } from 'lucide-react';
 import Tabela from "../compositionpattern/tabela";
 
 type pesquisaOrdemParams = {
@@ -263,12 +264,13 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                 <thead className="text-white w-full">
                                     {divWidthOrdem > 600 ? (
                                         <tr className="bg-amber-400 flex flex-col sm:flex-row flex-nowrap rounded-l-lg w-full sm:rounded-none mb-2 sm:mb-0">
-                                            <th className="p-3 text-sm text-center sm:w-[9%]">Cód.</th>
-                                            <th className="p-3 text-sm text-center sm:w-[12%]">Data</th>
-                                            <th className="p-3 text-sm text-center sm:w-[15%]">Solicitação</th>
-                                            <th className="p-3 text-sm text-center w-full sm:w-[23%]">Nome</th>
-                                            <th className="p-3 text-sm text-center sm:w-[12%]">Valor</th>
+                                            <th className="p-3 text-sm text-center sm:w-[8%]">Cód.</th>
+                                            <th className="p-3 text-sm text-center sm:w-[10%]">Data</th>
+                                            <th className="p-3 text-sm text-center sm:w-[22%]">Solicitação</th>
+                                            <th className="p-3 text-sm text-center w-full sm:w-[30%]">Nome</th>
+                                            <th className="p-3 text-sm text-center sm:w-[10%]">Valor</th>
                                             <th className="p-3 text-sm text-center sm:w-[10%]">Estado</th>
+                                            <th className="p-3 text-sm text-center sm:w-[15%]">Parceiro</th>
                                             <th className="p-3 text-sm text-center sm:w-[10%]">Ação</th>
                                         </tr>)
                                         : Ordems.map(item =>
@@ -279,6 +281,7 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                                 <th className="p-3 text-left">Nome</th>
                                                 <th className="p-3 text-left">Valor</th>
                                                 <th className="p-3 text-left">Estado</th>
+                                                <th className="p-3 text-left">Parceiro</th>
                                                 <th className="p-3 text-left">Ação</th>
                                             </tr>)
                                     }
@@ -286,16 +289,18 @@ export default function PesquisaOrdem({ showModal, setShowModal, setOrdemSelecio
                                 <tbody className="flex-1 sm:flex-none text-center">
                                     {Ordems.length > 0 ? (Ordems.map((item) =>
                                         <tr key={item.ORD_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
-                                            <td className="text-smborder-grey-light border hover:bg-gray-100 p-3 sm:w-[9%]">{item.ORD_CODIGO}</td>
-                                            <td className="text-sm border-grey-light border hover:bg-gray-100 p-3 sm:w-[12%]">{item.ORD_DATA != null ? new Date(item.ORD_DATA).toLocaleDateString() : ''}</td>
-                                            <td className="text-sm border-grey-light border hover:bg-gray-100 p-3 sm:w-[15%]">{item.ORD_SOLICITACAO}</td>
-                                            <td className="text-sm border-grey-light border hover:bg-gray-100 p-3 sm:w-[23%]">{item.CLI_NOME}</td>
-                                            <td className="text-sm border-grey-light border hover:bg-gray-100 p-3 sm:w-[12%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORD_VALOR)}</td>
-                                            <td className="text-sm border-grey-light border hover:bg-gray-100 p-3 sm:w-[10%]">{item.ORD_ESTADO}</td>
-                                            <td className="sm:px-4 sm:py-2 text-left sm:w-[10%]">
+                                            <td className="text-xs border-grey-light border hover:bg-gray-100 p-3 sm:w-[8%]">{item.ORD_CODIGO}</td>
+                                            <td className="text-xs border-grey-light border  hover:bg-gray-100 p-3 sm:w-[10%]">{item.ORD_DATA != null ? new Date(item.ORD_DATA).toLocaleDateString() : ''}</td>
+                                            <td className="text-xs border-grey-light border hover:bg-gray-100 p-3 sm:w-[22%]">{item.ORD_SOLICITACAO}</td>
+                                            <td className="text-xs border-grey-light border hover:bg-gray-100 p-3 sm:w-[30%]">{item.CLI_NOME}</td>
+                                            <td className="text-xs border-grey-light border hover:bg-gray-100 p-3 sm:w-[10%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORD_VALOR)}</td>
+                                            <td className="text-xs border-grey-light border hover:bg-gray-100 p-3 sm:w-[10%]">{item.ORD_ESTADO}</td>
+                                            <td className="text-xs border-grey-light border hover: p-3 sm:w-[15%]">{item.PARCEIRO? item.PARCEIRO : 'SEM PARC.'}</td>
+                                            <td className="sm:px-4 sm:py-2 text-left border-grey-light border sm:w-[10%]">
                                                 <div className="flex flex-row gap-2">
-                                                    <button onClick={() => selecionarOrdemModel(item)} className="bg-green-700 p-2 text-xs rounded-xl shadow-sm text-white">Ver Detalhes</button>
-                                                    <button onClick={() => selecionarOrdem(item)} className="bg-red-700 p-2 text-xs rounded-xl shadow-sm text-white">Escolher</button>
+                                                    <Eye onClick={() => selecionarOrdemModel(item)} className="text-amber-700 text-xl mr-1 hover:cursor-pointer" />
+                                                    <Check  onClick={() => selecionarOrdem(item)} className="text-green-800 ml-1 hover:cursor-pointer" />
+                                                    
                                                 </div>
                                             </td>
                                         </tr>

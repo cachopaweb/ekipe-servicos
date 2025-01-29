@@ -75,11 +75,14 @@ export default class OrdemRepository {
     }
 
     async buscaProdutosOrdem(codigo: number): Promise<OrdEstModel[]> {
+        const sql = `SELECT ORE_CODIGO, ORE_ORD, ORE_PRO, ORE_QUANTIDADE, ORE_VALOR, ORE_LUCRO, ORE_VALORR, ORE_VALORL, 
+        ORE_VALORF, ORE_NOME, ORE_VALORC, ORE_VALORCM, ORE_ALIQICMS, ORE_EMBALAGEM, PRO_DESCRICAO 
+        FROM ORD_EST JOIN PRODUTOS ON ORE_PRO = PRO_CODIGO WHERE ORE_ORD = ${codigo} ORDER BY ORE_CODIGO`;
+
+        
         const obj = {
-            'sql':
-                `SELECT ORE_CODIGO, ORE_ORD, ORE_PRO, ORE_QUANTIDADE, ORE_VALOR, ORE_LUCRO, ORE_VALORR, ORE_VALORL, 
-                ORE_VALORF, ORE_NOME, ORE_VALORC, ORE_VALORCM, ORE_ALIQICMS, ORE_EMBALAGEM, PRO_DESCRICAO 
-                FROM ORD_EST JOIN PRODUTOS ON ORE_PRO = PRO_CODIGO WHERE ORE_ORD = ${codigo} ORDER BY ORE_CODIGO`
+            'sql': sql
+               
         }
         try {
             const response = await api.post('/dataset', obj)
@@ -96,11 +99,12 @@ export default class OrdemRepository {
     }
 
     async buscaServicosOrdem(codigo: number): Promise<OrdSerModel[]> {
-        const obj = {
-            'sql':
-                `SELECT OS_CODIGO, OS_ORD, OS_SER, OS_VALOR, OS_NOME, OS_TIPO, 
+        const sql = `SELECT OS_CODIGO, OS_ORD, OS_SER, OS_VALOR, OS_NOME, OS_TIPO, 
                 OS_VALORR, OS_UNIDADE_MED, OS_QUANTIDADE FROM ORD_SER 
-                WHERE OS_ORD = ${codigo} ORDER BY OS_CODIGO`
+                WHERE OS_ORD = ${codigo} ORDER BY OS_CODIGO`;
+                
+        const obj = {
+            'sql':sql
         }
         try {
             const response = await api.post('/dataset', obj)
@@ -119,8 +123,8 @@ export default class OrdemRepository {
     async pesquisaOrdem(textoBusca: string, tipoBusca: string, porPeriodo: boolean, status: string, data1: Date, data2: Date): Promise<OrdemModel[]> {
         try {
             let SQL = `SELECT FIRST 50 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
-                       ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS 
-                       FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO WHERE 1=1 [PERIODO][STATUS][BUSCA] 
+                       ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FORN.FOR_NOME AS PARCEIRO
+                       FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO LEFT JOIN FORNECEDORES FORN ON ORD_FORNECEDOR = FORN.FOR_CODIGO  WHERE 1=1 [PERIODO][STATUS][BUSCA] 
                        ORDER BY [ORDEM]`;
             if (textoBusca != '') {
                 switch (tipoBusca) {
@@ -154,6 +158,7 @@ export default class OrdemRepository {
                 SQL = SQL.replace('[STATUS]', '');
             // Para o caso da string não ter sido substituída ainda
             SQL = SQL.replace('[ORDEM]', 'ORD_CODIGO DESC');
+            console.log(SQL);
             const response = await api.post('/dataset', {'sql': SQL})
             let data = [];
             if (response.data instanceof Array){

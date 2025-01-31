@@ -817,7 +817,7 @@ export default function Orcamentos() {
                                 onKeyDown={edtNomeServicoKeydown} value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
-                            <label htmlFor="unidade">UM</label>
+                            <label htmlFor="unidade">UND.</label>
                             <select value={servico.OS_UNIDADE_MED} onChange={(e) => setServico({ ...servico, OS_UNIDADE_MED: e.target.value.toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
@@ -1098,7 +1098,7 @@ export default function Orcamentos() {
                                 className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
                         </div>
                         <div className="flex flex-col p-2">
-                            <label htmlFor="unidade">UM</label>
+                            <label htmlFor="unidade">UND.</label>
                             <select id="edtUM" value={produto.ORE_EMBALAGEM} onChange={(e) => setProduto({ ...produto, ORE_EMBALAGEM: e.target.value.toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
@@ -1361,7 +1361,7 @@ export default function Orcamentos() {
                         <div className="flex flex-1 flex-col p-1">
                             <label htmlFor="cliente">Cliente</label>
                             <div className="flex flex-row">
-                                <input id="clientid" value={clienteSelecionado.NOME} readOnly className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
+                                <input id="clientid" value={clienteSelecionado.NOME} readOnly className="w-80 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
                                 <button
                                     className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
                                     type="button"
@@ -1382,16 +1382,12 @@ export default function Orcamentos() {
                         <div className="flex flex-col w-full">
                             <div className="flex flex-row">
                                 <div className="flex flex-1 flex-col p-1">
-                                    <label htmlFor="atendente">Atendente</label>
-                                    <input id='atendenteid' value={codigoOrdem == 0 ? nomeFuncionario : atendente} onChange={(e) => setAtendente(e.target.value.toUpperCase())} className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
+                                    <label htmlFor="solicitacoes">Solicitações</label>
+                                    <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                                 </div>
                                 <div className="flex flex-1 flex-col p-1">
                                     <label htmlFor="obs">Observações</label>
                                     <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value.toLocaleUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
-                                </div>
-                                <div className="flex flex-1 flex-col p-1">
-                                    <label htmlFor="solicitacoes">Solicitações</label>
-                                    <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
                                 </div>
                             </div>
                             <div className="flex flex-row">

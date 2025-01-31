@@ -128,10 +128,10 @@ const PrintOrcamentos = () => {
                                     <div className='divide-solid divide-y divide-slate-500'>
                                         <div className='divide-slate-500 divide-dashed divide-y'>
                                             {OrdemCtx!.itensOrdEst.map((item) =>
-                                                <tr className='grid grid-cols-8 ' key={item.ORE_CODIGO}>
-                                                    <td className='col-span-4 text-start text-xs'>{item.ORE_NOME}</td>
-                                                    <td className='text-start text-xs'>{item.ORE_EMBALAGEM}</td>
-                                                    <td className='text-start text-xs'>{item.ORE_QUANTIDADE}</td>
+                                                <tr className='grid grid-cols-8' key={item.ORE_CODIGO}>
+                                                    <td className='col-span-4 text-start text-xs pr-5 print:pr-0'>{item.ORE_NOME}</td>
+                                                    <td className='text-start text-xs ml-2'>{item.ORE_EMBALAGEM}</td>
+                                                    <td className='text-start text-xs ml-5'>{item.ORE_QUANTIDADE}</td>
                                                     <td className='text-start text-xs'>{formatCurrency(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
                                                     <td className='text-start text-xs'>{formatCurrency(item.ORE_VALOR)}</td>
                                                 </tr>
@@ -154,7 +154,7 @@ const PrintOrcamentos = () => {
                                     <tr className='grid grid-cols-8'>
                                         <th className='col-span-4 text-start text-sm'>Serviço</th>
                                         <th className='text-start text-sm'>UND</th>
-                                        <th className='text-start text-sm'>Quant.</th>
+                                        <th className='text-start text-sm '>Quant.</th>
                                         <th className='text-start text-sm'>Valor Unit.</th>
                                         <th className='text-start text-sm'>Valor</th>
                                     </tr>
@@ -164,9 +164,9 @@ const PrintOrcamentos = () => {
                                         <div className='divide-slate-500 divide-dashed divide-y'>
                                             {OrdemCtx!.itensOrdSer.map((item) =>
                                                 <tr className='grid grid-cols-8 ' key={item.OS_CODIGO}>
-                                                    <td className='col-span-4 text-justify text-xs'>{item.OS_NOME}</td>
-                                                    <td className='text-start text-xs'>{item.OS_UNIDADE_MED}</td>
-                                                    <td className='text-start text-xs'>{item.OS_QUANTIDADE}</td>
+                                                    <td className='col-span-4 text-justify text-xs pr-5 print:pr-0'>{item.OS_NOME}</td>
+                                                    <td className='text-start text-xs ml-2'>{item.OS_UNIDADE_MED}</td>
+                                                    <td className='text-start text-xs ml-5'>{item.OS_QUANTIDADE}</td>
                                                     <td className='text-start text-xs'>{formatCurrency(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
                                                     <td className='text-start text-xs'>{formatCurrency(item.OS_VALOR)}</td>
                                                 </tr>
@@ -184,7 +184,7 @@ const PrintOrcamentos = () => {
                         <div>
                             <div className='grid grid-cols-8 font-bold'>
                                 <span className='text-sm'>Observação: </span>
-                                <span className='text-sm col-span-5 text-end'> Valor Total:</span>
+                                <span className='text-sm col-span-5 text-end'> Valor Geral:</span>
                                 <div></div>
                                 <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_VALOR)}</span>
                             </div>

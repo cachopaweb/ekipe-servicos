@@ -11,7 +11,9 @@ import {
     FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin,
     mascaraMoedaEvent, mascaraMoeda, maskRealToNumber,
     IncrementaGenerator,
-    converterDataPontoParaTraco
+    converterDataPontoParaTraco,
+    formatNumber,
+    parseFloatFromString
 } from "@/app/functions/utils";
 import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
@@ -824,7 +826,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="quant">Quant</label>
-                            <input id="edtQuantidadeServico" onKeyDown={edtQuantServicoKeydown} value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input id="edtQuantidadeServico" type="number" step=".01" onKeyDown={edtQuantServicoKeydown} value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24"  />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="valor">Valor</label>
@@ -1062,6 +1064,11 @@ export default function Orcamentos() {
             (document.getElementById('edtNomeProduto') as HTMLInputElement).select();
         }
 
+        const handleChangeQuantidadeProduto = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const formattedValue = formatNumber(e.target.value);
+            setProduto({ ...produto, ORE_QUANTIDADE: parseFloatFromString(formattedValue) });
+          };
+
         return (
             <div ref={refDivProdutos} className="bg-white rounded-lg  shadow-md">
                 <div className="border-b-2">
@@ -1105,7 +1112,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="quant">Quant</label>
-                            <input id="edtQuantidade" onKeyDown={edtQuantidadeKeyDown} value={produto.ORE_QUANTIDADE} onChange={(e) => setProduto({ ...produto, ORE_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
+                            <input id="edtQuantidade" type="number" step=".01" onKeyDown={edtQuantidadeKeyDown} value={produto.ORE_QUANTIDADE} onChange={(e) => setProduto({ ...produto, ORE_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="valor">Valor</label>

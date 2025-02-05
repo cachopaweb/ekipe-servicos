@@ -267,5 +267,15 @@ var toastMixin = Swal.mixin({
     }
 });
 
+const formatNumber = (value: string): string => {
+  const floatVal = parseFloat(value.replace(/,/g, ''));
+  if (isNaN(floatVal)) return value;
+  const formattedValue = floatVal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return formattedValue;
+};
+const parseFloatFromString = (value: string): number => {
+  return parseFloat(value.replace(/,/g, ''));
+};
+
 export { GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
-  converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput };
+  converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput, formatNumber, parseFloatFromString };

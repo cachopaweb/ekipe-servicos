@@ -25,7 +25,6 @@ const PrintOrcamentos = () => {
         {
             return [''];
         }
-        // Usa o método split para dividir a string em linhas, usando o caractere de nova linha (\n) como delimitador
         return inputString.split('\n');
     }
 

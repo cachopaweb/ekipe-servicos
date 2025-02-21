@@ -230,7 +230,7 @@ export default function Orcamentos() {
         const repository = new OrdemRepository();
         let codigo = codigoOrdem;
         if (codigo === 0) {
-            codigo = await GeraCodigo('ORDENS', 'ORD_CODIGO');
+            codigo = await IncrementaGenerator('GEN_ORD');
         }
         try {
             let ord: OrdemModel | null = null;

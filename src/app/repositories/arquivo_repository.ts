@@ -1,4 +1,4 @@
-import { GeraCodigo, IncrementaGenerator } from "../functions/utils";
+import { IncrementaGenerator } from "../functions/utils";
 import ArquivoModel from "../models/arquivo_model";
 import api from "../services/api";
 

@@ -1,4 +1,4 @@
-import { FormatDate, GeraCodigo } from "../functions/utils";
+import { FormatDate, GeraCodigo, IncrementaGenerator } from "../functions/utils";
 import Empreitadas from "../home/empreitadas/page";
 import EmpreitadasServicosModel from "../models/empreitada_servicos_model";
 import EmpreitadasModel from "../models/empreitadas_model";

@@ -2,7 +2,7 @@ import EmpreitadasServicosModel from "@/app/models/empreitada_servicos_model";
 import EmpreitadasModel from "@/app/models/empreitadas_model";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input"
-import { GeraCodigo, keyBoardInputEvent, mascaraMoeda, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils";
+import { GeraCodigo, IncrementaGenerator, keyBoardInputEvent, mascaraMoeda, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils";
 import Modal from "@/components/component/modal";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import { useMask } from "@react-input/mask";

@@ -54,7 +54,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
             const repositoryLancamentoReceitaCusto = new LancamentoReceitaCustoRepository();
             const empreitada = model as EmpreitadasModel;
             if (empreitada.EMP_CODIGO === 0){
-                empreitada.EMP_CODIGO = await GeraCodigo('EMPREITADAS', 'EMP_CODIGO');
+                empreitada.EMP_CODIGO = await IncrementaGenerator('GEN_EMPREITADAS');
                 this.codOperacao = empreitada.EMP_CODIGO;
             } 
             empreitada.EMP_FAT = this.codFatura;

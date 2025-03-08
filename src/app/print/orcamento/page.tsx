@@ -61,16 +61,19 @@ const PrintOrcamentos = () => {
                     <div className='divide-solid divide-y divide-black print:pl-10'>
                         <h1 className='text-center text-2xl font-bold'>{titulo}</h1>
                         <div>
-                            <div className='grid grid-cols-2'>
+                            <div className='grid grid-cols-3'>
+                                <div className='grid grid-rows-1'>
+                                <h1 className='font-bold pr-5 my-0 text-sm'>Nome do Cliente</h1>
+                                <span className='pr-5 truncate text-xs	'>{OrdemCtx!.CLI_NOME}</span>
+
+                                </div>
                                 <div className='grid grid-rows-2'>
                                     <div className='grid grid-cols-2 '>
-                                    <h1 className='font-bold pr-5 my-0 text-sm'>Nome do Cliente</h1>
+                                    
                                     <h1 className='font-bold my-0 text-sm'>CNPJ/CPF</h1>
-                                      
-                
                                     </div>
                                         <div className='grid grid-cols-2'>
-                                        <span className='pr-5 truncate text-xs	'>{OrdemCtx!.CLI_NOME}</span>
+                                        
                                         <span className='truncate text-xs'>{OrdemCtx!.CLI_CNPJ_CPF}</span>
                                     </div>
                                 </div>
@@ -85,8 +88,8 @@ const PrintOrcamentos = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className='grid grid-cols-5'>
-                                <div className='grid grid-rows-2'>
+                            <div className='grid grid-cols-6'>
+                                <div className='grid grid-rows-2 col-span-2'>
                                     <h1 className='font-bold my-0 text-sm'>Endereço</h1>
                                     <span className='truncate text-xs'>{OrdemCtx!.CLI_ENDERECO}</span>
                                 </div>

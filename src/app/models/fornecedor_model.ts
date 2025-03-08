@@ -42,6 +42,8 @@ export class FornecedorModel {
     DATACADASTRO?:string;
     EMAIL?:string;
     OBS?:string;
+    LATITUDE?:string;
+    LONGITUDE?:string;
     constructor(codigo: number, nome: string){
       this.CODIGO = codigo;
       this.NOME = nome;

@@ -12,11 +12,12 @@ export default class FornecedorRepository{
                                     FOR_FONE, FOR_CONTATO, FOR_EMAIL, FOR_DATAC, FOR_CELULAR,
                                     FOR_OBS, FOR_CNPJ_CPF, FOR_INSC_ESTADUAL, FOR_INSC_MUNICIPAL,
                                     FOR_END_NUMERO, FOR_TIPO, FOR_SUFRAMA, FOR_INDIC_IE,
-                                    FOR_CID, FOR_RAZAO_SOCIAL, FOR_FANTASIA, FOR_ESTADO)
+                                    FOR_CID, FOR_RAZAO_SOCIAL, FOR_FANTASIA, FOR_ESTADO, FOR_LATITUDE, FOR_LONGITUDE)
                               VALUES (${fornecedor.CODIGO}, '${fornecedor.NOME}', '${fornecedor.ENDERECO??''}', '${fornecedor.BAIRRO??''}', '${fornecedor.CIDADE??''}', '${fornecedor.CEP??''}',
                               '${fornecedor.FONE??''}', '${fornecedor.CONTATO??''}', '${fornecedor.EMAIL??''}', '${fornecedor.DATACADASTRO??''}', '${fornecedor.CELULAR??''}', 
                               '${fornecedor.OBS??''}', '${fornecedor.CPF_CNPJ??''}', '${fornecedor.INSCRICAOESTADUAL??''}', '${fornecedor.INSCRICAOMUNICIPAL??''}', ${fornecedor.END_NUMERO??0}, 
-                              '${fornecedor.TIPO??''}', '${fornecedor.SUFRAMA??''}', '${fornecedor.INDICEIE??''}', '${fornecedor.CODCIDADE??''}', '${fornecedor.RAZAOSOCIAL??''}', '${fornecedor.NOME??''}', '${fornecedor.ESTADO??''}')
+                              '${fornecedor.TIPO??''}', '${fornecedor.SUFRAMA??''}', '${fornecedor.INDICEIE??''}', '${fornecedor.CODCIDADE??''}', '${fornecedor.RAZAOSOCIAL??''}', '${fornecedor.NOME??''}', 
+                              '${fornecedor.ESTADO??''}', '${fornecedor.LATITUDE??''}', '${fornecedor.LONGITUDE??''}')
                               MATCHING (FOR_CODIGO)`;     
       const response = await api.post('/dataset', {
         'sql': sql

@@ -251,9 +251,14 @@ export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarForn
                     onChange={(e) => setFornecedor({ ...fornecedor, INSCRICAOMUNICIPAL: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="suframa">SUFRAMA</Label>
-                  <Input id="suframa" value={fornecedor.SUFRAMA}
-                    onChange={(e) => setFornecedor({ ...fornecedor, SUFRAMA: e.target.value })} />
+                  <Label htmlFor="latitude">Latitude</Label>
+                  <Input id="latitude" value={fornecedor.LATITUDE}
+                    onChange={(e) => setFornecedor({ ...fornecedor, LATITUDE: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="longitude">Longitude</Label>
+                  <Input id="longitude" value={fornecedor.LONGITUDE}
+                    onChange={(e) => setFornecedor({ ...fornecedor, LONGITUDE: e.target.value })} />
                 </div>
               </div>
             </div>
@@ -261,10 +266,6 @@ export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarForn
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold">Dados Adicionais</h3>
             <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="contato">CONTATO</Label>
-                <Input maxLength={14} id="contato" value={fornecedor.CONTATO} onChange={(e) => setFornecedor({ ...fornecedor, CONTATO: e.target.value.toUpperCase() })} />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="celular">Celular</Label>
                 <Input ref={inputRefCel}

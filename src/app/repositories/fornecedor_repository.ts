@@ -32,7 +32,7 @@ export default class FornecedorRepository{
     async getFornecedores(busca: string): Promise<FornecedorModel[]>{
         try {
           let sql = `SELECT FIRST 5 FOR_CODIGO AS CODIGO, FOR_NOME AS NOME, FOR_CNPJ_CPF AS CPF_CNPJ,
-          FOR_FONE AS FONE, FOR_CELULAR AS CELULAR, FOR_ENDERECO AS ENDERECO, FOR_END_NUMERO AS END_NUMERO, FOR_LATITUDE AS LATITUDE, FOR_LONGITUDE AS LONGITUDE,
+          FOR_FONE AS FONE, FOR_CELULAR AS CELULAR, FOR_ENDERECO AS ENDERECO, FOR_END_NUMERO AS END_NUMERO
           FROM FORNECEDORES WHERE (FOR_NOME LIKE '%${busca.toUpperCase()}%')`
           const response = await api.post('/dataset', {
             'sql': sql

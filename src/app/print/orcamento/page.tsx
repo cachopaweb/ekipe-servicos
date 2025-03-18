@@ -204,10 +204,10 @@ const PrintOrcamentos = () => {
                                     <span className='font-bold text-xl' >{OrdemCtx!.FUN_NOME}</span>
                                 </div>
                                 <div>
-                                    <span>comercial@ekipeservicos.com.br</span>
+                                    <span>suporte@ekipeservicos.com.br</span>
                                 </div>
                                 <div>
-                                    <span>(67) 99618-6079 - (67) 99618-6021</span>
+                                    <span>(67) 99674-3674 </span>
                                 </div>
                             </div>
                         </div>

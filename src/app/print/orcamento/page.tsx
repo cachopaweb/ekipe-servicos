@@ -23,6 +23,13 @@ const PrintOrcamentos = () => {
         content: () => componentRef.current,
     });
 
+    function formatarNumero(telefone: string): string {
+        // Utiliza regex para capturar as partes do número e formatar
+        const regex = /^(\(\d{2}\))(\d{5})(\d{4})$/;
+        return telefone.replace(regex, "$1 $2-$3");
+    }
+    
+
     function stringToLinesArray(inputString:string) {
         if(inputString === null || inputString === undefined)
         {
@@ -216,7 +223,7 @@ const PrintOrcamentos = () => {
                                     <span>{funcionario?.FUN_EMAIL}</span>
                                 </div>
                                 <div>
-                                    <span>{funcionario?.FUN_FONE} </span>
+                                    <span>{formatarNumero(funcionario?.FUN_FONE??"(00)000000000")} </span>
                                 </div>
                             </div>
                         </div>

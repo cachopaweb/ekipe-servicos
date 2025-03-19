@@ -6,6 +6,8 @@ import logo from '../../../../assets/logo.png'
 import { useAppData } from '@/app/contexts/app_context';
 import { useEffect, useRef, useState } from 'react';
 import { converterDataFormato, formatCurrency, toastMixin } from '../../functions/utils'
+import { FuncionarioModel } from '@/app/models/usuario_model';
+import UsuarioRepository from '@/app/repositories/usuario_repository';
 
 const PrintOrcamentos = () => {
     const componentRef = useRef<HTMLDivElement>(null);
@@ -16,6 +18,7 @@ const PrintOrcamentos = () => {
     const [carregando, setCarregando] = useState(true);
     const [titulo, setTitulo] = useState('Orçamento');
     const [obs, setObs] = useState <Array<string>>([])
+    const [funcionario, setFuncionario] = useState<FuncionarioModel | null>(null)
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
     });
@@ -31,6 +34,12 @@ const PrintOrcamentos = () => {
     useEffect(() => {
         setCarregando(true);
 
+        const repUsuario = new UsuarioRepository();
+        repUsuario.getFuncionario(OrdemCtx!.ORD_FUN).then((res) => {
+            setFuncionario(res);
+        }).catch((err) => {
+            console.log(err);
+        });
         var somaProd = 0;
         var somaServ = 0;
         if (OrdemCtx!.itensOrdEst.length > 0) {
@@ -204,10 +213,10 @@ const PrintOrcamentos = () => {
                                     <span className='font-bold text-xl' >{OrdemCtx!.FUN_NOME}</span>
                                 </div>
                                 <div>
-                                    <span>suporte@ekipeservicos.com.br</span>
+                                    <span>{funcionario?.FUN_EMAIL}</span>
                                 </div>
                                 <div>
-                                    <span>(67) 99674-3674 </span>
+                                    <span>{funcionario?.FUN_FONE} </span>
                                 </div>
                             </div>
                         </div>

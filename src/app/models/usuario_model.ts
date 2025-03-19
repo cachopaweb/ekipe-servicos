@@ -4,3 +4,10 @@ export interface UsuarioModel {
     USU_FUN: Number;
     FUN_NOME: string;
 }
+
+export interface FuncionarioModel {
+    FUN_NOME: string;
+    FUN_CODIGO: number;
+    FUN_EMAIL: string;
+    FUN_FONE: string;
+}

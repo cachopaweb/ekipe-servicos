@@ -1,5 +1,5 @@
 import api from "../services/api";
-import { UsuarioModel } from "../models/usuario_model";
+import { FuncionarioModel, UsuarioModel } from "../models/usuario_model";
 
 export default class UsuarioRepository{
     async login(usuario: string, senha: string): Promise<boolean>{
@@ -13,6 +13,19 @@ export default class UsuarioRepository{
         } catch (error) {
             throw new Error('Usuario ou senha incorretos.');
         }
+    }
+
+    async getFuncionario(id:number): Promise<FuncionarioModel>{
+        try {
+            const response = await api.post('/dataset', {
+                'sql': `SELECT FUN_NOME, FUN_EMAIL, FUN_FONE FROM FUNCIONARIOS WHERE FUN_CODIGO = ${id} AND FUN_ESTADO <> 'INATIVO'`
+            });
+            const user = response.data as FuncionarioModel;
+            return user;
+        } catch (error) {
+            throw new Error('Erro ao tentar logar');
+        }
+
     }
 
     async getUsers(): Promise<UsuarioModel[]>{

@@ -36,7 +36,7 @@ import FornecedorRepository from "@/app/repositories/fornecedor_repository";
 
 
 export default function Orcamentos() {
-    const { setOrdemCtx } = useAppData();
+    const { setOrdemCtx, OrdemCtx } = useAppData();
     const [ordem, setOrdem] = useState<OrdemModel | null>(null);
     const [dataAbertura, setDataAbertura] = useState(new Date());
     const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
@@ -84,6 +84,10 @@ export default function Orcamentos() {
         buscaOrdemServidor();
     }, [foiFaturado])
 
+    useEffect(() => {       
+        setOrdemCtx({...OrdemCtx, ORD_CLI: clienteSelecionado.CODIGO})
+
+    }, [clienteSelecionado])
     useEffect(() => {
         const timeout = setTimeout(() => {
             if (codigoOrdem > 0)

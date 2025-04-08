@@ -29,6 +29,28 @@ export default class FornecedorRepository{
 }
 
 
+
+async getAllFornecedores(): Promise<FornecedorModel[]>{
+  try {
+    let sql = `SELECT FOR_CODIGO AS CODIGO, FOR_NOME AS NOME, FOR_CNPJ_CPF AS CPF_CNPJ,
+    FOR_FONE AS FONE, FOR_CELULAR AS CELULAR, FOR_ENDERECO AS ENDERECO, FOR_END_NUMERO AS END_NUMERO, FOR_LATITUDE AS LATITUDE, FOR_LONGITUDE AS LONGITUDE 
+    FROM FORNECEDORES`
+    const response = await api.post('/dataset', {
+      'sql': sql
+    });
+    let data = [];
+    if (response.data instanceof Array){
+        data = response.data;
+    }else{
+        data = [response.data];
+    }
+    return data;
+  } catch (error) {
+      throw new Error('erro ao buscar Fornecedores');
+  }
+}
+
+
     async getFornecedores(busca: string): Promise<FornecedorModel[]>{
         try {
           let sql = `SELECT FIRST 5 FOR_CODIGO AS CODIGO, FOR_NOME AS NOME, FOR_CNPJ_CPF AS CPF_CNPJ,

@@ -6,6 +6,8 @@ import { Cadastro_clientes } from "@/components/component/cadastro_clientes";
 import { FornecedorModel } from "../models/fornecedor_model";
 import FornecedorRepository from "../repositories/fornecedor_repository";
 import { Cadastro_fornecedores } from "@/components/component/cadastro_fornecedores";
+import { Mapa } from "@/components/component/mapa";
+import { ClienteModel } from "../models/cliente_model";
 
 type pesquisaFornecedorParams = {
     showModal: boolean;
@@ -17,6 +19,7 @@ type pesquisaFornecedorParams = {
 export default function PesquisaFornecedor({ showModal, setShowModal, setFornecedorSelecionado }: pesquisaFornecedorParams){ 
     const [textoPesquisado, setTextoPesquisado] = useState('');
     const [fornecedores, setFornecedores] = useState<FornecedorModel[]>([]);
+    const [visualizarMapa, setVisualizarMapa] = useState(false);
     const [cadastrarFornecedor, setCadastrarFornecedor] = useState(false);
     const [idCadastraFornecedor, setIdCadastraFornecedor] = useState(0);   
 
@@ -27,6 +30,11 @@ export default function PesquisaFornecedor({ showModal, setShowModal, setFornece
     const cadastrarNovoFornecedor = ()=> {
         setIdCadastraFornecedor(0);
         setCadastrarFornecedor(true);
+    }
+
+    const visualizarMap = ()=> {
+        setVisualizarMapa(true);
+
     }
 
     const buscarFornecedor = async ()=> {
@@ -58,7 +66,8 @@ export default function PesquisaFornecedor({ showModal, setShowModal, setFornece
                 body={
                     <div className=" flex flex-col">
                         <div className="flex flex-row-reverse">
-                        {<button onClick={()=> cadastrarNovoFornecedor()} className="bg-green-700 p-2 text-xs font-bold disabled:cursor-not-allowed rounded-xl shadow-sm text-white">Cadastrar Fornecedor</button>}
+                        <button onClick={()=> cadastrarNovoFornecedor()} className="bg-green-700 p-2 ml-4 text-xs font-bold disabled:cursor-not-allowed rounded-xl shadow-sm text-white">Cadastrar Fornecedor</button>
+                        <button onClick={()=> visualizarMap()}  className="bg-green-700 p-2 text-xs font-bold disabled:cursor-not-allowed rounded-xl shadow-sm text-white">Visualizar Mapa</button>
                         </div>
                         <table className="table-auto">
                             <thead>
@@ -121,6 +130,7 @@ export default function PesquisaFornecedor({ showModal, setShowModal, setFornece
                     </div>
                 }
             />
+            {visualizarMapa && <Modal showModal={visualizarMapa} setShowModal={setVisualizarMapa} title="Mapa" body={<Mapa />} /> }
             {cadastrarFornecedor && <Modal showModal={cadastrarFornecedor} setShowModal={setCadastrarFornecedor} title="Cadastro Fornecedor" body={<Cadastro_fornecedores  setListarFornecedor={setShowModal} setCadastraFornecedor={setCadastrarFornecedor}  id={idCadastraFornecedor} />} /> }
         </>
     )

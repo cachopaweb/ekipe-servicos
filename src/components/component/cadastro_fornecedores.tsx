@@ -111,6 +111,19 @@ export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarForn
 
   }
 
+  const insereLatLongEndereco = async () => {
+    const repo = new CidadeRepository();
+    if(fornecedor.ENDERECO && fornecedor.BAIRRO && fornecedor.CIDADE && fornecedor.END_NUMERO)
+    {
+      const endereco = fornecedor.ENDERECO + ', ' + fornecedor.END_NUMERO;
+      const latLong = await repo.getLatitudeLongitude({ endereco: fornecedor.ENDERECO ?? '', bairro: fornecedor.BAIRRO ?? '', cidadeEstado: fornecedor.CIDADE ?? '' });
+      console.log('endereco:', endereco, 'bairro:', fornecedor.BAIRRO, 'cidade:', fornecedor.CIDADE, 'latLong:', latLong);
+      setFornecedor({ ...fornecedor, LATITUDE: String(latLong[0]), LONGITUDE: String(latLong[1]) });
+    }
+
+  }
+
+
   const salvaFornecedor = async () => {
     var rep = new FornecedorRepository();
     if (await rep.setFornecedor(fornecedor)) {
@@ -259,6 +272,10 @@ export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarForn
                   <Label htmlFor="longitude">Longitude</Label>
                   <Input id="longitude" value={fornecedor.LONGITUDE}
                     onChange={(e) => setFornecedor({ ...fornecedor, LONGITUDE: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label> Certifique que os dados estão corretos</Label>
+                  <Button onClick={insereLatLongEndereco}> Inserir LatLong pelo endereço </Button>
                 </div>
               </div>
             </div>

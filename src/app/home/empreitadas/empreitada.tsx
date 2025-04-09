@@ -1,3 +1,4 @@
+"use client";
 import EmpreitadasServicosModel from "@/app/models/empreitada_servicos_model";
 import EmpreitadasModel from "@/app/models/empreitadas_model";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";

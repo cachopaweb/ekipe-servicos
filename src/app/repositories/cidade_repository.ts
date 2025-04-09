@@ -31,7 +31,6 @@ export default class CidadeRepository{
         cidadeEstado.replace('-', '/');
         try {
         const URLBUSCA = `https://geocode.maps.co/search?q={${endereco}, ${bairro}, ${cidadeEstado}}&api_key=67f408e5db683176830080wpt1a6c42`;
-        console.log('URLBUSCA:', URLBUSCA);
         const apiAux = axios.create({ baseURL: URLBUSCA })
         const response = await apiAux.get('');
         const dados = response.data[0];

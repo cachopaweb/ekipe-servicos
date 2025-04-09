@@ -1,3 +1,4 @@
+"use client"
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Modal from "../../components/component/modal";
 import Swal from "sweetalert2";

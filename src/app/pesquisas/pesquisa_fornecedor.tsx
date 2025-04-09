@@ -1,3 +1,4 @@
+"use client"
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Modal from "../../components/component/modal";
 import Swal from "sweetalert2";
@@ -6,8 +7,12 @@ import { Cadastro_clientes } from "@/components/component/cadastro_clientes";
 import { FornecedorModel } from "../models/fornecedor_model";
 import FornecedorRepository from "../repositories/fornecedor_repository";
 import { Cadastro_fornecedores } from "@/components/component/cadastro_fornecedores";
-import { Mapa } from "@/components/component/mapa";
+//import { Mapa } from "@/app/mapa";
+import dynamic from "next/dynamic";
 import { ClienteModel } from "../models/cliente_model";
+
+
+const Mapa = dynamic(() => import("../mapa/index").then((mod) => mod.Mapa), { ssr: false });
 
 type pesquisaFornecedorParams = {
     showModal: boolean;

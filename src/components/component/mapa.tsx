@@ -3,7 +3,7 @@
 * @see https://v0.dev/t/pioEt7dp1Om
 * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
 */
-
+"use client"
 import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import 'leaflet/dist/leaflet.css';
 import './styles.css';

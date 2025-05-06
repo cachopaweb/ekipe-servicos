@@ -55,7 +55,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                 title="Pesquisa Cliente"
                 edtSearch={<input className="border rounded-md border-spacing-1 border-amber-400 sm:w-96 sm:p-2 mx-4" type="text" placeholder="Pesquisar" value={textoPesquisado} onChange={(e)=> setTextoPesquisado(e.target.value)} />}
                 body={
-                    <div className=" flex flex-col">
+                    <div className=" flex flex-col overflow-scroll h-96">
                         <div className="flex flex-row-reverse">
                         <button onClick={()=> cadastrarNovoCliente()} className="bg-green-700 p-2 text-xs font-bold rounded-xl shadow-sm text-white">Cadastrar Cliente</button>
                         </div>

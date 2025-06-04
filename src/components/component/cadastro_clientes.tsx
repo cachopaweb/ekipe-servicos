@@ -118,6 +118,18 @@ export function Cadastro_clientes({ id, setCadastrarCliente, setListarCliente }:
 
   }
 
+    const desabilitaCliente = async () => {
+    var rep = new ClientRepository();
+    if (await rep.desabilitaCliente(cliente)) {
+      toastMixin.fire('Deletado', 'Cliente deletado com Sucesso!', 'warning')
+      setCadastrarCliente(false);
+      setListarCliente(false);
+    }
+    else {
+      toastMixin.fire('Erro!', 'Erro ao salvar!', 'error')
+    }
+  }
+
   const salvaCliente = async () => {
     var rep = new ClientRepository();
     if (await rep.setCliente(cliente)) {
@@ -364,6 +376,12 @@ export function Cadastro_clientes({ id, setCadastrarCliente, setListarCliente }:
                 <Button variant="default" className="flex-1" onClick={salvaCliente} >
                   {novoCliente ? 'Cadastrar' : 'Alterar'}
                 </Button>
+                { novoCliente ?<></> :
+                <Button variant="destructive" className="flex-1" onClick={desabilitaCliente} >
+                  Deletar
+                </Button>
+                }
+
               </div>
             </div>
           </p>

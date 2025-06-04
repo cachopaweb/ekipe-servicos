@@ -7,7 +7,7 @@ export default class ClientRepository{
         try {
           let SQL = `SELECT FIRST 50 CLI_CODIGO AS CODIGO, CLI_NOME AS NOME, CLI_CNPJ_CPF AS CPF_CNPJ, CLI_RG AS RG, 
           CLI_FONE AS FONE, CLI_CELULAR AS CELULAR, CLI_ENDERECO AS ENDERECO, CLI_SITUACAO, CLI_PLANO, 
-          CLI_NOTA FROM CLIENTES WHERE (CLI_NOME LIKE '%${busca.toUpperCase()}%')`
+          CLI_NOTA FROM CLIENTES WHERE (CLI_NOME LIKE '%${busca.toUpperCase()}%') AND CLI_ESTADO = 'ATIVO'`
           const response = await api.post('/dataset', {
             'sql': SQL
           });
@@ -30,7 +30,7 @@ export default class ClientRepository{
           CLI_CIDADE AS CIDADE, CLI_CID AS CODCIDADE, CLI_CEP AS CEP, CLI_FIDELIDADE AS FIDELIDADE, CLI_INADIMPLENCIA AS INADIPLENCIA, CLI_DESCONTO AS DESCONTO,
           CLI_SITUACAO AS SITUACAO, CLI_LIMITE AS LIMITE, CLI_DATANASC AS DATANASCIMENTO, CLI_PAI AS PAI, CLI_MAE AS MAE, CLI_CONJUGE AS CONJUGE,
           CLI_INDIC_IE AS INDICEIE, CLI_INSC_ESTADUAL AS INSCRICAOESTADUAL, CLI_INSC_MUNICIPAL AS INSCRICAOMUNICIPAL, CLI_SUFRAMA AS SUFRAMA, CLI_LATITUDE AS LATITUDE, CLI_LONGITUDE AS LONGITUDE,
-          CLI_ESTADO AS ESTADO, CLI_DATAC AS DATACADASTRO, CLI_EMAIL AS EMAIL, CLI_OBS AS OBS FROM CLIENTES WHERE CLI_CODIGO = '${id}'`
+          CLI_ESTADO AS ESTADO, CLI_DATAC AS DATACADASTRO, CLI_EMAIL AS EMAIL, CLI_OBS AS OBS FROM CLIENTES WHERE CLI_CODIGO = '${id}' AND CLI_ESTADO = 'ATIVO'`
         const response = await api.post('/dataset', {
           'sql': SQL
         });
@@ -78,6 +78,20 @@ export default class ClientRepository{
     }
 }
 
+
+  async desabilitaCliente(cliente:ClienteModel): Promise<boolean>{
+    try {
+      const sql = `UPDATE CLIENTES SET CLI_ESTADO = 'INATIVO' WHERE CLI_CODIGO = ${cliente.CODIGO}`;
+    
+      const response = await api.post('/dataset', {
+        'sql': sql
+      });          
+      return response.status === 200;
+    } catch (error) {
+        throw new Error('erro ao salvar cliente.\n'+String(error));
+    }
+}
+
   async setCliente(cliente:ClienteModel): Promise<boolean>{
     try {
       const sql = ` update or insert into CLIENTES (CLI_CODIGO, CLI_NOME, CLI_RAZAO_SOCIAL, CLI_TIPO, CLI_CNPJ_CPF,
@@ -90,8 +104,7 @@ export default class ClientRepository{
           '${cliente.SITUACAO??''}', ${cliente.LIMITE??0}, '${cliente.PAI??''}', '${cliente.MAE??''}', '${cliente.CONJUGE??''}',
           '${cliente.INDICEIE??''}', '${cliente.INSCRICAOESTADUAL??''}', '${cliente.INSCRICAOMUNICIPAL??''}', '${cliente.SUFRAMA??''}',
           '${cliente.ESTADO??''}', '${cliente.DATACADASTRO??''}', '${cliente.EMAIL??''}', '${cliente.OBS??''}', '${cliente.LATITUDE??''}', '${cliente.LONGITUDE??''}')
-          matching (CLI_CODIGO)`;
-      console.log('SQL:', sql);      
+          matching (CLI_CODIGO)`; 
       const response = await api.post('/dataset', {
         'sql': sql
       });          

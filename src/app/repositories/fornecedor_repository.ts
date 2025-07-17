@@ -51,9 +51,70 @@ async getAllFornecedores(): Promise<FornecedorModel[]>{
 }
 
 
-    async getFornecedores(busca: string): Promise<FornecedorModel[]>{
+    async getFornecedoresPorObs(busca: string): Promise<FornecedorModel[]>{
         try {
-          let sql = `SELECT FIRST 5 FOR_CODIGO AS CODIGO, FOR_NOME AS NOME, FOR_CNPJ_CPF AS CPF_CNPJ,
+          let sql = `SELECT FOR_CODIGO AS CODIGO, FOR_NOME AS NOME, FOR_CNPJ_CPF AS CPF_CNPJ,
+          FOR_FONE AS FONE, FOR_CELULAR AS CELULAR, FOR_ENDERECO AS ENDERECO, FOR_END_NUMERO AS END_NUMERO
+          FROM FORNECEDORES WHERE (FOR_OBS LIKE '%${busca.toUpperCase()}%')`
+          const response = await api.post('/dataset', {
+            'sql': sql
+          });
+          let data = [];
+          if (response.data instanceof Array){
+              data = response.data;
+          }else{
+              data = [response.data];
+          }
+          return data;
+        } catch (error) {
+            throw new Error('erro ao buscar Fornecedores');
+        }
+    }
+
+        async getFornecedoresPorCidade(busca: number): Promise<FornecedorModel[]>{
+        try {
+          let sql = `SELECT FOR_CODIGO AS CODIGO, FOR_NOME AS NOME, FOR_CNPJ_CPF AS CPF_CNPJ,
+          FOR_FONE AS FONE, FOR_CELULAR AS CELULAR, FOR_ENDERECO AS ENDERECO, FOR_END_NUMERO AS END_NUMERO
+          FROM FORNECEDORES WHERE (FOR_CID = '${busca}')`
+          const response = await api.post('/dataset', {
+            'sql': sql
+          });
+          let data = [];
+          if (response.data instanceof Array){
+              data = response.data;
+          }else{
+              data = [response.data];
+          }
+          return data;
+        } catch (error) {
+            throw new Error('erro ao buscar Fornecedores');
+        }
+    }
+
+    
+    async getFornecedoresPorNomeFantasia(busca: string): Promise<FornecedorModel[]>{
+        try {
+          let sql = `SELECT FOR_CODIGO AS CODIGO, FOR_NOME AS NOME, FOR_CNPJ_CPF AS CPF_CNPJ,
+          FOR_FONE AS FONE, FOR_CELULAR AS CELULAR, FOR_ENDERECO AS ENDERECO, FOR_END_NUMERO AS END_NUMERO
+          FROM FORNECEDORES WHERE (FOR_FANTASIA LIKE '%${busca.toUpperCase()}%')`
+          const response = await api.post('/dataset', {
+            'sql': sql
+          });
+          let data = [];
+          if (response.data instanceof Array){
+              data = response.data;
+          }else{
+              data = [response.data];
+          }
+          return data;
+        } catch (error) {
+            throw new Error('erro ao buscar Fornecedores');
+        }
+    }
+
+    async getFornecedoresPorNome(busca: string): Promise<FornecedorModel[]>{
+        try {
+          let sql = `SELECT FOR_CODIGO AS CODIGO, FOR_NOME AS NOME, FOR_CNPJ_CPF AS CPF_CNPJ,
           FOR_FONE AS FONE, FOR_CELULAR AS CELULAR, FOR_ENDERECO AS ENDERECO, FOR_END_NUMERO AS END_NUMERO
           FROM FORNECEDORES WHERE (FOR_NOME LIKE '%${busca.toUpperCase()}%')`
           const response = await api.post('/dataset', {

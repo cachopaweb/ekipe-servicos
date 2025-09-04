@@ -13,6 +13,7 @@ import { ClienteModel } from "@/app/models/cliente_model";
 import { Button } from "../../components/ui/button";
 import { FornecedorModel } from "@/app/models/fornecedor_model";
 import FornecedorRepository from "@/app/repositories/fornecedor_repository";
+import { toastMixin } from "../functions/utils";
 
 interface propsMapa {}
 
@@ -92,6 +93,10 @@ export function Mapa({}: propsMapa) {
         setLongitude(clienteAux.LONGITUDE);
       }
     }
+  }
+
+  function isConvertibleToNumber(str1: string, str2: string): boolean {
+    return !isNaN(Number(str1)) && !isNaN(Number(str2));
   }
 
   function calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -192,8 +197,11 @@ export function Mapa({}: propsMapa) {
                 <MarcacaoCliente />
                 {fornecedores.map(
                   (fornecedor) =>
+
                     fornecedor.LATITUDE &&
-                    fornecedor.LONGITUDE && (
+                    fornecedor.LONGITUDE &&
+                    (
+                      isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE) ?
                       <Marker
                         key={fornecedor.CODIGO}
                         position={[Number(fornecedor.LATITUDE), Number(fornecedor.LONGITUDE)]}
@@ -211,6 +219,13 @@ export function Mapa({}: propsMapa) {
                           km de distância
                         </Popup>
                       </Marker>
+                      : 
+                      <>
+                        {toastMixin.fire({
+                          icon: 'error',
+                          title: `Fornecedor ${fornecedor.NOME} possui latitude ou longitude inválida!`,
+                        })}
+                      </>
                     )
                 )}
               </MapContainer>

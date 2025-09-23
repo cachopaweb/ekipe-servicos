@@ -25,9 +25,10 @@ export default function HomeLayout({ children }: homeLayoutProps) {
                     </button>
 
                     <div className="ml-1">
+                        { usuarioLogado.USU_FUN === 1 ? <label className='text-red-600' > versão 23-09-2025 </label>:<></>}
                         <Image src={logo} height={40} alt="Logo" className="p-4" />
                     </div>
-                    { usuarioLogado.USU_FUN === 1 ? <label className='text-red' > versão 23-09-2025 </label>:<></>}
+                    
                     <div className="space-x-4">
                         <button>
                             <i className="fas fa-bell text-amber-500 text-lg"></i>

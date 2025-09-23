@@ -13,6 +13,7 @@ interface homeLayoutProps {
 
 export default function HomeLayout({ children }: homeLayoutProps) {  
     const { ultRota, setUltRota } = useAppData();
+    const {usuarioLogado} = useAppData();
     const [open, setOpen] = useState(false);
 
     return (        
@@ -26,7 +27,7 @@ export default function HomeLayout({ children }: homeLayoutProps) {
                     <div className="ml-1">
                         <Image src={logo} height={40} alt="Logo" className="p-4" />
                     </div>
-
+                    { usuarioLogado.USU_FUN === 1 ? <label className='text-red' > versão 23-09-2025 </label>:<></>}
                     <div className="space-x-4">
                         <button>
                             <i className="fas fa-bell text-amber-500 text-lg"></i>

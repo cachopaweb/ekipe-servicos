@@ -10,10 +10,18 @@ export default class OrdemRepository {
             'sql':
                 `UPDATE OR INSERT INTO ORDENS (ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_HORA, ORD_FUN, ORD_CLI, ORD_DATAC, ORD_OBS, ORD_ESTADO,
                  ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT, ORD_FORNECEDOR)
+                 VALUES (${ordem.ORD_CODIGO}, '${ordem.ORD_DATA}', ${ordem.ORD_VALOR}, '${new Date().toLocaleTimeString()}',
+                 ${ordem.ORD_FUN}, ${ordem.ORD_CLI}, '1900-01-01', '${ordem.ORD_OBS.replace(/'/g, "''")}', '${ordem.ORD_ESTADO}', ${ordem.ORD_DESCONTO_P},
+                 ${ordem.ORD_DESCONTO_S}, '${ordem.ORD_DEVOLUCAO_P.replace(/'/g, "''")}', 0, '${ordem.ORD_SOLICITACAO.replace(/'/g, "''")}',
+                 '${ordem.ORD_OBS_ADM.replace(/'/g, "''")}', '${ordem.ORD_NFS}', ${ordem.ORD_FAT ?? 0}, ${ordem.ORD_FORNECEDOR ?? 0})
+                 MATCHING (ORD_CODIGO)`
+                 /*
+                `UPDATE OR INSERT INTO ORDENS (ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_HORA, ORD_FUN, ORD_CLI, ORD_DATAC, ORD_OBS, ORD_ESTADO,
+                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT, ORD_FORNECEDOR)
                  VALUES (${ordem.ORD_CODIGO}, '${ordem.ORD_DATA}', ${ordem.ORD_VALOR}, '${new Date().toLocaleTimeString()}', 
                  ${ordem.ORD_FUN}, ${ordem.ORD_CLI}, '1900-01-01', '${ordem.ORD_OBS}', '${ordem.ORD_ESTADO}', ${ordem.ORD_DESCONTO_P}, 
                  ${ordem.ORD_DESCONTO_S}, '${ordem.ORD_DEVOLUCAO_P}', 0, '${ordem.ORD_SOLICITACAO}', '${ordem.ORD_OBS_ADM}', '${ordem.ORD_NFS}', ${ordem.ORD_FAT ?? 0}, ${ordem.ORD_FORNECEDOR ?? 0})
-                 MATCHING (ORD_CODIGO)`
+                 MATCHING (ORD_CODIGO)`*/
         }
         try {
             const response = await api.post('/dataset', sql)
@@ -27,7 +35,7 @@ export default class OrdemRepository {
         const obj = {
             'sql':
                 `UPDATE OR INSERT INTO ORD_SER (OS_CODIGO, OS_ORD, OS_SER, OS_VALOR, OS_NOME, OS_TIPO, OS_VALORR, OS_UNIDADE_MED, OS_QUANTIDADE)
-                 VALUES (${servico.OS_CODIGO}, ${codOrdem}, ${servico.OS_SER}, ${servico.OS_VALOR}, '${servico.OS_NOME}', '1', 
+                 VALUES (${servico.OS_CODIGO}, ${codOrdem}, ${servico.OS_SER}, ${servico.OS_VALOR}, '${servico.OS_NOME.replace(/'/g, "''")}', '1', 
                  ${servico.OS_VALOR}, '${servico.OS_UNIDADE_MED}', ${servico.OS_QUANTIDADE})  MATCHING (OS_CODIGO)`
         }
         try {
@@ -43,7 +51,7 @@ export default class OrdemRepository {
                 `UPDATE OR INSERT INTO ORD_EST (ORE_CODIGO, ORE_ORD, ORE_PRO, ORE_QUANTIDADE, ORE_VALOR, ORE_LUCRO, ORE_VALORR,
                  ORE_VALORL, ORE_VALORF, ORE_NOME, ORE_VALORC, ORE_VALORCM, ORE_ALIQICMS, ORE_EMBALAGEM)
                  VALUES (${produto.ORE_CODIGO}, ${codOrdem}, ${produto.ORE_PRO}, ${produto.ORE_QUANTIDADE}, ${produto.ORE_VALOR}, 0, ${produto.ORE_VALOR}, 0, 0,
-                 '${produto.ORE_NOME}', 0, 0, 0, '${produto.ORE_EMBALAGEM}')
+                 '${produto.ORE_NOME.replace(/'/g, "''")}', 0, 0, 0, '${produto.ORE_EMBALAGEM}')
                  MATCHING (ORE_CODIGO)`
         }
         try {

@@ -42,7 +42,7 @@ export default function HomeLayout({ children }: homeLayoutProps) {
                     </button>
 
                     <div className="ml-1">
-                        {numUsuario === 1 ? <label className='text-red-600' > versão 23-09-2025 </label> : <></>}
+                        {numUsuario === 1 ? <label className='text-red-600' > versão 24-09-2025 </label> : <></>}
                         <Image src={logo} height={40} alt="Logo" className="p-4" />
                     </div>
 

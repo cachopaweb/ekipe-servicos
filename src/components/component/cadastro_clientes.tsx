@@ -118,7 +118,7 @@ export function Cadastro_clientes({ id, setCadastrarCliente, setListarCliente }:
 
   }
 
-    const desabilitaCliente = async () => {
+  const desabilitaCliente = async () => {
     var rep = new ClientRepository();
     if (await rep.desabilitaCliente(cliente)) {
       toastMixin.fire('Deletado', 'Cliente deletado com Sucesso!', 'warning')
@@ -341,6 +341,18 @@ export function Cadastro_clientes({ id, setCadastrarCliente, setListarCliente }:
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <div >
+                    <Label htmlFor="latitude">Latitude</Label>
+                    <Input id="latitude" value={cliente.LATITUDE}
+                      onChange={(e) => setCliente({ ...cliente, LATITUDE: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="longitude">Longitude</Label>
+                    <Input id="longitude" value={cliente.LONGITUDE}
+                      onChange={(e) => setCliente({ ...cliente, LONGITUDE: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="data_cadastro">Data Cadastro</Label>
                   <Input disabled={true} id="data_cadastro" type="text" value={dataCadastro ?? ''} />
                 </div>
@@ -376,10 +388,10 @@ export function Cadastro_clientes({ id, setCadastrarCliente, setListarCliente }:
                 <Button variant="default" className="flex-1" onClick={salvaCliente} >
                   {novoCliente ? 'Cadastrar' : 'Alterar'}
                 </Button>
-                { novoCliente ?<></> :
-                <Button variant="destructive" className="flex-1" onClick={desabilitaCliente} >
-                  Deletar
-                </Button>
+                {novoCliente ? <></> :
+                  <Button variant="destructive" className="flex-1" onClick={desabilitaCliente} >
+                    Deletar
+                  </Button>
                 }
 
               </div>

@@ -84,8 +84,8 @@ export default function Orcamentos() {
         buscaOrdemServidor();
     }, [foiFaturado])
 
-    useEffect(() => {       
-        setOrdemCtx({...OrdemCtx, ORD_CLI: clienteSelecionado.CODIGO})
+    useEffect(() => {
+        setOrdemCtx({ ...OrdemCtx, ORD_CLI: clienteSelecionado.CODIGO })
 
     }, [clienteSelecionado])
     useEffect(() => {
@@ -467,7 +467,7 @@ export default function Orcamentos() {
                 title={titulo}
                 showButtonExit={false}
                 body={
-                    <div className="grid grid-rows divide-y w-[500px]">
+                    <div className="grid grid-rows divide-y">
                         <div className="grid grid-rows">
                             <span className="mt-2">Serviço: </span>
                             <input value={osNome} onChange={(e) => setOsNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
@@ -558,59 +558,57 @@ export default function Orcamentos() {
             setShowModalSalvar(true);
 
         }
-
-
-
         return (
             <Modal showModal={showModalEdtProduto} setShowModal={setShowModalEdtProduto}
                 title={titulo}
                 showButtonExit={false}
                 body={
-                    <div className="grid grid-rows divide-y w-[500px]">
-                        <div className="grid grid-rows">
+                    <div className="grid grid-rows divide-y w-full sm:w-[500px]">
+                        <div className="grid grid-rows p-2">
                             <span className="mt-2">Produto: </span>
-                            <input value={oreNome} onChange={(e) => setOreNome(e.target.value.toUpperCase())} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
+                            <input value={oreNome} onChange={(e) => setOreNome(e.target.value.toUpperCase())} className="w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
                             </input>
                         </div>
-                        <div className="grid grid-rows">
+                        <div className="grid grid-rows p-2">
                             <span className="mt-2">Quantidade </span>
-                            <input value={oreQuantidade} step={1} onChange={(e) => setOreQuantidade(Number(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
+                            <input value={oreQuantidade} step={1} onChange={(e) => setOreQuantidade(Number(e.target.value))} className="w-24 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
                             </input>
                         </div>
-                        <div className="grid grid-rows">
+                        <div className="grid grid-rows p-2">
                             <span className="mt-2">Unidade de Medida: </span>
-                            <select value={oreEmbalagem} onChange={(e) => setOreEmbalagem(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
+                            <select value={oreEmbalagem} onChange={(e) => setOreEmbalagem(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 w-32">
                                 {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
                             </select>
                         </div>
-                        <div className="grid grid-rows">
+                        <div className="grid grid-rows p-2">
                             <span className="mt-2">Valor </span>
-                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24">
+                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 w-32">
                             </input>
                         </div>
 
-                        <div className="grid grid-cols-2">
+                        <div className="grid grid-cols-2 p-2 gap-2">
                             <button
-                                className="bg-green-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                                className="bg-green-500 text-white active:bg-green-600 font-bold uppercase p-2 text-sm rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150"
                                 type="button"
                                 onClick={() => salvar()}
                             >
-                                <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
+                                <i className="fa fa-solid fa-floppy-disk text-white mr-2"></i>
                                 Salvar
                             </button>
 
                             <button
-                                className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
+                                className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-2 text-sm rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150"
                                 type="button"
                                 onClick={() => setShowModalEdtProduto(false)}
                             >
-                                <i className="fa fa-solid fa-ban text-white p-2"></i>
+                                <i className="fa fa-solid fa-ban text-white mr-2"></i>
                                 Cancelar
                             </button>
                         </div>
                     </div>
                 }
-            />);
+            />
+        );
 
     }
 
@@ -830,7 +828,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="quant">Quant</label>
-                            <input id="edtQuantidadeServico" type="number" step=".01" onKeyDown={edtQuantServicoKeydown} value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24"  />
+                            <input id="edtQuantidadeServico" type="number" step=".01" onKeyDown={edtQuantServicoKeydown} value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="valor">Valor</label>
@@ -1071,7 +1069,7 @@ export default function Orcamentos() {
         const handleChangeQuantidadeProduto = (e: React.ChangeEvent<HTMLInputElement>) => {
             const formattedValue = formatNumber(e.target.value);
             setProduto({ ...produto, ORE_QUANTIDADE: parseFloatFromString(formattedValue) });
-          };
+        };
 
         return (
             <div ref={refDivProdutos} className="bg-white rounded-lg  shadow-md">
@@ -1313,7 +1311,7 @@ export default function Orcamentos() {
     }
 
     return (
-        <div className="lg:ml-64 lg:pl-4 lg:flex lg:flex-col lg:w-75% mx-2 h-auto overflow-hidden">
+        <div className="flex flex-col w-full min-w-0 h-auto overflow-x-hidden">
             <div className="bg-white rounded-lg shadow-md m-2">
                 <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Orçamentos</h2>
                 <div className="sm:flex gap-2">

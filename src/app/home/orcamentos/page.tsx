@@ -59,6 +59,8 @@ export default function Orcamentos() {
     const [atendente, setAtendente] = useState('');
     const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
     const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
+    const [valorDesconto, setValorDesconto] = useState(0);
+    const [valorPorcentagemDesconto, setValorPorcentagemDesconto] = useState(0);
 
     const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
     const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
@@ -84,8 +86,8 @@ export default function Orcamentos() {
         buscaOrdemServidor();
     }, [foiFaturado])
 
-    useEffect(() => {       
-        setOrdemCtx({...OrdemCtx, ORD_CLI: clienteSelecionado.CODIGO})
+    useEffect(() => {
+        setOrdemCtx({ ...OrdemCtx, ORD_CLI: clienteSelecionado.CODIGO })
 
     }, [clienteSelecionado])
     useEffect(() => {
@@ -238,11 +240,12 @@ export default function Orcamentos() {
         }
         try {
             let ord: OrdemModel | null = null;
+
             if (buscouOrdem) {
                 ord = {
                     ORD_CODIGO: codigo,
                     ORD_DATA: converterDataPontoParaTraco(FormatDate(dataAbertura)),
-                    ORD_VALOR: totalProdutos() + totalServicos(),
+                    ORD_VALOR: (totalProdutos() + totalServicos()) - (valorDesconto??0),
                     ORD_CLI: clienteSelecionado.CODIGO,
                     ORD_DESCONTO_P: 0,
                     ORD_DESCONTO_S: 0,
@@ -264,14 +267,17 @@ export default function Orcamentos() {
                     itensOrdSer: listaServicosInseridos,
                     CID_NOME: cidade.CID_NOME,
                     CID_UF: cidade.CID_UF,
-                    ORD_FORNECEDOR: parceiroSelecionado.CODIGO
+                    ORD_FORNECEDOR: parceiroSelecionado.CODIGO,
+                    ORD_VALOR_DESCONTO: valorDesconto??0,
+                    ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto??0,
+                    ORD_TOTAL_SEM_DESCONTO: (totalProdutos() + totalServicos())
                 }
             }
             else {
                 ord = {
                     ORD_CODIGO: codigo,
                     ORD_DATA: converterDataPontoParaTraco(FormatDate(new Date())),
-                    ORD_VALOR: totalProdutos() + totalServicos(),
+                    ORD_VALOR: (totalProdutos() + totalServicos()) - (valorDesconto??0),
                     ORD_CLI: clienteSelecionado.CODIGO,
                     ORD_DESCONTO_P: 0,
                     ORD_DESCONTO_S: 0,
@@ -293,7 +299,10 @@ export default function Orcamentos() {
                     itensOrdSer: listaServicosInseridos,
                     CID_NOME: cidade.CID_NOME,
                     CID_UF: cidade.CID_UF,
-                    ORD_FORNECEDOR: parceiroSelecionado.CODIGO
+                    ORD_FORNECEDOR: parceiroSelecionado.CODIGO,
+                    ORD_VALOR_DESCONTO: valorDesconto??0,
+                    ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto??0,
+                    ORD_TOTAL_SEM_DESCONTO: (totalProdutos() + totalServicos())
                 }
 
             }
@@ -377,7 +386,10 @@ export default function Orcamentos() {
             setObs_adm(ord.ORD_OBS_ADM);
             setSolicitacao(ord.ORD_SOLICITACAO);
             setStatusOrdem(ord.ORD_ESTADO);
-            setCodFatura(ord.ORD_FAT ?? 0)
+            setCodFatura(ord.ORD_FAT ?? 0);
+            setValorPorcentagemDesconto(ord.ORD_PORCENTAGEM_DESCONTO ?? 0);
+            setValorDesconto(ord.ORD_VALOR_DESCONTO ?? 0);
+
             //produtos
             const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
             if (produtos.length > 0)
@@ -830,7 +842,7 @@ export default function Orcamentos() {
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="quant">Quant</label>
-                            <input id="edtQuantidadeServico" type="number" step=".01" onKeyDown={edtQuantServicoKeydown} value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24"  />
+                            <input id="edtQuantidadeServico" type="number" step=".01" onKeyDown={edtQuantServicoKeydown} value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" />
                         </div>
                         <div className="flex flex-col p-2">
                             <label htmlFor="valor">Valor</label>
@@ -1071,7 +1083,7 @@ export default function Orcamentos() {
         const handleChangeQuantidadeProduto = (e: React.ChangeEvent<HTMLInputElement>) => {
             const formattedValue = formatNumber(e.target.value);
             setProduto({ ...produto, ORE_QUANTIDADE: parseFloatFromString(formattedValue) });
-          };
+        };
 
         return (
             <div ref={refDivProdutos} className="bg-white rounded-lg  shadow-md">
@@ -1286,6 +1298,25 @@ export default function Orcamentos() {
     }
 
     const Totalizador = () => {
+        const [valorDescontoAux, setValorDescontoAux] = useState('');
+        useEffect(() => {
+
+        }, [valorDesconto, valorPorcentagemDesconto]);
+
+        function calculaValorDesconto() {
+            const total = totalProdutos() + totalServicos();
+            const valorRealDesconto = (valorDescontoAux.replace('R$', '').replace('.', '').replace(',', '.'));   
+            const porcentagemDesconto = (parseFloat(valorRealDesconto) / total) * 100;
+            console.log('Valor Real Desconto:', valorRealDesconto);
+            console.log('Porcentagem Desconto:', porcentagemDesconto);
+            setValorDesconto(parseFloat(valorRealDesconto));
+            setValorPorcentagemDesconto(porcentagemDesconto);
+
+            return (porcentagemDesconto / 100) * total;
+
+        }
+
+
         return (
             <>
                 <div className="sm:flex justify-center items-center h-8 w-full bg-amber-300 rounded-t-md text-center shadow-lg">
@@ -1301,8 +1332,30 @@ export default function Orcamentos() {
                         <span className="text-lg font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalServicos())}</span>
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold">Valor Total OS</h4>
+                        <h4 className="text-sm font-bold">Valor Total Descontos</h4>
+                        <div className=" flex flex-col sm:flex-col sm:items-start">
+                            <div>
+                                <label className="ml-1">R$</label>
+                                <input id="edtDescontoValor" value={valorDescontoAux ?? ''} onChange={event => { mascaraMoedaEvent(event), setValorDescontoAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-blue-950 sm:w-24" type="text" />
+                                <button className="mt-2 mb-2 ml-7 w-20 h-7  text-white text-bold rounded-md bg-black hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none" onClick={calculaValorDesconto}>Aplicar</button>
+                            </div>
+                            
+                            <div className="text-sm font-bold">
+
+                                <label>{valorPorcentagemDesconto.toFixed(2)}</label>
+                                <label className="ml-1">{"% | R$ "}</label>
+                                <label>{valorDesconto}</label>
+                                
+                            </div>
+                        </div>
+                    </div>
+                     <div>
+                        <h4 className="text-sm font-bold">Valor Total OS sem desconto</h4>
                         <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0))}</span>
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold">Valor Total OS</h4>
+                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0) - (valorDesconto == null ? 0 : valorDesconto))}</span>
                     </div>
                     <div>
                         <button onClick={faturamentoOS} disabled={(codFatura > 0) || codigoOrdem === 0} className={`p-0 w-32 h-12 text-white text-bold ${(codFatura > 0) || codigoOrdem === 0 ? 'bg-gray-400' : 'bg-black'} rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}>Faturar</button>

@@ -9,11 +9,12 @@ export default class OrdemRepository {
         const sql = {
             'sql':
                 `UPDATE OR INSERT INTO ORDENS (ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_HORA, ORD_FUN, ORD_CLI, ORD_DATAC, ORD_OBS, ORD_ESTADO,
-                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT, ORD_FORNECEDOR)
+                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT, ORD_FORNECEDOR, ORD_VALOR_DESCONTO, ORD_PORCENTAGEM_DESCONTO, ORD_TOTAL_SEM_DESCONTO)
                  VALUES (${ordem.ORD_CODIGO}, '${ordem.ORD_DATA}', ${ordem.ORD_VALOR}, '${new Date().toLocaleTimeString()}',
                  ${ordem.ORD_FUN}, ${ordem.ORD_CLI}, '1900-01-01', '${ordem.ORD_OBS.replace(/'/g, "''")}', '${ordem.ORD_ESTADO}', ${ordem.ORD_DESCONTO_P},
                  ${ordem.ORD_DESCONTO_S}, '${ordem.ORD_DEVOLUCAO_P.replace(/'/g, "''")}', 0, '${ordem.ORD_SOLICITACAO.replace(/'/g, "''")}',
-                 '${ordem.ORD_OBS_ADM.replace(/'/g, "''")}', '${ordem.ORD_NFS}', ${ordem.ORD_FAT ?? 0}, ${ordem.ORD_FORNECEDOR ?? 0})
+                 '${ordem.ORD_OBS_ADM.replace(/'/g, "''")}', '${ordem.ORD_NFS}', ${ordem.ORD_FAT ?? 0}, ${ordem.ORD_FORNECEDOR ?? 0}, ${ordem.ORD_VALOR_DESCONTO ?? 0}, ${ordem.ORD_PORCENTAGEM_DESCONTO ?? 0}, 
+                 ${ordem.ORD_TOTAL_SEM_DESCONTO ?? 0})
                  MATCHING (ORD_CODIGO)`
                  /*
                 `UPDATE OR INSERT INTO ORDENS (ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_HORA, ORD_FUN, ORD_CLI, ORD_DATAC, ORD_OBS, ORD_ESTADO,
@@ -65,7 +66,8 @@ export default class OrdemRepository {
     async buscaOrdem(codigo: number): Promise<OrdemModel> {
         const sql = `SELECT ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, CLI_CNPJ_CPF, ORD_CLI, CLI_NOME,
                 CLI_FONE, CLI_BAIRRO, CLI_ENDERECO, CLI_NUMERO, ORD_OBS, ORD_ESTADO, CID_NOME, CID_UF,
-                ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FUN_NOME, ORD_FORNECEDOR
+                ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, 
+                ORD_NFS, FUN_NOME, ORD_FORNECEDOR, ORD_VALOR_DESCONTO, ORD_PORCENTAGEM_DESCONTO, ORD_TOTAL_SEM_DESCONTO
                 FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO 
                 JOIN FUNCIONARIOS ON FUN_CODIGO = ORD_FUN 
                 JOIN CIDADES ON CID_CODIGO = CLI_CID
@@ -75,6 +77,7 @@ export default class OrdemRepository {
         }
         try {
             const response = await api.post('/dataset', obj)
+            console.log('Ordem encontrada:', response.data);
             return response.data as OrdemModel;
             
         } catch (e) {

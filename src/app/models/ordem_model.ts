@@ -29,4 +29,7 @@ export default interface OrdemModel {
   itensOrdSer: OrdSerModel[];
   ORD_FORNECEDOR?: number;
   PARCEIRO?: string;
+  ORD_VALOR_DESCONTO?: number;
+  ORD_PORCENTAGEM_DESCONTO?: number;
+  ORD_TOTAL_SEM_DESCONTO?: number;
 }

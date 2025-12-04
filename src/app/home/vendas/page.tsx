@@ -1,6 +1,9 @@
 "use client"
 
 import ModalClientes, { Cliente } from "./modal_clientes";
+import ModalProdutos, { Produto, buscarProdutoPorCodigo } from "./modal_produtos";
+import ModalAtalhos from "./modal_atalhos";
+import ModalImprimir from "./modal_orcamento";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 interface ItemVenda {
@@ -17,16 +20,22 @@ export default function Vendas() {
     const [dataHora, setDataHora] = useState(new Date());
     const [items, setItems] = useState<ItemVenda[]>([]);
     const [showModalCliente, setShowModalCliente] = useState(false);
+    const [showModalProduto, setShowModalProduto] = useState(false);
+    const [showModalAtalhos, setShowModalAtalhos] = useState(false);
+    const [showModalImprimir, setShowModalImprimir] = useState(false);
 
     // Estados de inputs
     const [codProduto, setCodProduto] = useState("");
-    const [qtdProduto, setQtdProduto] = useState(1);
-    const [valorPago, setValorPago] = useState(0);
-    const [descontoGeral, setDescontoGeral] = useState(0);
+    const [qtdProduto, setQtdProduto] = useState('1');
+    const [valorPago, setValorPago] = useState('0');
+    const [descontoGeral, setDescontoGeral] = useState('0');
     const [clienteNome, setClienteNome] = useState("CONSUMIDOR");
+    const [funcionarioNome, setFuncionarioNome] = useState("FUNCIONÁRIO");
+    const [produtoPreview, setProdutoPreview] = useState("");
 
     // Refs
     const codProdutoInputRef = useRef<HTMLInputElement>(null);
+    const qtdProdutoInputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Relógio
@@ -37,27 +46,84 @@ export default function Vendas() {
         return () => clearInterval(timer);
     }, []);
 
+    useEffect(() => {
+        if (!codProduto) {
+            setProdutoPreview("");
+            return;
+        }
+
+        const executarBusca = async () => {
+            const prod = await buscarProdutoPorCodigo(codProduto);
+
+            if (prod) {
+                setProdutoPreview(prod.nome);
+            } else {
+                setProdutoPreview("PRODUTO NÃO ENCONTRADO");
+            }
+        }
+
+        executarBusca();
+    }, [codProduto]);
+
+    // Chamada sempre que um modal fecha para garantir que os atalhos voltem a funcionar
+    const restoreFocus = () => {
+        setTimeout(() => {
+            containerRef.current?.focus();
+        }, 50); // Pequeno delay para garantir que o modal já desmontou
+    };
+
     // Função chamada quando o modal seleciona alguém
     const handleSelectCliente = (cliente: Cliente) => {
         setClienteNome(cliente.nome);
         setShowModalCliente(false); // Garante o fechamento
         // Devolve o foco para o produto ou container principal
         setTimeout(() => codProdutoInputRef.current?.focus(), 100);
+        restoreFocus();
+    };
+
+    const handleSelectProduto = (produto: Produto) => {
+        setCodProduto(produto.id.toString());
+        setShowModalProduto(false);
+        // Após selecionar o produto, foca na quantidade para agilizar
+        setTimeout(() => qtdProdutoInputRef.current?.focus(), 100);
+        restoreFocus();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.defaultPrevented) return;
-        if (showModalCliente) return;
+        if (showModalCliente || showModalProduto || showModalAtalhos || showModalImprimir) return;
+
+        const target = e.target as HTMLElement;
+        const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 
         switch (e.key) {
+            case 'a':
+            case 'A':
+                if (!isInput) {
+                    e.preventDefault();
+                    setShowModalAtalhos(true);
+                }
+                break;
             case 'c':
-                e.preventDefault();
-                setShowModalCliente(true);
+            case 'C':
+                if (!isInput) {
+                    e.preventDefault();
+                    setShowModalCliente(true);
+                }
                 break;
-            case 'F2':
-                e.preventDefault();
-                alert("Focar em edição de valor (F2)");
+            case 'p':
+            case 'P':
+                if (!isInput) {
+                    e.preventDefault();
+                    setShowModalProduto(true);
+                }
                 break;
+            case 'i':
+            case 'I':
+                if (!isInput) {
+                    e.preventDefault();
+                    setShowModalImprimir(true);
+                }
             case 'F7':
                 e.preventDefault();
                 codProdutoInputRef.current?.focus();
@@ -72,7 +138,7 @@ export default function Vendas() {
                 if (window.confirm("Deseja limpar a venda atual?")) {
                     setItems([]);
                     setCodProduto("");
-                    setValorPago(0);
+                    setValorPago('0');
                 }
                 break;
             default:
@@ -81,30 +147,46 @@ export default function Vendas() {
     };
 
     const subTotal = items.reduce((acc, item) => acc + item.total, 0);
-    const totalFinal = subTotal - descontoGeral;
-    const troco = valorPago > totalFinal ? valorPago - totalFinal : 0;
+    const desconto = subTotal * parseFloat(descontoGeral) / 100;
+    const totalFinal = Number.isNaN(desconto) ? subTotal : subTotal - desconto;
+    const troco = parseFloat(valorPago) > totalFinal ? parseFloat(valorPago) - totalFinal : 0;
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     };
 
-    const handleAddItem = (e: React.FormEvent) => {
+    const handleAddItem = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!codProduto) return;
 
+        // 1. Busca os dados reais usando a função importada do modal
+        const produtoEncontrado = await buscarProdutoPorCodigo(codProduto);
+
+        // 2. Validação
+        if (!produtoEncontrado) {
+            alert("Produto não encontrado no cadastro!");
+            // Opcional: limpar campo
+            // setCodProduto(""); 
+            return;
+        }
+
+        // 3. Cria o item com os dados REAIS
         const newItem: ItemVenda = {
             id: items.length + 1,
             codigo: codProduto,
-            descricao: `PRODUTO EXEMPLO ${items.length + 1}`,
-            valorUnitario: 150.00,
-            quantidade: qtdProduto,
+            descricao: produtoEncontrado.nome, // Nome correto
+            valorUnitario: produtoEncontrado.precoVenda, // Preço correto
+            quantidade: parseInt(qtdProduto),
             desconto: 0,
-            total: 150.00 * qtdProduto
+            total: produtoEncontrado.precoVenda * parseInt(qtdProduto)
         };
 
         setItems([...items, newItem]);
+
+        // 4. Limpa para o próximo item
         setCodProduto("");
-        setQtdProduto(1);
+        setQtdProduto('1');
+        setProdutoPreview("");
         codProdutoInputRef.current?.focus();
     };
 
@@ -113,7 +195,7 @@ export default function Vendas() {
             ref={containerRef}
             onKeyDown={handleKeyDown}
             tabIndex={-1}
-            className="h-[calc(100vh-90px)] flex flex-col w-full gap-2 p-2 bg-stone-100 overflow-hidden font-sans outline-none focus:outline-none"
+            className="flex flex-col w-full gap-2 p-2 bg-stone-100 font-sans outline-none focus:outline-none h-auto min-h-screen lg:h-[calc(100vh-90px)] lg:min-h-0 overflow-y-auto lg:overflow-hidden"
         >
 
             {/* --- HEADER --- */}
@@ -136,7 +218,7 @@ export default function Vendas() {
             <div className="flex flex-col lg:flex-row gap-2 flex-1 min-h-0">
 
                 {/* === COLUNA ESQUERDA === */}
-                <div className="flex flex-col gap-2 flex-1 min-w-0 h-full">
+                <div className="flex flex-col gap-2 flex-1 min-w-0 h-auto lg:h-full">
 
                     {/* 1. Painel de Dados */}
                     <div className="bg-white px-3 py-2 w-full rounded-md shadow-sm grid grid-cols-12 gap-2 shrink-0 items-center">
@@ -151,7 +233,7 @@ export default function Vendas() {
                             </select>
                         </div>
                         <div className="col-span-5 md:col-span-8">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase block">Cliente (F1)</label>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase block">Cliente (C)</label>
                             <div className="flex gap-1">
                                 <input
                                     type="text"
@@ -171,6 +253,8 @@ export default function Vendas() {
 
                     {/* 2. Barra de Inclusão */}
                     <form onSubmit={handleAddItem} className="bg-white p-2 rounded-md shadow-sm grid grid-cols-12 gap-2 items-end shrink-0 border border-gray-200">
+
+                        {/* CÓDIGO (Col Span 3 mobile, 2 desktop) */}
                         <div className="col-span-3 md:col-span-2">
                             <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Código (F7)</label>
                             <input
@@ -182,19 +266,44 @@ export default function Vendas() {
                                 placeholder="Cód."
                             />
                         </div>
+
+                        {/* BOTÃO DE PESQUISA (AO LADO) */}
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1 truncate" title="Pesquisar (P)">Pesquisar (P)</label>
+                            <button
+                                type="button"
+                                onClick={() => setShowModalProduto(true)}
+                                className="bg-amber-400 hover:bg-amber-500 text-white w-full h-10 rounded flex items-center justify-center transition shadow-sm"
+                                title="Pesquisar Produto (P ou F6)"
+                            >
+                                <i className="fas fa-search text-sm"></i>
+                            </button>
+                        </div>
+
+                        {/* QUANTIDADE */}
                         <div className="col-span-2 md:col-span-1">
                             <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Qtd</label>
                             <input
+                                ref={qtdProdutoInputRef}
                                 type="number"
                                 value={qtdProduto}
-                                onChange={e => setQtdProduto(Number(e.target.value))}
+                                onChange={e => setQtdProduto(e.target.value)}
                                 className="w-full border border-gray-300 rounded h-10 px-1 text-lg text-center font-bold focus:border-amber-400 outline-none"
                             />
                         </div>
-                        <div className="col-span-5 md:col-span-7">
+
+                        {/* DESCRIÇÃO (Reduzi o col-span de 7 para 6 para caber o botão novo) */}
+                        <div className="col-span-3 md:col-span-6">
                             <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Descrição do Produto</label>
-                            <input disabled className="w-full border border-gray-100 bg-gray-100 rounded h-10 px-3 text-lg text-gray-400 italic" placeholder="Aguardando leitura..." />
+                            <input
+                                disabled
+                                value={produtoPreview}
+                                className={`w-full border border-gray-100 bg-gray-100 rounded h-10 px-3 text-lg font-bold italic transition-colors ${produtoPreview === "PRODUTO NÃO ENCONTRADO" ? 'text-red-400' : 'text-gray-600'}`}
+                                placeholder="Aguardando leitura..."
+                            />
                         </div>
+
+                        {/* BOTÃO INCLUIR */}
                         <div className="col-span-2 md:col-span-2">
                             <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-10 rounded shadow transition flex items-center justify-center gap-2 text-sm uppercase">
                                 <i className="fas fa-plus"></i> <span className="hidden md:inline">Incluir</span>
@@ -203,7 +312,7 @@ export default function Vendas() {
                     </form>
 
                     {/* 3. Grid de Produtos */}
-                    <div className="bg-white rounded-md shadow-sm flex-1 flex flex-col border border-gray-200 min-h-0 overflow-hidden">
+                    <div className="bg-white rounded-md shadow-sm flex-1 flex flex-col border border-gray-200 overflow-hidden min-h-[300px] lg:min-h-0">
                         <div className="bg-stone-100 border-b border-gray-200 px-1 py-2 grid grid-cols-12 gap-2 text-xs font-bold text-gray-600 uppercase text-center shrink-0 mr-1">
                             <div className="col-span-1">Item</div>
                             <div className="col-span-2 text-left pl-2">Código</div>
@@ -239,7 +348,7 @@ export default function Vendas() {
                 </div>
 
                 {/* === COLUNA DIREITA === */}
-                <div className="w-full lg:w-[300px] flex flex-col gap-2 shrink-0 h-full min-h-0">
+                <div className="w-full lg:w-[300px] flex flex-col gap-2 shrink-0 h-auto lg:h-full">
                     {/* Card Total */}
                     <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden shrink-0">
                         <div className="bg-gray-50 py-1 text-center border-b border-gray-100">
@@ -262,20 +371,22 @@ export default function Vendas() {
 
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase">Desc. (R$)</label>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase">Desc. (%)</label>
                                 <input
-                                    type="number"
+                                    placeholder="0"
+                                    type="text"
                                     value={descontoGeral}
-                                    onChange={e => setDescontoGeral(Number(e.target.value))}
+                                    onChange={e => setDescontoGeral(e.target.value.replaceAll(',', '.'))}
                                     className="w-full border border-gray-300 rounded p-1 text-right font-bold text-red-600 focus:border-red-500 outline-none text-sm"
                                 />
                             </div>
                             <div>
                                 <label className="text-[10px] font-bold text-gray-400 uppercase">Valor Pago</label>
                                 <input
-                                    type="number"
+                                    placeholder="0"
+                                    type="text"
                                     value={valorPago}
-                                    onChange={e => setValorPago(Number(e.target.value))}
+                                    onChange={e => setValorPago(e.target.value.replaceAll(',', '.'))}
                                     className="w-full border border-green-500 rounded p-1 text-right font-bold text-green-700 focus:ring-1 focus:ring-green-300 outline-none text-sm"
                                 />
                             </div>
@@ -291,57 +402,51 @@ export default function Vendas() {
                         <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-lg font-bold py-3 rounded shadow active:scale-[0.99] transition-transform uppercase tracking-wide">
                             Finalizar (F5)
                         </button>
-                    </div>
 
-                    {/* Atalhos */}
-                    <div className="bg-stone-800 text-stone-300 rounded-md p-2 text-xs font-mono shadow-inner flex-1 overflow-y-auto min-h-0">
-                        <h3 className="text-stone-500 font-bold border-b border-stone-600 pb-1 mb-2 uppercase text-[10px] tracking-wider">Teclas de Atalho</h3>
-                        <ul className="space-y-1.5">
-                            <li className="flex justify-between items-center group hover:text-white">
-                                <span>Selecionar Cliente</span>
-                                <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">C</span>
-                            </li>
-                            <li className="flex justify-between items-center group hover:text-white">
-                                <span>Editar Valor Unit.</span>
-                                <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F2</span>
-                            </li>
-                            <li className="flex justify-between items-center group hover:text-white">
-                                <span>Cadastrar Cliente</span>
-                                <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F3</span>
-                            </li>
-                            <li className="flex justify-between items-center group hover:text-white">
-                                <span>Buscar Produto</span>
-                                <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F6</span>
-                            </li>
-                            <li className="flex justify-between items-center group text-amber-400 hover:text-amber-300">
-                                <span>Focar Código</span>
-                                <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold border border-amber-500/50">F7</span>
-                            </li>
-                            <li className="flex justify-between items-center group hover:text-white">
-                                <span>Imprimir Orçamento</span>
-                                <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F8</span>
-                            </li>
-                            <li className="flex justify-between items-center group hover:text-white">
-                                <span>Reimprimir Venda</span>
-                                <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F10</span>
-                            </li>
-                            <li className="flex justify-between items-center group hover:text-white">
-                                <span>Ajuste Estoque</span>
-                                <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F12</span>
-                            </li>
-                            <li className="flex justify-between items-center text-red-300 hover:text-red-200">
-                                <span>Cancelar Venda</span>
-                                <span className="bg-red-900/50 px-1.5 py-0.5 rounded text-white font-bold">ESC</span>
-                            </li>
-                        </ul>
+                        <div className="bg-stone-800 text-stone-300 rounded-md p-2 text-xs font-mono shadow-inner flex justify-between overflow-y-auto min-h-0">
+                            <h3 className="text-stone-500 font-bold uppercase text-[10px] tracking-wider">Teclas de Atalho</h3>
+                            <h3 className="rounded bg-red-400 text-stone-800 px-1 font-bold uppercase text-[10px] tracking-wider">[A]</h3>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <ModalClientes
                 isOpen={showModalCliente}
-                onClose={() => setShowModalCliente(false)}
+                onClose={() => {
+                    setShowModalCliente(false);
+                    restoreFocus();
+                }}
                 onSelect={handleSelectCliente}
+            />
+
+            <ModalProdutos
+                isOpen={showModalProduto}
+                onClose={() => {
+                    setShowModalProduto(false);
+                    restoreFocus();
+                }}
+                onSelect={handleSelectProduto}
+            />
+
+            <ModalAtalhos
+                isOpen={showModalAtalhos}
+                onClose={() => {
+                    setShowModalAtalhos(false);
+                    restoreFocus();
+                }}
+            />
+
+            <ModalImprimir
+                isOpen={showModalImprimir}
+                onClose={() => {
+                    setShowModalImprimir(false);
+                    restoreFocus();
+                }}
+                itens={items}
+                total={totalFinal}
+                cliente={clienteNome}
+                funcionario={funcionarioNome}
             />
         </div >
     );

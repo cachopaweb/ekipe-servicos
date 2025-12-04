@@ -17,7 +17,7 @@ const PrintOrcamentos = () => {
     const [somaServicos, setSomaServicos] = useState(0);
     const [carregando, setCarregando] = useState(true);
     const [titulo, setTitulo] = useState('Orçamento');
-    const [obs, setObs] = useState <Array<string>>([])
+    const [obs, setObs] = useState<Array<string>>([])
     const [funcionario, setFuncionario] = useState<FuncionarioModel | null>(null)
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
@@ -28,11 +28,10 @@ const PrintOrcamentos = () => {
         const regex = /^(\(\d{2}\))(\d{5})(\d{4})$/;
         return telefone.replace(regex, "$1 $2-$3");
     }
-    
 
-    function stringToLinesArray(inputString:string) {
-        if(inputString === null || inputString === undefined)
-        {
+
+    function stringToLinesArray(inputString: string) {
+        if (inputString === null || inputString === undefined) {
             return [''];
         }
         return inputString.split('\n');
@@ -55,7 +54,7 @@ const PrintOrcamentos = () => {
         if (OrdemCtx!.itensOrdSer.length > 0) {
             somaServ = OrdemCtx!.itensOrdSer.map(e => e.OS_VALOR).reduce((item1, item2) => item1 + item2);
         }
-    
+
         setSomaProdutos(somaProd);
         setSomaServicos(somaServ);
         toastMixin.fire({
@@ -79,17 +78,17 @@ const PrintOrcamentos = () => {
                         <div>
                             <div className='grid grid-cols-3'>
                                 <div className='grid grid-rows-1'>
-                                <h1 className='font-bold pr-5 my-0 text-sm'>Nome do Cliente</h1>
-                                <span className='pr-5 truncate text-xs	'>{OrdemCtx!.CLI_NOME}</span>
+                                    <h1 className='font-bold pr-5 my-0 text-sm'>Nome do Cliente</h1>
+                                    <span className='pr-5 truncate text-xs	'>{OrdemCtx!.CLI_NOME}</span>
 
                                 </div>
                                 <div className='grid grid-rows-2'>
                                     <div className='grid grid-cols-2 '>
-                                    
-                                    <h1 className='font-bold my-0 text-sm'>CNPJ/CPF</h1>
+
+                                        <h1 className='font-bold my-0 text-sm'>CNPJ/CPF</h1>
                                     </div>
-                                        <div className='grid grid-cols-2'>
-                                        
+                                    <div className='grid grid-cols-2'>
+
                                         <span className='truncate text-xs'>{OrdemCtx!.CLI_CNPJ_CPF}</span>
                                     </div>
                                 </div>
@@ -119,7 +118,7 @@ const PrintOrcamentos = () => {
                                 </div>
                                 <div className='grid grid-rows-2'>
                                     <h1 className='font-bold my-0 text-sm'>Cidade</h1>
-                                    <span className='truncate text-xs'>{`${OrdemCtx!.CID_NOME?OrdemCtx!.CID_NOME:''}/${OrdemCtx!.CID_UF?OrdemCtx!.CID_UF:''}`}</span>
+                                    <span className='truncate text-xs'>{`${OrdemCtx!.CID_NOME ? OrdemCtx!.CID_NOME : ''}/${OrdemCtx!.CID_UF ? OrdemCtx!.CID_UF : ''}`}</span>
                                 </div>
                                 <div className='grid grid-rows-2'>
                                     <h1 className='font-bold my-0 text-sm'>Telefone</h1>
@@ -199,34 +198,87 @@ const PrintOrcamentos = () => {
                                 </tbody>
                             </table>
                         </div>
-                        <div>
-                            <div className='grid grid-cols-8 font-bold'>
-                                <span className='text-sm'>Observação: </span>
-                                <span className='text-sm col-span-5 text-end'> Valor Geral:</span>
-                                <div></div>
-                                <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_VALOR)}</span>
-                            </div>
-                            
-                            {obs ? obs.map((obs) => 
+                        {(OrdemCtx.ORD_VALOR_DESCONTO == 0 || OrdemCtx.ORD_VALOR_DESCONTO == undefined || OrdemCtx.ORD_VALOR_DESCONTO == null) ?
+
+                            <div>
+                                <div className='grid grid-cols-8 font-bold'>
+                                    <span className='text-sm'>Observação: </span>
+                                    <span className='text-sm col-span-5 text-end'> Valor Geral:</span>
+                                    <div></div>
+                                    <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_VALOR)}</span>
+                                </div>
+
+                                {obs ? obs.map((obs) =>
                                     <p key={obs} className='text-start text-xs'>
                                         {obs}
-                                    </p>                                                            
-                             ) : <></>}
+                                    </p>
+                                ) : <></>}
 
-                            
 
-                            <div className='text-end pt-16 grid-rows-3 pr-6'>
-                                <div>
-                                    <span className='font-bold text-xl' >{OrdemCtx!.FUN_NOME}</span>
-                                </div>
-                                <div>
-                                    <span>{funcionario?.FUN_EMAIL}</span>
-                                </div>
-                                <div>
-                                    <span>{formatarNumero(funcionario?.FUN_FONE??"(00)000000000")} </span>
+
+                                <div className='text-end pt-16 grid-rows-3 pr-6'>
+                                    <div>
+                                        <span className='font-bold text-xl' >{OrdemCtx!.FUN_NOME}</span>
+                                    </div>
+                                    <div>
+                                        <span>{funcionario?.FUN_EMAIL}</span>
+                                    </div>
+                                    <div>
+                                        <span>{formatarNumero(funcionario?.FUN_FONE ?? "(00)000000000")} </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                            :
+                            <div>
+                                <div className='grid grid-cols-8 font-bold'>
+                                <span></span>
+                                    <span className='text-sm col-span-5 text-end'> Total:</span>
+                                    <div></div>
+                                    <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_TOTAL_SEM_DESCONTO)}</span>
+                                </div>
+
+
+                                <div className='grid grid-cols-8 font-bold relative'>
+                                    <span className='text-sm'> </span>
+                                    <span className='text-sm col-span-5 text-end'> Desconto:</span>
+                                    <div></div>
+                                    <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_VALOR_DESCONTO)}</span>
+                                </div>
+
+                                <div className='grid grid-cols-8 font-bold'>
+                                    <span className='text-sm'> </span>
+                                    <span className='text-sm col-span-5 text-end'> Valor Geral:</span>
+                                    <div></div>
+                                    <span className='text-sm text-start'> {formatCurrency(OrdemCtx!.ORD_VALOR)}</span>
+                                </div>
+
+                                    <div className='grid grid-cols-8 font-bold'>
+                                        <span className='text-sm'>Observação: </span>
+
+                                    </div>
+                                    {obs ? obs.map((obs) =>
+                                        <p key={obs} className='text-start text-xs' style={{ width: 'fit-content' }}>
+                                            {obs}
+                                        </p>
+                                    ) : <></>}
+
+
+
+                                <div className='text-end pt-16 grid-rows-3 pr-6'>
+                                    <div>
+                                        <span className='font-bold text-xl' >{OrdemCtx!.FUN_NOME}</span>
+                                    </div>
+                                    <div>
+                                        <span>{funcionario?.FUN_EMAIL}</span>
+                                    </div>
+                                    <div>
+                                        <span>{formatarNumero(funcionario?.FUN_FONE ?? "(00)000000000")} </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        }
+
                     </div>
                     <button
                         id="botaoImpressao"

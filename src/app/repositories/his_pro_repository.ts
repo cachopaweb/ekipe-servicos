@@ -2,8 +2,12 @@ import { FormatDate } from "../functions/utils";
 import HisProModel from "../models/his_pro_model"
 import api from "../services/api"
 
-export default class HisProRepository{
-    async insereHisPro(hp: HisProModel): Promise<boolean>{
+export default class HisProRepository {
+    async insereHisPro(hp: HisProModel): Promise<boolean> {
+        if (hp.HP_ORIGEM.length > 30) {
+            hp.HP_ORIGEM = hp.HP_ORIGEM.substring(0, 30);
+        }
+
         try {
             const response = await api.post('/dataset', {
                 'sql': `UPDATE OR INSERT INTO HIS_PRO (HP_CODIGO, HP_DATA, HP_PRO, HP_ORIGEM, HP_DOC, HP_QUANTIDADE, HP_VALORC, HP_VALORV,
@@ -14,7 +18,7 @@ export default class HisProRepository{
             })
             return response.status === 200;
         } catch (error) {
-            throw new Error('Erro ao inserir HisPro.\n'+String(error))
+            throw new Error('Erro ao inserir HisPro.\n' + String(error))
         }
     }
 }

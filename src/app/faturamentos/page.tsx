@@ -83,11 +83,10 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
             const repository = new TipoPgmRepository();
             const tp = await repository.buscaTipoPgm(tipo);
             setListaTipoPgm(tp);
-            if(tp)
-            {
+            if (tp) {
                 setCodTipoPgm(tp[0].TP_CODIGO);
             }
-            
+
         } catch (error) {
             toastMixin.fire('Erro ao buscar tipo pgm', String(error), 'error');
         }
@@ -144,7 +143,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                     PP_DUPLICATA: `${codFatura}-1/${numParcelas! + 1}`,
                     PP_DESCONTOS: 0,
                     PP_JUROS: 0,
-                    PP_ESTADO: 2,
+                    PP_ESTADO: 3, // 3 é pago 1 em aberto
                     PP_PF: codPedFat,
                     PP_TP: tipoPgm!.TP_CODIGO,
                     PP_VALOR: vlrEntrada!,
@@ -176,11 +175,11 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
             PP_DUPLICATA: `${codFatura}-${nparcela}/${vlrEntrada && vlrEntrada > 0 ? numParcelas! + 1 : numParcelas}`,
             PP_DESCONTOS: 0,
             PP_JUROS: 0,
-            PP_ESTADO: 2,
+            PP_ESTADO: tipoPgm?.TP_CODIGO == 0 ? 3 : 1, // 3 é pago 1 em aberto
             PP_PF: codPedFat,
             PP_TP: tipoPgm!.TP_CODIGO,
             PP_VALOR: valorParcela!,
-            PP_VALORPG: 0,
+            PP_VALORPG: tipoPgm?.TP_CODIGO == 0 ? valorParcela! : 0,
             PP_VENCIMENTO: vencimento,
             DescricaoTipoPgm: tipoPgm!.TP_DESCRICAO
         }

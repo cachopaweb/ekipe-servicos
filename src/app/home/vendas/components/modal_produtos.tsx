@@ -1,7 +1,8 @@
 "use client";
 
-import ProdutoRepository from "@/app/repositories/produto_repository";
 import { useState, useEffect, useRef, useCallback } from "react";
+
+import ProdutoRepository from "@/app/repositories/produto_repository";
 
 // Definição do Tipo Produto
 export interface Produto {
@@ -28,13 +29,32 @@ const MOCK_PRODUTOS: Produto[] = [
   { id: 11, nome: "DESINCRUSTANTE LP 5L", ncm: "38249941", estoque: 21, custo: 68.10, precoVenda: 168.56, fabricante: "PISOCLEAN", grupo: "LIMPEZA PESADA" },
 ];
 
-// --- FUNÇÃO DE BUSCA (SIMULA O BACKEND) ---
 // O componente principal usará isso para validar o código digitado
-export const buscarProdutoPorCodigo = async (codigo: string) => {
+export const buscarProdutoPorCodigo = async (codigo: string, quantItemsUsados: number) => {
   const produtoRepository = new ProdutoRepository();
+
+  // Busca no banco de dados
   const response = await produtoRepository.getProdutoPorCodigo(parseInt(codigo));
-  console.log(response);
-  return MOCK_PRODUTOS.find(p => p.id.toString() === codigo);
+
+  // Se não encontrar produto, retorna null ou undefined
+  if (!response) return null;
+
+  // Validação de Estoque
+  const estoqueAtual = response.PRO_QUANTIDADE ?? 0;
+
+  if (estoqueAtual < 1 || estoqueAtual - quantItemsUsados < 1) {
+    throw new Error(`O produto ${response.PRO_NOME} esgotou.`);
+  }
+
+  const produto = {
+    codigo: response.PRO_CODIGO,
+    nome: response.PRO_NOME,
+    estoque: estoqueAtual,
+    precoVenda: response.PRO_VALORV ?? 0,
+    fabricante: response.PRO_FABRICANTE,
+  };
+
+  return produto;
 };
 
 interface ModalProdutosProps {

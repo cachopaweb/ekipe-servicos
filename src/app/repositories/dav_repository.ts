@@ -2,9 +2,9 @@ import { FormatDate } from "../functions/utils";
 import { DAVModel, DAVProModel } from "../models/dav_model";
 import api from "../services/api";
 
-export default class DAVRepository{
-    async insereDAV(dav: DAVModel): Promise<boolean>{
-        try {            
+export default class DAVRepository {
+    async insereDAV(dav: DAVModel): Promise<boolean> {
+        try {
             const response = await api.post('/dataset', {
                 'sql': `UPDATE OR INSERT INTO DAV (DAV_CODIGO, DAV_DATA, DAV_HORA, DAV_FUN, DAV_VALOR, DAV_CLI, DAV_FORMAS_PGM, DAV_VALIDADE,
                         DAV_ESTADO, DAV_NOVO, DAV_FUNCAO, DAV_VENDA, DAV_CLIENTE, DAV_CPF_CNPJ, DAV_FATURA)
@@ -15,12 +15,12 @@ export default class DAVRepository{
             })
             return response.status === 200;
         } catch (error) {
-            throw new Error('Erro ao inserir DAV.\n'+String(error));
+            throw new Error('Erro ao inserir DAV.\n' + String(error));
         }
     }
 
-    async insereDAVPro(davPro: DAVProModel): Promise<boolean>{
-        try {            
+    async insereDAVPro(davPro: DAVProModel): Promise<boolean> {
+        try {
             const response = await api.post('/dataset', {
                 'sql': `UPDATE OR INSERT INTO DAV_PRO (DP_CODIGO, DP_DAV, DP_PRO, DP_QUANTIDADE, DP_VALOR, DP_VALORR, DP_VALORL, DP_VALORF,
                         DP_LUCRO, DP_ALIQICMS, DP_NOME, DP_GTIN, DP_EMBALAGEM, DP_CANCELADO, DP_DATA, DP_NITEM,
@@ -33,7 +33,7 @@ export default class DAVRepository{
             })
             return response.status === 200;
         } catch (error) {
-            throw new Error('Erro ao inserir DAVPro.\n'+String(error));
+            throw new Error('Erro ao inserir DAVPro.\n' + String(error));
         }
     }
 }

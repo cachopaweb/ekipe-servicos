@@ -1,26 +1,18 @@
 "use client"
 
+import { VenEstModel } from "@/app/models/ven_est_model";
 import { useState, useEffect, useRef, useCallback } from "react";
 
-interface ItemVenda {
-  id: number;
-  codigo: string;
-  descricao: string;
-  valorUnitario: number;
-  quantidade: number;
-  total: number;
-}
-
-interface ModalImprimirProps {
+interface ModalImprimirOrcamentoProps {
   isOpen: boolean;
   onClose: () => void;
-  itens: ItemVenda[];
+  itens: VenEstModel[];
   total: number;
   cliente: string;
   funcionario: string;
 }
 
-export default function ModalImprimir({ isOpen, onClose, itens, total, cliente, funcionario }: ModalImprimirProps) {
+export default function ModalImprimirOrcamento({ isOpen, onClose, itens, total, cliente, funcionario }: ModalImprimirOrcamentoProps) {
   const [observacoes, setObservacoes] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const obsRef = useRef<HTMLTextAreaElement>(null);
@@ -81,10 +73,10 @@ export default function ModalImprimir({ isOpen, onClose, itens, total, cliente, 
                         ${itens.map((item, idx) => `
                             <tr>
                                 <td>${String(idx + 1).padStart(2, '0')}</td>
-                                <td>${item.descricao.substring(0, 15)}</td>
-                                <td class="right">${item.quantidade}</td>
-                                <td class="right">${item.valorUnitario.toFixed(2)}</td>
-                                <td class="right">${item.total.toFixed(2)}</td>
+                                <td>${item.VE_NOME.substring(0, 15)}</td>
+                                <td class="right">${item.VE_QUANTIDADE}</td>
+                                <td class="right">${(item.VE_VALOR / item.VE_QUANTIDADE).toFixed(2)}</td>
+                                <td class="right">${item.VE_VALOR.toFixed(2)}</td>
                             </tr>
                         `).join('')}
                     </tbody>

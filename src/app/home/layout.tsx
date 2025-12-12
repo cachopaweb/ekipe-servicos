@@ -1,13 +1,13 @@
 "use client"
 
 import Image from 'next/image';
-
 import logo from '../../../assets/logo.png'
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAppData } from '../contexts/app_context';
 import Modal from '@/components/component/modal';
 import Usuarios from '../usuarios/usuarios';
+import PerfilUsuario from '../usuarios/perfil_usuario';
 
 interface homeLayoutProps {
     children: ReactNode;
@@ -16,10 +16,13 @@ interface homeLayoutProps {
 export default function HomeLayout({ children }: homeLayoutProps) {
     const { ultRota, setUltRota } = useAppData();
     const { usuarioLogado } = useAppData();
+
+    // Estados do Menu e Modais
     const [open, setOpen] = useState(false);
     const [numUsuario, setNumUsuario] = useState(0);
     const [showModalTelaUsuarios, setShowModalTelaUsuarios] = useState(false);
 
+    const [showModalPerfil, setShowModalPerfil] = useState(false);
 
     useEffect(() => {
         if (usuarioLogado != null) {
@@ -27,7 +30,7 @@ export default function HomeLayout({ children }: homeLayoutProps) {
                 setNumUsuario(Number(usuarioLogado.USU_FUN));
             }
         }
-    }, [])
+    }, [usuarioLogado])
 
     function abreTelaUsuarios() {
         setShowModalTelaUsuarios(true);
@@ -36,19 +39,26 @@ export default function HomeLayout({ children }: homeLayoutProps) {
     return (
         <div className="bg-stone-100 min-h-screen flex flex-col">
             <nav className="bg-white border-b border-gray-300 sticky top-0 z-50 h-16">
-                <div className="flex justify-between items-center px-9">
+                <div className="flex justify-between items-center px-9 h-full">
                     <button id="menuBtn" onClick={e => setOpen(!open)}>
                         <i className="fas fa-bars text-amber-500 text-lg"></i>
                     </button>
 
-                    <div className="ml-1">
-                        {numUsuario === 1 ? <label className='text-red-600' > versão 27-10-2025 </label> : <></>}
-                        <Image src={logo} height={40} alt="Logo" className="p-4" />
+                    <div className="flex flex-col items-center justify-center">
+                        {numUsuario === 1 ? <label className='text-red-600 text-xs' > versão 27-10-2025 </label> : <></>}
+
+                        <Link
+                            href="/home"
+                            onClick={() => setUltRota('home')}
+                            className="cursor-pointer hover:opacity-80 transition-opacity"
+                            title="Ir para o Início"
+                        >
+                            <Image src={logo} height={40} alt="Logo" className="mt-1 h-8 w-auto object-contain" priority />
+                        </Link>
                     </div>
 
-                    <div className="space-x-6">
+                    <div className="space-x-6 flex items-center">
                         {numUsuario === 1 || numUsuario === 2 ?
-
                             <button onClick={abreTelaUsuarios}>
                                 <i className="fas fa-users text-amber-500 text-lg"></i>
                             </button> : <></>}
@@ -56,7 +66,8 @@ export default function HomeLayout({ children }: homeLayoutProps) {
                         <button>
                             <i className="fas fa-bell text-amber-500 text-lg"></i>
                         </button>
-                        <button>
+
+                        <button onClick={() => setShowModalPerfil(true)} title="Meu Perfil">
                             <i className="fas fa-user text-amber-500 text-lg"></i>
                         </button>
                     </div>
@@ -66,7 +77,7 @@ export default function HomeLayout({ children }: homeLayoutProps) {
             <div
                 id="sideNav"
                 className={`fixed left-0 z-40 w-64 h-screen bg-white border-none rounded-none 
-                transition-transform duration-300 ease-in-out pt-20
+                transition-transform duration-300 ease-in-out pt-20 shadow-xl
                 ${open ? 'translate-x-0' : '-translate-x-full'}`}
             >
                 <div className="p-4 space-y-4">
@@ -105,12 +116,14 @@ export default function HomeLayout({ children }: homeLayoutProps) {
                     </Link>
                 </div>
             </div>
+
             <main className={`
                     flex-1 p-4 transition-all duration-300 ease-in-out 
                     ${open ? 'lg:ml-64' : 'lg:ml-0'}
                 `}>
                 {children}
             </main>
+
             {open && (
                 <div
                     className="fixed inset-0 bg-black bg-opacity-25 z-30 lg:hidden"
@@ -119,11 +132,24 @@ export default function HomeLayout({ children }: homeLayoutProps) {
             )}
 
             {showModalTelaUsuarios &&
-                <Modal showModal={showModalTelaUsuarios} setShowModal={setShowModalTelaUsuarios}
+                <Modal
+                    showModal={showModalTelaUsuarios}
+                    setShowModal={setShowModalTelaUsuarios}
                     title="Usuários"
                     showButtonExit={false}
                     body={<Usuarios />}
-                />}
+                />
+            }
+
+            {showModalPerfil &&
+                <Modal
+                    showModal={showModalPerfil}
+                    setShowModal={setShowModalPerfil}
+                    title="Meu Perfil"
+                    showButtonExit={true}
+                    body={<PerfilUsuario />}
+                />
+            }
         </div >
     )
 }

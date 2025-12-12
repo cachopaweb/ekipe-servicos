@@ -52,20 +52,16 @@ export default function ModalAtalhos({ isOpen, onClose }: ModalAtalhosProps) {
             <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">P</span>
           </li>
           <li className="flex justify-between items-center group hover:text-white">
-            <span>Focar Código</span>
-            <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F7</span>
-          </li>
-          <li className="flex justify-between items-center group hover:text-white">
             <span>Imprimir Orçamento</span>
             <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">I</span>
           </li>
           <li className="flex justify-between items-center group hover:text-white">
             <span>Reimprimir Venda</span>
-            <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F10</span>
+            <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">R</span>
           </li>
           <li className="flex justify-between items-center group hover:text-white">
-            <span>Ajuste Estoque</span>
-            <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F12</span>
+            <span>Focar Código</span>
+            <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F7</span>
           </li>
           <li className="flex justify-between items-center text-red-300 hover:text-red-200">
             <span>Cancelar Venda</span>

@@ -3,6 +3,11 @@ import { VenEstModel } from "../models/ven_est_model";
 import { VendaModel } from "../models/venda_model";
 import api from "../services/api";
 
+export interface VendaComNomes extends VendaModel {
+  CLI_NOME: string;
+  FUN_NOME: string;
+}
+
 export default class VendaRepository {
   async insereVenda(venda: VendaModel): Promise<boolean> {
     const dataFormatada = dataFormatadaHojeDotValueInput(new Date());
@@ -63,6 +68,71 @@ export default class VendaRepository {
       return obj;
     } catch (eror) {
       throw new Error('Erro ao buscar venda');
+    }
+  }
+
+  async getVendas(busca: string, tipo: 'codigo' | 'cliente'): Promise<VendaComNomes[]> {
+    try {
+      let whereClause = "";
+
+      // Se busca for vazia, traz as últimas 50
+      if (!busca) {
+        whereClause = "1=1";
+      } else if (tipo === 'codigo') {
+        // Previne erro de SQL se digitar texto no filtro de código
+        const codigo = parseInt(busca) || 0;
+        whereClause = `V.VEN_CODIGO = ${codigo}`;
+      } else {
+        whereClause = `C.CLI_NOME LIKE '%${busca.toUpperCase()}%'`;
+      }
+
+      // JOIN com Clientes e Funcionários para pegar os nomes
+      const SQL = `
+                SELECT FIRST 50 
+                    V.*, 
+                    C.CLI_NOME, 
+                    F.FUN_NOME 
+                FROM VENDAS V
+                LEFT JOIN CLIENTES C ON V.VEN_CLI = C.CLI_CODIGO
+                LEFT JOIN FUNCIONARIOS F ON V.VEN_FUN = F.FUN_CODIGO
+                WHERE ${whereClause}
+                ORDER BY V.VEN_CODIGO DESC
+            `;
+
+      const response = await api.post('/dataset', { 'sql': SQL });
+
+      let data = [];
+      if (response.data instanceof Array) {
+        data = response.data;
+      } else if (response.data) {
+        data = [response.data];
+      }
+      return data;
+    } catch (error) {
+      console.error("Erro ao buscar lista de vendas:", error);
+      return [];
+    }
+  }
+
+  // Busca os itens de uma venda específica para impressão
+  async getItensVenda(codigoVenda: number): Promise<VenEstModel[]> {
+    try {
+      const SQL = `
+                SELECT VE.* FROM VEN_EST VE
+                WHERE VE.VE_VEN = ${codigoVenda}
+            `;
+      const response = await api.post('/dataset', { 'sql': SQL });
+
+      let data = [];
+      if (response.data instanceof Array) {
+        data = response.data;
+      } else if (response.data) {
+        data = [response.data];
+      }
+      return data;
+    } catch (error) {
+      console.error("Erro ao buscar itens da venda:", error);
+      return [];
     }
   }
 }

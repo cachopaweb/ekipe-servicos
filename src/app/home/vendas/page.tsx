@@ -705,8 +705,6 @@ export default function Vendas() {
                     setShowModalReimprimirVenda(false);
                     restoreFocus();
                 }}
-                funcionario={funcionario?.FUN_NOME ?? "FUNCIONÁRIO NÃO IDENTIFICADO"}
-                cliente={cliente != null ? cliente.NOME : "CONSUMIDOR"}
             />
 
             {showModalFinalizar && <Modal

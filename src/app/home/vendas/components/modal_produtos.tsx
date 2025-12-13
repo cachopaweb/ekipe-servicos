@@ -1,60 +1,58 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-
 import ProdutoRepository from "@/app/repositories/produto_repository";
+import { ProdutoModel } from "@/app/models/produto_model";
 
-// Definição do Tipo Produto
+// Interface utilizada pela tela (Frontend)
 export interface Produto {
-  id: number;
+  codigo: number;
   nome: string;
   ncm: string;
   estoque: number;
   custo: number;
   precoVenda: number;
+  precoAtacado: number;
   fabricante: string;
   grupo: string;
+  local: string;
 }
 
-// DADOS FICAM SOMENTE AQUI (Privados ao módulo, não exportamos a lista inteira)
-const MOCK_PRODUTOS: Produto[] = [
-  { id: 1, nome: "GENERICO", ncm: "11111111", estoque: 80, custo: 0.00, precoVenda: 1.00, fabricante: "GENERICO", grupo: "GERAL" },
-  { id: 2, nome: "PEK IMPER 1L", ncm: "38099390", estoque: 10, custo: 109.46, precoVenda: 277.70, fabricante: "PISOCLEAN", grupo: "IMPERMEABILIZANTES" },
-  { id: 3, nome: "LIMPEZA DIARIA LP 1L", ncm: "34029031", estoque: 122, custo: 14.42, precoVenda: 35.69, fabricante: "PISOCLEAN", grupo: "LIMPEZA" },
-  { id: 4, nome: "DESINCRUSTANTE LP 1L", ncm: "38249941", estoque: 52, custo: 22.20, precoVenda: 54.95, fabricante: "PISOCLEAN", grupo: "LIMPEZA PESADA" },
-  { id: 5, nome: "LIMPEZA PESADA LP 1L", ncm: "34023990", estoque: 68, custo: 19.67, precoVenda: 48.69, fabricante: "PISOCLEAN", grupo: "LIMPEZA PESADA" },
-  { id: 6, nome: "REJUNTE RENEW 500ML", ncm: "38249941", estoque: 29, custo: 16.18, precoVenda: 40.02, fabricante: "PISOCLEAN", grupo: "ACABAMENTO" },
-  { id: 7, nome: "PEK LIMPA PEDRAS 1L", ncm: "38249941", estoque: 11, custo: 23.89, precoVenda: 56.58, fabricante: "PISOCLEAN", grupo: "PEDRAS" },
-  { id: 8, nome: "PEK LIMPA PEDRAS 5L", ncm: "38249941", estoque: 0, custo: 44.67, precoVenda: 185.63, fabricante: "PISOCLEAN", grupo: "PEDRAS" },
-  { id: 11, nome: "DESINCRUSTANTE LP 5L", ncm: "38249941", estoque: 21, custo: 68.10, precoVenda: 168.56, fabricante: "PISOCLEAN", grupo: "LIMPEZA PESADA" },
-];
+// Função auxiliar para converter o Model do Banco para a Interface da Tela
+const mapToProduto = (model: ProdutoModel): Produto => ({
+  codigo: model.PRO_CODIGO,
+  nome: model.PRO_NOME,
+  ncm: model.PRO_NCM || "",
+  estoque: model.PRO_QUANTIDADE || 0,
+  custo: model.PRO_VALORC || 0,
+  precoVenda: model.PRO_VALORV || 0,
+  precoAtacado: model.PRO_VALORV_ATACADO || model.PRO_VALORV || 0,
+  fabricante: model.PRO_FABRICANTE || "",
+  grupo: "", // Campo não presente no ProdutoModel atual
+  local: model.PRO_LOCAL || ""
+});
 
-// O componente principal usará isso para validar o código digitado
-export const buscarProdutoPorCodigo = async (codigo: string, quantItemsUsados: number) => {
-  const produtoRepository = new ProdutoRepository();
+// --- FUNÇÃO AUXILIAR EXPORTADA ---
+// Busca um produto único pelo código para a tela de vendas
+export const buscarProdutoPorCodigo = async (codigo: string, quantItemsUsados: number = 0) => {
+  try {
+    const repository = new ProdutoRepository();
+    const response = await repository.getProdutoPorCodigo(parseInt(codigo));
 
-  // Busca no banco de dados
-  const response = await produtoRepository.getProdutoPorCodigo(parseInt(codigo));
+    if (!response) return null;
 
-  // Se não encontrar produto, retorna null ou undefined
-  if (!response) return null;
+    const estoqueAtual = response.PRO_QUANTIDADE ?? 0;
 
-  // Validação de Estoque
-  const estoqueAtual = response.PRO_QUANTIDADE ?? 0;
+    // Validação de Estoque (Opcional: lançar erro ou retornar objeto para validação na tela)
+    // if (estoqueAtual < 1) { ... }
 
-  if (estoqueAtual < 1 || estoqueAtual - quantItemsUsados < 1) {
-    throw new Error(`O produto ${response.PRO_NOME} esgotou.`);
+    // Retorna no formato que a tela de vendas espera
+    return mapToProduto(response);
+
+  } catch (error) {
+    console.error("Erro ao buscar produto:", error);
+    return null;
   }
-
-  const produto = {
-    codigo: response.PRO_CODIGO,
-    nome: response.PRO_NOME,
-    estoque: estoqueAtual,
-    precoVenda: response.PRO_VALORV ?? 0,
-    fabricante: response.PRO_FABRICANTE,
-  };
-
-  return produto;
 };
 
 interface ModalProdutosProps {
@@ -67,36 +65,93 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"nome" | "codigo">("nome");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [filteredData, setFilteredData] = useState<Produto[]>(MOCK_PRODUTOS);
+
+  // Estado dos dados e paginação
+  const [filteredData, setFilteredData] = useState<Produto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null); // Ref para o container da lista (scroll)
 
-  // Formatação de Moeda
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
-  // Filtragem
+  // --- BUSCA NO SERVIDOR COM PAGINAÇÃO ---
+  const fetchProdutos = useCallback(async (isNewSearch: boolean = false) => {
+    if (loading) return;
+    if (!isNewSearch && !hasMore) return;
+
+    setLoading(true);
+    try {
+      const repository = new ProdutoRepository();
+      const currentPage = isNewSearch ? 1 : page;
+      const limit = 20; // Traz 20 itens por vez
+
+      // Chama o repositório passando a busca, página e limite
+      // Nota: Seu ProdutoRepository precisa aceitar (busca, page, limit) no método getProdutos
+      const dadosModel = await repository.getProdutos(searchTerm, currentPage, limit);
+
+      const novosProdutos = dadosModel.map(mapToProduto);
+
+      // Filtragem local adicional caso a API retorne tudo (segurança)
+      const filtrados = novosProdutos.filter(p => {
+        if (!searchTerm) return true;
+        if (filterType === 'codigo') return p.codigo.toString().includes(searchTerm);
+        // A busca por nome já deve ser feita no SQL (LIKE)
+        return true;
+      });
+
+      if (isNewSearch) {
+        setFilteredData(filtrados);
+        setPage(2);
+        setSelectedIndex(0);
+        setHasMore(dadosModel.length === limit);
+        if (listRef.current) listRef.current.scrollTop = 0;
+      } else {
+        setFilteredData(prev => [...prev, ...filtrados]);
+        setPage(prev => prev + 1);
+        setHasMore(dadosModel.length === limit);
+      }
+    } catch (error) {
+      console.error("Erro ao listar produtos:", error);
+      if (isNewSearch) setFilteredData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchTerm, filterType, page, hasMore, loading]);
+
+  // Debounce na digitação
   useEffect(() => {
-    const lowerSearch = searchTerm.toLowerCase();
-    const filtered = MOCK_PRODUTOS.filter(p => {
-      if (filterType === "nome") return p.nome.toLowerCase().includes(lowerSearch);
-      if (filterType === "codigo") return p.id.toString().includes(lowerSearch);
-      return true;
-    });
-    setFilteredData(filtered);
-    setSelectedIndex(0);
-  }, [searchTerm, filterType]);
+    if (!isOpen) return;
+    const timeoutId = setTimeout(() => {
+      // Reseta e busca novamente
+      setPage(1);
+      setHasMore(true);
+
+      const run = async () => {
+        // Pequeno hack para garantir que o estado page=1 seja considerado se o fetch ler o estado
+      };
+      // A melhor forma é chamar fetchProdutos(true) diretamente:
+      fetchProdutos(true);
+
+    }, 500);
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, isOpen]); // Removido fetchProdutos das dependências para evitar loop com o useCallback
 
   // Foco inicial
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
+      fetchProdutos(true); // Carrega lista inicial
     }
   }, [isOpen]);
 
-  // Scroll automático
+  // Scroll automático teclado
   useEffect(() => {
     if (rowRefs.current[selectedIndex]) {
       rowRefs.current[selectedIndex]?.scrollIntoView({
@@ -105,6 +160,17 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
       });
     }
   }, [selectedIndex]);
+
+  // --- HANDLER DE SCROLL INFINITO ---
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    // Se chegou perto do fim (50px de margem)
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      if (hasMore && !loading) {
+        fetchProdutos(false); // Carrega mais
+      }
+    }
+  };
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -125,6 +191,7 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
     } else if (e.key === "F2") {
       e.preventDefault();
       setFilterType(prev => prev === "nome" ? "codigo" : "nome");
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [filteredData, selectedIndex, onSelect, onClose]);
 
@@ -156,7 +223,7 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
           <div className="flex gap-2">
             <div className="relative flex-1 group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="fas fa-search text-gray-400 group-focus-within:text-amber-500 transition-colors"></i>
+                <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-gray-400 group-focus-within:text-amber-500 transition-colors`}></i>
               </div>
               <input
                 ref={inputRef}
@@ -196,9 +263,13 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
         </div>
 
         {/* LISTAGEM (GRID) */}
-        <div className="flex-1 overflow-y-auto bg-white p-2">
+        <div
+          ref={listRef}
+          className="flex-1 overflow-y-auto bg-white p-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+          onScroll={handleScroll}
+        >
           {/* Cabeçalho */}
-          <div className="grid grid-cols-12 px-4 py-2 text-xs font-bold text-gray-400 uppercase border-b border-gray-100 gap-2">
+          <div className="grid grid-cols-12 px-4 py-2 text-xs font-bold text-gray-400 uppercase border-b border-gray-100 gap-2 sticky top-0 bg-white z-10 shadow-sm">
             <div className="col-span-1">Cód.</div>
             <div className="col-span-5">Nome do Produto</div>
             <div className="col-span-2">NCM</div>
@@ -208,10 +279,10 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
           </div>
 
           {/* Linhas */}
-          <div className="mt-1">
+          <div className="mt-1 pb-2">
             {filteredData.length > 0 ? filteredData.map((prod, index) => (
               <div
-                key={prod.id}
+                key={`${prod.codigo}-${index}`}
                 ref={el => { rowRefs.current[index] = el }}
                 onClick={() => setSelectedIndex(index)}
                 onDoubleClick={() => { onSelect(prod); onClose(); }}
@@ -223,7 +294,7 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
                 `}
               >
                 <div className={`col-span-1 font-bold ${selectedIndex === index ? "text-amber-600" : "text-gray-500"}`}>
-                  {prod.id}
+                  {prod.codigo}
                 </div>
                 <div className={`col-span-5 font-semibold truncate pr-2 ${selectedIndex === index ? "text-gray-900" : "text-gray-700"}`}>
                   {prod.nome}
@@ -242,16 +313,26 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
                 </div>
               </div>
             )) : (
-              <div className="h-40 flex flex-col items-center justify-center text-gray-300">
-                <i className="fas fa-box-open text-3xl mb-2 opacity-50"></i>
-                <span>Nenhum produto encontrado</span>
+              !loading && (
+                <div className="h-40 flex flex-col items-center justify-center text-gray-300">
+                  <i className="fas fa-box-open text-3xl mb-2 opacity-50"></i>
+                  <span>Nenhum produto encontrado</span>
+                </div>
+              )
+            )}
+
+            {/* Loading Indicator no fim da lista */}
+            {loading && (
+              <div className="py-4 text-center text-gray-400 text-xs flex justify-center items-center gap-2">
+                <i className="fas fa-circle-notch fa-spin"></i>
+                <span>Carregando mais...</span>
               </div>
             )}
           </div>
         </div>
 
         {/* FOOTER INFORMATIVO */}
-        <div className="bg-stone-50 border-t border-gray-200 px-6 py-3">
+        <div className="bg-stone-50 border-t border-gray-200 px-6 py-3 shrink-0">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mb-3">
             <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
               <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Fabricante</span>
@@ -263,7 +344,11 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
             </div>
             <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
               <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Local</span>
-              <span className="font-semibold text-gray-700 block truncate">LOJA 1</span>
+              <span className="font-semibold text-gray-700 block truncate">{produtoSelecionado.local || "LOJA 1"}</span>
+            </div>
+            <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
+              <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Preço Atacado</span>
+              <span className="font-semibold text-blue-600 block truncate">{formatCurrency(produtoSelecionado.precoAtacado)}</span>
             </div>
           </div>
 

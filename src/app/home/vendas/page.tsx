@@ -215,7 +215,7 @@ export default function Vendas() {
     };
 
     const handleSelectProduto = (produto: Produto) => {
-        setCodProduto(produto.id.toString());
+        setCodProduto(produto.codigo.toString());
         setShowModalProduto(false);
         // Após selecionar o produto, foca na quantidade para agilizar
         setTimeout(() => qtdProdutoInputRef.current?.focus(), 100);

@@ -29,7 +29,7 @@ interface propsCadastroFornecedores {
 
 export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarFornecedor }: propsCadastroFornecedores) {
 
-  const [fornecedor, setFornecedor] = useState<FornecedorModel>({ CODIGO: 0, NOME: '' , ESTADO:'ATIVO'});
+  const [fornecedor, setFornecedor] = useState<FornecedorModel>({ CODIGO: 0, NOME: '', ESTADO: 'ATIVO' });
   const [ehCpf, setEhCpf] = useState(true);
   const [valorLimiteAux, setvalorLimiteAux] = useState('');
   const [dataCadastro, setDataCadastro] = useState<string | null>(formatDateDB(DataHoje()));
@@ -113,8 +113,7 @@ export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarForn
 
   const insereLatLongEndereco = async () => {
     const repo = new CidadeRepository();
-    if(fornecedor.ENDERECO && fornecedor.BAIRRO && fornecedor.CIDADE && fornecedor.END_NUMERO)
-    {
+    if (fornecedor.ENDERECO && fornecedor.BAIRRO && fornecedor.CIDADE && fornecedor.END_NUMERO) {
       const endereco = fornecedor.ENDERECO + ', ' + fornecedor.END_NUMERO;
       const latLong = await repo.getLatitudeLongitude({ endereco: fornecedor.ENDERECO ?? '', bairro: fornecedor.BAIRRO ?? '', cidadeEstado: fornecedor.CIDADE ?? '' });
       console.log('endereco:', endereco, 'bairro:', fornecedor.BAIRRO, 'cidade:', fornecedor.CIDADE, 'latLong:', latLong);
@@ -238,7 +237,7 @@ export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarForn
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="limite">EMAIL</Label>
-                  <Input id="email" value={fornecedor.EMAIL} onChange={e => setFornecedor({ ...fornecedor, EMAIL: e.target.value.toUpperCase()})} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
+                  <Input id="email" value={fornecedor.EMAIL} onChange={e => setFornecedor({ ...fornecedor, EMAIL: e.target.value.toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ind_insc_estadual">Indicador da Insc. Estadual</Label>

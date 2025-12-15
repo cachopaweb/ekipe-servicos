@@ -43,9 +43,6 @@ export const buscarProdutoPorCodigo = async (codigo: string, quantItemsUsados: n
 
     const estoqueAtual = response.PRO_QUANTIDADE ?? 0;
 
-    // Validação de Estoque (Opcional: lançar erro ou retornar objeto para validação na tela)
-    // if (estoqueAtual < 1) { ... }
-
     // Retorna no formato que a tela de vendas espera
     return mapToProduto(response);
 

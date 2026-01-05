@@ -47,6 +47,26 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
         setShowModal(false);
     }
 
+        const desativaCliente = (model: ClienteModel)=> {
+        Swal.fire({
+            title: 'Atenção',
+            text: `Deseja desativar o cliente ${model.NOME}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim',
+            cancelButtonText: 'Não'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+            const repository = new ClientRepository();
+            await repository.desabilitaCliente(model);
+            Swal.fire('Sucesso', 'Cliente desativado com sucesso.', 'success');
+            setShowModal(false);
+            }
+            else {
+                Swal.fire('Operação cancelada', '', 'info');
+            }})
+    }
+
     return (
         <>
             <Modal
@@ -111,6 +131,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
                                         <td className="sm:px-4 sm:py-2 text-left">
                                             <div>
                                                 <button onClick={()=> selecionarCliente(item)} className="bg-green-700 p-2 text-xs rounded-xl shadow-sm text-white">Escolher</button>
+                                                <button onClick={()=> desativaCliente(item)} className="bg-red-700 p-2 text-xs rounded-xl shadow-sm text-white">Desativar</button>
                                             </div>
                                         </td>                                                            
                                     </tr>

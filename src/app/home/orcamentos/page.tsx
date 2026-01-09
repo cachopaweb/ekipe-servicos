@@ -245,7 +245,7 @@ export default function Orcamentos() {
                 ord = {
                     ORD_CODIGO: codigo,
                     ORD_DATA: converterDataPontoParaTraco(FormatDate(dataAbertura)),
-                    ORD_VALOR: (totalProdutos() + totalServicos()) - (valorDesconto??0),
+                    ORD_VALOR: (totalProdutos() + totalServicos()) - (valorDesconto ?? 0),
                     ORD_CLI: clienteSelecionado.CODIGO,
                     ORD_DESCONTO_P: 0,
                     ORD_DESCONTO_S: 0,
@@ -268,8 +268,8 @@ export default function Orcamentos() {
                     CID_NOME: cidade.CID_NOME,
                     CID_UF: cidade.CID_UF,
                     ORD_FORNECEDOR: parceiroSelecionado.CODIGO,
-                    ORD_VALOR_DESCONTO: valorDesconto??0,
-                    ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto??0,
+                    ORD_VALOR_DESCONTO: valorDesconto ?? 0,
+                    ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto ?? 0,
                     ORD_TOTAL_SEM_DESCONTO: (totalProdutos() + totalServicos())
                 }
             }
@@ -277,7 +277,7 @@ export default function Orcamentos() {
                 ord = {
                     ORD_CODIGO: codigo,
                     ORD_DATA: converterDataPontoParaTraco(FormatDate(new Date())),
-                    ORD_VALOR: (totalProdutos() + totalServicos()) - (valorDesconto??0),
+                    ORD_VALOR: (totalProdutos() + totalServicos()) - (valorDesconto ?? 0),
                     ORD_CLI: clienteSelecionado.CODIGO,
                     ORD_DESCONTO_P: 0,
                     ORD_DESCONTO_S: 0,
@@ -300,8 +300,8 @@ export default function Orcamentos() {
                     CID_NOME: cidade.CID_NOME,
                     CID_UF: cidade.CID_UF,
                     ORD_FORNECEDOR: parceiroSelecionado.CODIGO,
-                    ORD_VALOR_DESCONTO: valorDesconto??0,
-                    ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto??0,
+                    ORD_VALOR_DESCONTO: valorDesconto ?? 0,
+                    ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto ?? 0,
                     ORD_TOTAL_SEM_DESCONTO: (totalProdutos() + totalServicos())
                 }
 
@@ -1303,7 +1303,7 @@ export default function Orcamentos() {
 
         function calculaValorDesconto() {
             const total = totalProdutos() + totalServicos();
-            const valorRealDesconto = (valorDescontoAux.replace('R$', '').replace('.', '').replace(',', '.'));   
+            const valorRealDesconto = (valorDescontoAux.replace('R$', '').replace('.', '').replace(',', '.'));
             const porcentagemDesconto = (parseFloat(valorRealDesconto) / total) * 100;
             console.log('Valor Real Desconto:', valorRealDesconto);
             console.log('Porcentagem Desconto:', porcentagemDesconto);
@@ -1337,17 +1337,17 @@ export default function Orcamentos() {
                                 <input id="edtDescontoValor" value={valorDescontoAux ?? ''} onChange={event => { mascaraMoedaEvent(event), setValorDescontoAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-blue-950 sm:w-24" type="text" />
                                 <button className="mt-2 mb-2 ml-7 w-20 h-7  text-white text-bold rounded-md bg-black hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none" onClick={calculaValorDesconto}>Aplicar</button>
                             </div>
-                            
+
                             <div className="text-sm font-bold">
 
                                 <label>{valorPorcentagemDesconto.toFixed(2)}</label>
                                 <label className="ml-1">{"% | R$ "}</label>
                                 <label>{valorDesconto}</label>
-                                
+
                             </div>
                         </div>
                     </div>
-                     <div>
+                    <div>
                         <h4 className="text-sm font-bold">Valor Total OS sem desconto</h4>
                         <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0))}</span>
                     </div>

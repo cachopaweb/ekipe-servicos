@@ -353,9 +353,7 @@ export default function Vendas() {
         try {
             let quantItemsUsados = 0;
             items.forEach(item => {
-                if (item.VE_PRO.toString() === codProduto) {
-                    quantItemsUsados += item.VE_QUANTIDADE;
-                }
+                if (item.VE_PRO.toString() === codProduto) quantItemsUsados += item.VE_QUANTIDADE;
             });
 
             const produtoEncontrado = await buscarProdutoPorCodigo(codProduto);
@@ -372,24 +370,44 @@ export default function Vendas() {
                 return;
             }
 
-            // Define preços e tipo inicial
-            const precoVarejo = produtoEncontrado.precoVenda;
-            const precoAtacado = produtoEncontrado.precoAtacado || produtoEncontrado.precoVenda;
+            const indexExistente = items.findIndex(item => item.VE_PRO === produtoEncontrado.codigo);
 
-            const newItem: ItemVendaEstendido = {
-                VE_CODIGO: await IncrementaGenerator('GEN_VE'),
-                VE_VALOR: precoVarejo * qtdDesejada,
-                VE_QUANTIDADE: qtdDesejada,
-                VE_VEN: codUltimaVenda + 1,
-                VE_PRO: produtoEncontrado.codigo,
-                VE_NOME: produtoEncontrado.nome,
-                // Novos campos
-                precoVarejo: precoVarejo,
-                precoAtacado: precoAtacado,
-                tipoPreco: 'VAREJO'
-            };
+            if (indexExistente >= 0) {
+                setItems(prevItems => {
+                    const novosItens = [...prevItems];
+                    const itemExistente = novosItens[indexExistente];
 
-            setItems([...items, newItem]);
+                    const novaQuantidade = itemExistente.VE_QUANTIDADE + qtdDesejada;
+                    const precoUnitario = itemExistente.tipoPreco === 'ATACADO' ? itemExistente.precoAtacado : itemExistente.precoVarejo;
+
+                    novosItens[indexExistente] = {
+                        ...itemExistente,
+                        VE_QUANTIDADE: novaQuantidade,
+                        VE_VALOR: precoUnitario * novaQuantidade
+                    };
+
+                    return novosItens;
+                });
+            } else {
+                const precoVarejo = produtoEncontrado.precoVenda;
+                const precoAtacado = produtoEncontrado.precoAtacado || produtoEncontrado.precoVenda;
+
+                const newItem: ItemVendaEstendido = {
+                    VE_CODIGO: await IncrementaGenerator('GEN_VE'),
+                    VE_VALOR: precoVarejo * qtdDesejada,
+                    VE_QUANTIDADE: qtdDesejada,
+                    VE_VEN: codUltimaVenda + 1,
+                    VE_PRO: produtoEncontrado.codigo,
+                    VE_NOME: produtoEncontrado.nome,
+                    precoVarejo: precoVarejo,
+                    precoAtacado: precoAtacado,
+                    tipoPreco: 'VAREJO'
+                };
+
+                setItems(prev => [...prev, newItem]);
+            }
+
+            // Limpa os campos após adicionar/atualizar
             setCodProduto("");
             setQtdProduto('1');
             setProdutoPreview("");

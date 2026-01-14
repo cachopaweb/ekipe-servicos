@@ -8,22 +8,26 @@ import ModalAtalhos from "./components/modal_atalhos";
 import ModalImprimirOrcamento from "./components/modal_orcamento";
 import ModalReimprimirVenda from "./components/modal_reimprimir_venda";
 import ModalImprimirVenda from "./components/modal_imprimir_venda";
+import ModalConfirmacao from "./components/modal_confirmar";
 import Faturamentos from "@/app/faturamentos/page";
 
 import UsuarioRepository from "@/app/repositories/usuario_repository";
 import VendaRepository from "@/app/repositories/venda_repository";
-import ProdutoRepository from "@/app/repositories/produto_repository";
 
 import { FuncionarioModel } from "@/app/models/usuario_model";
 import { VendaModel } from "@/app/models/venda_model";
-import { VenEstModel } from "@/app/models/ven_est_model";
+import mapItemPedidoParaItemVenda, { VenEstModel } from "@/app/models/ven_est_model";
 import { ClienteModel } from "@/app/models/cliente_model";
+import mapItemVendaParaItemPedido, { PedEstModel } from "@/app/models/ped_est_model";
 
 import { useAppData } from "@/app/contexts/app_context";
 import Modal from "@/components/component/modal";
 import OperacaoVenda from "@/app/faturamentos/implementations/operacao_venda";
-import { ProdutoModel } from "@/app/models/produto_model";
 import { IncrementaGenerator } from "@/app/functions/utils";
+import { PedidoModel } from "@/app/models/pedido_model";
+import PedidoRepository from "@/app/repositories/pedido_repository";
+import ModalBuscarVenda from "./components/modal_buscar_venda";
+import ClientRepository from "@/app/repositories/cliente_repository";
 
 // Interface estendida para controlar Varejo/Atacado localmente
 interface ItemVendaEstendido extends VenEstModel {
@@ -52,6 +56,21 @@ export default function Vendas() {
     const [showModalImprimirOrcamento, setshowModalImprimirOrcamento] = useState(false);
     const [showModalReimprimirVenda, setShowModalReimprimirVenda] = useState(false);
     const [showModalFinalizar, setShowModalFinalizar] = useState(false);
+    const [showModalBuscarVenda, setShowModalBuscarVenda] = useState(false);
+
+    const [confirmacao, setConfirmacao] = useState<{
+        isOpen: boolean;
+        tipo: 'danger' | 'success' | 'warning' | 'info';
+        titulo: string;
+        mensagem: string;
+        acaoConfirmar: () => void;
+    }>({
+        isOpen: false,
+        tipo: 'info',
+        titulo: '',
+        mensagem: '',
+        acaoConfirmar: () => { }
+    });
 
     const [foiFaturado, setFoiFaturado] = useState(false);
 
@@ -135,10 +154,21 @@ export default function Vendas() {
         }
     };
 
+    const handleRemovePedidoPosVenda = async (codVenda: number) => {
+        const pedidoRepository = new PedidoRepository();
+
+        try {
+            await pedidoRepository.removePedidosEProdutos(codVenda);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     // --- EFEITO: LIMPEZA PÓS-FATURAMENTO ---
     useEffect(() => {
         if (foiFaturado) {
             if (venda) {
+                handleRemovePedidoPosVenda(venda.VEN_CODIGO);
                 const desconto = descontoReais.replace(',', '.') || '0';
                 setDescontoFloat(parseFloat(desconto));
                 setVendaRecemFinalizada(venda);
@@ -308,6 +338,129 @@ export default function Vendas() {
         }
     }
 
+    const handleSalvarPedido = async () => {
+        if (items.length === 0) {
+            alert("Adicione produtos antes de salvar a venda.");
+        } else {
+            const pedCod = await IncrementaGenerator('GEN_PED');
+
+            const itemsPedido: PedEstModel[] = await Promise.all(
+                items.map(async (item) => await mapItemVendaParaItemPedido(item, pedCod))
+            );
+            const novoPedido: PedidoModel = {
+                PED_CODIGO: pedCod,
+                PED_CLI: cliente?.CODIGO || 1,
+                PED_DATA: new Date().toISOString(),
+                PED_FUN: Number(usuarioLogado?.USU_FUN) || 1,
+                PED_TIPO: "Confirmar",
+                PED_VALOR: totalFinal,
+                itensPedEst: itemsPedido
+            };
+
+            const pedidoRepository = new PedidoRepository();
+            try {
+                await pedidoRepository.inserePedido(novoPedido);
+                for (const pedido of itemsPedido) {
+                    await pedidoRepository.insereProdutos(pedido);
+                }
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }
+    }
+
+    const fecharConfirmacao = () => {
+        setConfirmacao(prev => ({ ...prev, isOpen: false }));
+        restoreFocus();
+    };
+
+    // Salva a venda em formato de orçamento
+    const handleSalvarVenda = () => {
+        items.length > 0 && setConfirmacao({
+            isOpen: true,
+            tipo: 'warning',
+            titulo: 'Salvar Venda?',
+            mensagem: 'Todos os itens da venda atual serão salvos em formato de ordem.',
+            acaoConfirmar: () => {
+                handleSalvarPedido();
+                setItems([]);
+                setCodProduto("");
+                setQtdProduto('1');
+                setValorPago('');
+                setDescontoPorcentagem('');
+                setDescontoReais('');
+                setCliente(null);
+                setTotalFinal(0);
+                fecharConfirmacao();
+            }
+        });
+    }
+
+    const handleSelectVendaSalva = async (pedido: PedidoModel) => {
+        try {
+            const clientRepository = new ClientRepository();
+            const clienteEncontrado = await clientRepository.getClienteById(pedido.PED_CLI);
+
+            const pedidoRepository = new PedidoRepository();
+            const itemsPedido = await pedidoRepository.getItensPedido(pedido.PED_CODIGO);
+
+            const novosItens: ItemVendaEstendido[] = await Promise.all(itemsPedido.map(async (item) => {
+                const itemVendaBase = mapItemPedidoParaItemVenda(item, pedido.PED_CODIGO);
+
+                const produtoDados = await buscarProdutoPorCodigo(itemVendaBase.VE_PRO.toString());
+
+                const precoVarejo = produtoDados ? produtoDados.precoVenda : (itemVendaBase.VE_VALOR / itemVendaBase.VE_QUANTIDADE);
+                const precoAtacado = produtoDados ? (produtoDados.precoAtacado || produtoDados.precoVenda) : precoVarejo;
+
+                const valorUnitarioNoPedido = itemVendaBase.VE_VALOR / itemVendaBase.VE_QUANTIDADE;
+                const isAtacado = Math.abs(valorUnitarioNoPedido - precoAtacado) < 0.01;
+
+                return {
+                    ...itemVendaBase,
+                    precoVarejo: precoVarejo,
+                    precoAtacado: precoAtacado,
+                    tipoPreco: isAtacado ? 'ATACADO' : 'VAREJO'
+                };
+            }));
+
+            setItems(novosItens);
+            setCliente(clienteEncontrado);
+
+            const vendaPedido: VendaCompleta = {
+                VEN_CLI: pedido.PED_CLI,
+                VEN_CODIGO: pedido.PED_CODIGO,
+                VEN_DATA: pedido.PED_DATA,
+                VEN_HORA: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                VEN_FUN: Number(usuarioLogado?.USU_FUN) || 1,
+                VEN_NF: 0,
+                VEN_DIFERENCA: 0,
+                VEN_DATAC: new Date().toISOString(),
+                VEN_FAT: 1,
+                VEN_DAV: 0,
+                VEN_VENDEDOR: Number(usuarioLogado?.USU_FUN) || 1,
+                VEN_DEVOLUCAO_P: 'N',
+                VEN_VALOR: pedido.PED_VALOR,
+                CLI_NOME: clienteEncontrado.NOME,
+                FUN_NOME: funcionario?.FUN_NOME, // Mantém o funcionário logado atual ou busca do pedido se tiver
+                itensVenEst: novosItens // Usa a lista convertida
+            };
+
+            setVenda(vendaPedido);
+
+            // Fecha modal e limpa inputs auxiliares
+            setShowModalBuscarVenda(false);
+            setCodProduto("");
+            setQtdProduto('1');
+            setProdutoPreview("");
+            restoreFocus();
+
+        } catch (error) {
+            console.error("Erro ao carregar venda salva:", error);
+            alert("Erro ao carregar os itens do pedido.");
+        }
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.defaultPrevented) return;
         if (showModalFinalizar || showModalCliente || showModalProduto || showModalAtalhos || showModalImprimirOrcamento || showModalReimprimirVenda || vendaRecemFinalizada) return;
@@ -322,6 +475,8 @@ export default function Vendas() {
             case 'i': case 'I': if (!isInput) { e.preventDefault(); setshowModalImprimirOrcamento(true); } break;
             case 'r': case 'R': if (!isInput) { e.preventDefault(); setShowModalReimprimirVenda(true); } break;
             case 'f': case 'F': if (!isInput) { e.preventDefault(); handleFinalizarVenda(); } break;
+            case 's': case 'S': if (!isInput) { e.preventDefault(); handleSalvarVenda(); } break;
+            case 'b': case 'B': if (!isInput) { e.preventDefault(); setShowModalBuscarVenda(true); } break;
             case 'F7': e.preventDefault(); codProdutoInputRef.current?.focus(); break;
             case 'Escape':
                 e.preventDefault();
@@ -661,6 +816,21 @@ export default function Vendas() {
                 funcionario={funcionario?.FUN_NOME ?? "FUNCIONÁRIO"}
                 cliente={cliente?.NOME ?? "CONSUMIDOR"}
                 itens={items}
+            />
+
+            <ModalConfirmacao
+                isOpen={confirmacao.isOpen}
+                onClose={fecharConfirmacao}
+                onConfirm={confirmacao.acaoConfirmar}
+                title={confirmacao.titulo}
+                message={confirmacao.mensagem}
+                type={confirmacao.tipo}
+            />
+
+            <ModalBuscarVenda
+                isOpen={showModalBuscarVenda}
+                onClose={() => setShowModalBuscarVenda(false)}
+                onSelect={handleSelectVendaSalva}
             />
         </div >
     );

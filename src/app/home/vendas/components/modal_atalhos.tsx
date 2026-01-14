@@ -60,6 +60,14 @@ export default function ModalAtalhos({ isOpen, onClose }: ModalAtalhosProps) {
             <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">R</span>
           </li>
           <li className="flex justify-between items-center group hover:text-white">
+            <span>Salvar Venda</span>
+            <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">S</span>
+          </li>
+          <li className="flex justify-between items-center group hover:text-white">
+            <span>Buscar Venda</span>
+            <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">B</span>
+          </li>
+          <li className="flex justify-between items-center group hover:text-white">
             <span>Focar Código</span>
             <span className="bg-stone-700 px-1.5 py-0.5 rounded text-white font-bold group-hover:bg-amber-500">F7</span>
           </li>

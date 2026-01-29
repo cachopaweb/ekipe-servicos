@@ -49,6 +49,7 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
 
         const desativaCliente = (model: ClienteModel)=> {
         Swal.fire({
+            theme: 'dark',
             title: 'Atenção',
             text: `Deseja desativar o cliente ${model.NOME}?`,
             icon: 'warning',

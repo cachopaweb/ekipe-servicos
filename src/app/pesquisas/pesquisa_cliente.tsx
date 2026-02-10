@@ -64,7 +64,13 @@ export default function PesquisaCliente({ showModal, setShowModal, setClienteSel
             setShowModal(false);
             }
             else {
-                Swal.fire('Operação cancelada', '', 'info');
+                Swal.fire({
+                    theme: 'dark',
+                    title: 'Operação cancelada',
+                    text: '',       
+                    icon: 'info'
+                });
+                //Swal.fire('Operação cancelada', '', 'info');
             }})
     }
 

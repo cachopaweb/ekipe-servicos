@@ -7,7 +7,10 @@ export default class UsuarioRepository {
             const response = await api.post('/login', {
                 'login': usuario,
                 'senha': senha,
+            }, {
+                headers: { 'Content-Type': 'application/json' }
             });
+
 
             return response.status === 200;
         } catch (error) {

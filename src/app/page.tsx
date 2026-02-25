@@ -15,14 +15,19 @@ import { useAppData } from "./contexts/app_context";
 export default function Login() {
   const [user, setUser] = useState('');
   const [passw, setPassw] = useState('');
+  const [rememberUser, setRememberUser] = useState(false);
   const [users, setUsers] = useState<UsuarioModel[]>([]);
   const router = useRouter();
   const {setUsuarioLogado} = useAppData();
   useEffect(() => {
-    getUsers();
+    const usuarioSalvo = localStorage.getItem('usuario_salvo');
+    if (usuarioSalvo) {
+      setUser(usuarioSalvo);
+      setRememberUser(true);
+    }
   }, [])
 
-  const getUsers = async () => {
+ /* const getUsers = async () => {
     const repository = new UsuarioRepository();
     try {
       const usuarios = await repository.getUsers();
@@ -33,18 +38,24 @@ export default function Login() {
     } catch (error) {
       toastMixin.fire('Falha ao buscar usuários', String(error), 'error')
     }
-  }
+  } */
 
   const fazerLogin = async (event: FormEvent) => {
     event.preventDefault();
     const repository = new UsuarioRepository();
     try {
       if (user === '') {
-        toastMixin.fire('Atenção', 'Usuário não escolhido', 'info')
+        toastMixin.fire('Atenção', 'Usuário não informado', 'info')
         return;
       }
       const sucess: boolean = await repository.login(user, passw);
       if (sucess) {
+        if (rememberUser) { // salva o usuário no localStorage se a opção "Lembrar usuário" estiver marcada
+          localStorage.setItem('usuario_salvo', user);
+        } else {
+          localStorage.removeItem('usuario_salvo');
+        }
+
         toastMixin.fire('Aguarde...', 'Logando no servidor', 'info')
         users.forEach(usuario =>{
           if(usuario.USU_LOGIN == user)
@@ -72,13 +83,16 @@ export default function Login() {
               <Image src={logo} height={50} alt="Logo" />
             </div>
             <form onSubmit={(e) => fazerLogin(e)}>
-              <div className="mb-4 text-lg">
-                <select className="rounded-3xl w-full border-2 border-black-400 bg-black-50 bg-opacity-50 px-6 py-2  text-center 
-               placeholder-black-200 shadow-lg outline-none backdrop-blur-md text-black" value={user} onChange={(e) => setUser(e.target.value)} name="login">
-                  {users.map((u) => <option key={u.USU_CODIGO} value={u.USU_LOGIN} className="w-96">{u.USU_LOGIN}</option>)}
-                </select>
+              <div className="mb-4 text-lg"> 
+                <input className="rounded-3xl w-full border-2 border-black-400 bg-black-50 bg-opacity-50 px-6 py-2  text-center 
+                  placeholder-black-200 shadow-lg outline-none backdrop-blur-md text-black" value={user} onChange={(e) => setUser(e.target.value)} type="text" name="login"
+                  placeholder="Usuário">  
+                </input>
               </div>
-
+              <div className="mb-4 flex items-center" > 
+                <input type="checkbox" checked={rememberUser} onChange={(e) => setRememberUser(e.target.checked)} className="mr-2" id="rememberUser" />
+                <label htmlFor="rememberUser" className="text-black">Lembrar usuário</label> 
+              </div>
               <div className="mb-4 text-lg">
                 <input className="rounded-3xl border-2 border-black-400 bg-black-50 bg-opacity-50 px-6 py-2 text-center 
                placeholder-black-200 shadow-lg outline-none backdrop-blur-md text-black w-full"

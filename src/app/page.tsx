@@ -18,7 +18,7 @@ export default function Login() {
   const [rememberUser, setRememberUser] = useState(false);
   const [users, setUsers] = useState<UsuarioModel[]>([]);
   const router = useRouter();
-  const {setUsuarioLogado} = useAppData();
+  const { setUsuarioLogado } = useAppData();
   useEffect(() => {
     const usuarioSalvo = localStorage.getItem('usuario_salvo');
     if (usuarioSalvo) {
@@ -27,7 +27,7 @@ export default function Login() {
     }
   }, [])
 
- /* const getUsers = async () => {
+  const getUsers = async () => {
     const repository = new UsuarioRepository();
     try {
       const usuarios = await repository.getUsers();
@@ -38,7 +38,7 @@ export default function Login() {
     } catch (error) {
       toastMixin.fire('Falha ao buscar usuários', String(error), 'error')
     }
-  } */
+  }
 
   const fazerLogin = async (event: FormEvent) => {
     event.preventDefault();
@@ -48,8 +48,8 @@ export default function Login() {
         toastMixin.fire('Atenção', 'Usuário não informado', 'info')
         return;
       }
-      const sucess: boolean = await repository.login(user, passw);
-      if (sucess) {
+      const usuario = await repository.login(user, passw);
+      if (usuario) {
         if (rememberUser) { // salva o usuário no localStorage se a opção "Lembrar usuário" estiver marcada
           localStorage.setItem('usuario_salvo', user);
         } else {
@@ -57,14 +57,13 @@ export default function Login() {
         }
 
         toastMixin.fire('Aguarde...', 'Logando no servidor', 'info')
-        users.forEach(usuario =>{
-          if(usuario.USU_LOGIN == user)
-          {
-            localStorage.setItem('usuario_logado', JSON.stringify(usuario));
-            setUsuarioLogado(usuario);
-          }
-        })
-        router.push('/home')
+        const usuario = await repository.login(user, passw);
+        if (usuario) {
+          localStorage.setItem('usuario_logado', JSON.stringify(usuario));
+          setUsuarioLogado(usuario);
+          router.push('/home');
+        }
+        // removi o users.forEach
       } else {
         toastMixin.fire('Falha ao logar', 'usuário ou senha incorretos', 'error')
       }
@@ -83,15 +82,15 @@ export default function Login() {
               <Image src={logo} height={50} alt="Logo" />
             </div>
             <form onSubmit={(e) => fazerLogin(e)}>
-              <div className="mb-4 text-lg"> 
+              <div className="mb-4 text-lg">
                 <input className="rounded-3xl w-full border-2 border-black-400 bg-black-50 bg-opacity-50 px-6 py-2  text-center 
                   placeholder-black-200 shadow-lg outline-none backdrop-blur-md text-black" value={user} onChange={(e) => setUser(e.target.value)} type="text" name="login"
-                  placeholder="Usuário">  
+                  placeholder="Usuário">
                 </input>
               </div>
-              <div className="mb-4 flex items-center" > 
+              <div className="mb-4 flex items-center" >
                 <input type="checkbox" checked={rememberUser} onChange={(e) => setRememberUser(e.target.checked)} className="mr-2" id="rememberUser" />
-                <label htmlFor="rememberUser" className="text-black">Lembrar usuário</label> 
+                <label htmlFor="rememberUser" className="text-black">Lembrar usuário</label>
               </div>
               <div className="mb-4 text-lg">
                 <input className="rounded-3xl border-2 border-black-400 bg-black-50 bg-opacity-50 px-6 py-2 text-center 

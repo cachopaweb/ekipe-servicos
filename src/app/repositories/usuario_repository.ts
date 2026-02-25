@@ -2,31 +2,29 @@ import api from "../services/api";
 import { FuncionarioModel, UsuarioModel } from "../models/usuario_model";
 
 export default class UsuarioRepository {
-    async login(usuario: string, senha: string): Promise<boolean> {
+    async login(login: string, senha: string): Promise<UsuarioModel | null> {
         try {
-            const response = await api.post('/login', {
-                'login': usuario,
-                'senha': senha,
-            }, {
+            const response = await api.post('/login', { login, senha }, {
                 headers: { 'Content-Type': 'application/json' }
             });
 
-
-            return response.status === 200;
+            if (response.status === 200) {
+                return response.data as UsuarioModel; // servidor retorna o usuário autenticado
+            }
+            return null;
         } catch (error) {
             throw new Error('Usuario ou senha incorretos.');
         }
     }
 
-
     async mudaEstadoUsuario(usuario: UsuarioModel): Promise<boolean> {
 
-        var estado:string = ''
+        var estado: string = ''
 
         if (usuario.FUN_ESTADO === 'ATIVO') {
             estado = 'INATIVO'
         }
-        else{
+        else {
             estado = 'ATIVO'
         }
 

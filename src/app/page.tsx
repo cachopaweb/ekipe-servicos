@@ -23,8 +23,8 @@ export default function Login() {
       setRememberUser(true);
     }
   }, [])
-  // useState nao era mais necessario
-
+  // getUsers nao era mais necessario
+  
   const fazerLogin = async (event: FormEvent) => {
     event.preventDefault();
     const repository = new UsuarioRepository();
@@ -33,23 +33,24 @@ export default function Login() {
         toastMixin.fire('Atenção', 'Usuário não informado', 'info')
         return;
       }
-      const usuario = await repository.login(user, passw);
-      if (usuario) {
+      const success = await repository.login(user, passw);
+      if (success) {
+        toastMixin.fire('Aguarde...', 'Logando no servidor', 'info')
+        const users = await repository.getUsers(); // busca os usuários para manter em cache
+        const usuarioEncontrado = users.find(u => u.USU_LOGIN === user);
+      if (usuarioEncontrado) { 
+        localStorage.setItem('usuario_logado', JSON.stringify(usuarioEncontrado));
+        setUsuarioLogado(usuarioEncontrado);
+      }
+
         if (rememberUser) { // salva o usuário no localStorage se a opção "Lembrar usuário" estiver marcada
           localStorage.setItem('usuario_salvo', user);
         } else {
           localStorage.removeItem('usuario_salvo');
         }
-
-        toastMixin.fire('Aguarde...', 'Logando no servidor', 'info')
-        const usuario = await repository.login(user, passw);
-        if (usuario) {
-          localStorage.setItem('usuario_logado', JSON.stringify(usuario));
-          setUsuarioLogado(usuario);
           router.push('/home');
-        }
-        // removi o users.forEach
-      } else {
+              
+      }else {
         toastMixin.fire('Falha ao logar', 'usuário ou senha incorretos', 'error')
       }
     }

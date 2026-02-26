@@ -5,17 +5,30 @@ export default class UsuarioRepository {
     async login(login: string, senha: string): Promise<UsuarioModel | null> {
         try {
             const response = await api.post('/login', { login, senha }, {
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                validateStatus: function (status) {
+                    return status <500;
+                }
             });
 
             if (response.status === 200) {
                 return response.data as UsuarioModel; // servidor retorna o usuário autenticado
+            } // adicionei tratamento de erros mais específico para status 401 e 500, para dar feedback mais claro ao usuário
+            else if (response.status === 401) {
+                throw new Error('Credenciais inválidas.');
             }
-            return null;
-        } catch (error) {
-            throw new Error('Usuario ou senha incorretos.');
-        }
-    }
+            else if (response.status === 500) {
+                throw new Error('Erro interno do servidor.');
+            }
+            else {
+                throw new Error('Erro desconhecido.');
+            }
+        } catch (error: any) {
+            throw new Error(error.message || 'Não foi possivel conectar ao servidor.');
+    }   
+        } 
+    
+   
 
     async mudaEstadoUsuario(usuario: UsuarioModel): Promise<boolean> {
 
@@ -42,7 +55,7 @@ export default class UsuarioRepository {
     async getFuncionario(id: number): Promise<FuncionarioModel> {
         try {
             const response = await api.post('/dataset', {
-                'sql': `SELECT FUN_NOME, FUN_EMAIL, FUN_FONE FROM FUNCIONARIOS WHERE FUN_CODIGO = ${id} AND FUN_ESTADO <> 'INATIVO'`
+                'sql': `SELECT FUN_CODIGO, FUN_NOME, FUN_EMAIL, FUN_FONE FROM FUNCIONARIOS WHERE FUN_CODIGO = ${id} AND FUN_ESTADO <> 'INATIVO'`
             });
             const user = response.data as FuncionarioModel;
             return user;

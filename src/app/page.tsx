@@ -5,8 +5,6 @@ type FormEvent = React.FormEvent<HTMLFormElement>
 import { useEffect, useState } from "react"
 import Image from 'next/image'
 import { useRouter } from "next/navigation";
-
-import { UsuarioModel } from "./models/usuario_model";
 import logo from '../../assets/logo.png'
 import UsuarioRepository from "./repositories/usuario_repository";
 import { toastMixin } from "./functions/utils";
@@ -16,7 +14,6 @@ export default function Login() {
   const [user, setUser] = useState('');
   const [passw, setPassw] = useState('');
   const [rememberUser, setRememberUser] = useState(false);
-  const [users, setUsers] = useState<UsuarioModel[]>([]);
   const router = useRouter();
   const { setUsuarioLogado } = useAppData();
   useEffect(() => {
@@ -26,19 +23,7 @@ export default function Login() {
       setRememberUser(true);
     }
   }, [])
-
-  const getUsers = async () => {
-    const repository = new UsuarioRepository();
-    try {
-      const usuarios = await repository.getUsers();
-      if (usuarios) {
-        setUsers(usuarios);
-        setUser(usuarios[0].USU_LOGIN)
-      }
-    } catch (error) {
-      toastMixin.fire('Falha ao buscar usuários', String(error), 'error')
-    }
-  }
+  // useState nao era mais necessario
 
   const fazerLogin = async (event: FormEvent) => {
     event.preventDefault();

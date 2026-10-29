@@ -1,4 +1,4 @@
-import { converterDataPontoParaTraco, dataFormatadaHojeDotValueInput } from "../functions/utils";
+import { converterDataPontoParaTraco, FormatDate, horaFormatadaDB } from "../functions/utils";
 import { VenEstModel } from "../models/ven_est_model";
 import { VendaModel } from "../models/venda_model";
 import api from "../services/api";
@@ -10,13 +10,13 @@ export interface VendaComNomes extends VendaModel {
 
 export default class VendaRepository {
   async insereVenda(venda: VendaModel): Promise<boolean> {
-    const dataFormatada = dataFormatadaHojeDotValueInput(new Date());
+    const dataFormatada = FormatDate(venda.VEN_DATA || new Date());
 
     const sql = {
       'sql':
         `UPDATE OR INSERT INTO VENDAS (VEN_CODIGO, VEN_DATA, VEN_VALOR, VEN_HORA, VEN_FUN, VEN_NF, VEN_DIFERENCA, VEN_DATAC,
                  VEN_FAT, VEN_DAV, VEN_CLI, VEN_DEVOLUCAO_P, VEN_VENDEDOR)
-                 VALUES (${venda.VEN_CODIGO}, '${dataFormatada}', ${venda.VEN_VALOR}, '${new Date().toLocaleTimeString()}',
+                 VALUES (${venda.VEN_CODIGO}, '${dataFormatada}', ${venda.VEN_VALOR}, '${horaFormatadaDB(venda.VEN_HORA)}',
                  ${venda.VEN_FUN}, ${venda.VEN_NF}, ${venda.VEN_DIFERENCA}, '1900-01-01', ${venda.VEN_FAT ?? 0}, 
                  ${venda.VEN_DAV}, ${venda.VEN_CLI},
                  '${venda.VEN_DEVOLUCAO_P.replace(/'/g, "''")}', ${venda.VEN_VENDEDOR})

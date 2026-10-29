@@ -3,7 +3,7 @@ import EmpreitadasServicosModel from "@/app/models/empreitada_servicos_model";
 import EmpreitadasModel from "@/app/models/empreitadas_model";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input"
-import { GeraCodigo, IncrementaGenerator, keyBoardInputEvent, mascaraMoeda, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils";
+import { FormatDate, GeraCodigo, IncrementaGenerator, keyBoardInputEvent, mascaraMoeda, mascaraMoedaEvent, maskRealToNumber, toastMixin } from "@/app/functions/utils";
 import Modal from "@/components/component/modal";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import { useMask } from "@react-input/mask";
@@ -291,7 +291,7 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
                 ES_CODIGO: await GeraCodigo('EMPREITADAS_SERVICOS', 'ES_CODIGO'),
                 DESCRICAO: descricaoServico,
                 ES_EMP: 0,
-                ES_PRAZO_CONCLUSAO: new Date().toLocaleDateString(),
+                ES_PRAZO_CONCLUSAO: FormatDate(new Date()),
                 ES_QUANTIDADE: quantServico,
                 ES_UNIDADE: unidadeMedServico,
                 VLR_UNIT: valorServico / quantServico,
@@ -495,7 +495,7 @@ export default function EmpreitadaModal({empreitadaSelecionada, setEmpreitadaSel
                         PF_CAMPO_PED: 'EMP_CODIGO',
                         PF_CLIENTE: empreitada?.FORNECEDOR!.NOME ??'',
                         PF_COD_PED: ordem.ORD_CODIGO,
-                        PF_DATA: new Date().toLocaleDateString(),
+                        PF_DATA: FormatDate(new Date()),
                         PF_DATAC: '01/01/1900',
                         PF_DESCONTO: 0,
                         PF_FAT: 0,

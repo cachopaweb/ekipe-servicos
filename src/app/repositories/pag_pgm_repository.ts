@@ -1,4 +1,4 @@
-import { FormatDate } from "../functions/utils";
+import { FormatDate, horaFormatadaDB } from "../functions/utils";
 import PagPgmModel from "../models/pag_pgm_model";
 import api from "../services/api";
 
@@ -11,7 +11,7 @@ export default class PagPgmRepository{
                     'sql': `UPDATE OR INSERT INTO PAG_PGM (PP_CODIGO, PP_DATAPGM, PP_DINHEIRO, PP_CHEQUE, PP_MOV, 
                             PP_PAG, PP_HORA, PP_FUN, PP_CAI, PP_JUROS, PP_DESCONTOS)
                             VALUES (${pagPgm.PP_CODIGO}, '${FormatDate(pagPgm.PP_DATAPGM!)}', ${pagPgm.PP_DINHEIRO}, ${pagPgm.PP_CHEQUE}, ${pagPgm.PP_MOV}, 
-                                    ${pagPgm.PP_PAG}, '${new Date().toLocaleTimeString()}', ${pagPgm.PP_FUN}, ${pagPgm.PP_CAI}, ${pagPgm.PP_JUROS}, ${pagPgm.PP_DESCONTOS})
+                                    ${pagPgm.PP_PAG}, '${horaFormatadaDB(pagPgm.PP_HORA)}', ${pagPgm.PP_FUN}, ${pagPgm.PP_CAI}, ${pagPgm.PP_JUROS}, ${pagPgm.PP_DESCONTOS})
                             MATCHING (PP_CODIGO)`
                 }
             }else{

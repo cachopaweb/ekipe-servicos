@@ -28,7 +28,8 @@ export default function TabServicos({
   onAdicionarServico,
   onEditarServico,
   onExcluirServico,
-}: TabServicosProps) {
+  onPickCodRef,
+}: TabServicosProps & { onPickCodRef?: () => void }) {
   const [nome, setNome] = useState("");
   const [codRef, setCodRef] = useState(0);
   const [unidade, setUnidade] = useState("PC");
@@ -101,25 +102,13 @@ export default function TabServicos({
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
-      {/* Barra de Inclusão Rápida */}
+      {/* Barra de Inclusão Rápida: Inicia com Descrição do Serviço */}
       <form
         onSubmit={handleSubmit}
-        className="p-3 bg-stone-50 border-b border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end"
+        className="p-3 bg-stone-50 border-b border-gray-200 grid grid-cols-12 gap-2.5 items-end"
       >
-        <div className="sm:col-span-2 lg:col-span-1">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-            Cód. Ref
-          </label>
-          <input
-            type="number"
-            value={codRef || ""}
-            onChange={(e) => setCodRef(parseInt(e.target.value) || 0)}
-            placeholder="0"
-            className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
-          />
-        </div>
-
-        <div className="sm:col-span-5 lg:col-span-5">
+        {/* 1. Descrição do Serviço (Foco Principal) */}
+        <div className="col-span-12 md:col-span-5">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Descrição do Serviço <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -129,29 +118,13 @@ export default function TabServicos({
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             onKeyDown={handleNomeKeyDown}
-            placeholder="Ex: Instalação de tubulação..."
+            placeholder="Ex: Instalação de tubulação, troca de válvula..."
             className="w-full h-10 px-3 text-sm font-semibold uppercase border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
           />
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-2">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-            Unidade
-          </label>
-          <select
-            value={unidade}
-            onChange={(e) => setUnidade(e.target.value.toUpperCase())}
-            className="w-full h-10 px-2.5 text-sm font-semibold uppercase border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white cursor-pointer"
-          >
-            {unidadesMedida.map((u) => (
-              <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>
-                {u.UM_UNIDADE}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="sm:col-span-1 lg:col-span-1">
+        {/* 2. Quantidade */}
+        <div className="col-span-4 sm:col-span-3 md:col-span-2">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Qtd <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -163,11 +136,30 @@ export default function TabServicos({
             value={quantidade}
             onChange={(e) => setQuantidade(parseFloat(e.target.value) || 0)}
             onKeyDown={handleQtdKeyDown}
-            className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
+            className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
           />
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-2">
+        {/* 3. Unidade de Medida */}
+        <div className="col-span-3 sm:col-span-3 md:col-span-1">
+          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+            UM
+          </label>
+          <select
+            value={unidade}
+            onChange={(e) => setUnidade(e.target.value.toUpperCase())}
+            className="w-full h-10 px-1 text-sm font-semibold uppercase border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white cursor-pointer text-center"
+          >
+            {unidadesMedida.map((u) => (
+              <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>
+                {u.UM_UNIDADE}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 4. Valor Unitário */}
+        <div className="col-span-5 sm:col-span-6 md:col-span-2">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Valor Unit. (R$) <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -181,18 +173,34 @@ export default function TabServicos({
             }}
             onKeyDown={handleValorKeyDown}
             placeholder="0,00"
-            className="w-full h-10 px-3 text-sm font-bold text-right border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
+            className="w-full h-10 px-3 text-sm font-bold text-right border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
           />
         </div>
 
-        <div className="sm:col-span-12 lg:col-span-1">
+        {/* 5. Cód. Ref (Secundário/Opcional) */}
+        <div className="col-span-4 sm:col-span-4 md:col-span-1">
+          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+            Ref
+          </label>
+          <input
+            type="number"
+            value={codRef || ""}
+            onChange={(e) => setCodRef(parseInt(e.target.value) || 0)}
+            placeholder="0"
+            className="w-full h-10 px-1 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
+            title="Código de Referência interno (opcional)"
+          />
+        </div>
+
+        {/* 6. Botão de Inclusão */}
+        <div className="col-span-8 sm:col-span-8 md:col-span-1">
           <button
             type="submit"
             className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center gap-1.5 text-sm font-bold transition"
             title="Adicionar Serviço (Enter)"
           >
             <Plus className="w-5 h-5" />
-            <span className="lg:hidden">Adicionar</span>
+            <span className="md:hidden">Adicionar</span>
           </button>
         </div>
       </form>
@@ -203,11 +211,11 @@ export default function TabServicos({
           <thead>
             <tr className="bg-gray-100 text-xs font-bold text-gray-700 uppercase border-b border-gray-200">
               <th className="py-3 px-3 w-12 text-center">#</th>
-              <th className="py-3 px-3 w-20 text-center">Cód.</th>
+              <th className="py-3 px-3 w-16 text-center">Ref</th>
               <th className="py-3 px-4">Descrição do Serviço</th>
-              <th className="py-3 px-3 w-20 text-center">UM</th>
-              <th className="py-3 px-3 w-24 text-center">Qtd</th>
-              <th className="py-3 px-4 w-32 text-right">Valor Unit.</th>
+              <th className="py-3 px-3 w-16 text-center">UM</th>
+              <th className="py-3 px-3 w-20 text-center">Qtd</th>
+              <th className="py-3 px-4 w-28 text-right">Valor Unit.</th>
               <th className="py-3 px-4 w-32 text-right">Subtotal</th>
               <th className="py-3 px-3 w-24 text-center">Ações</th>
             </tr>
@@ -224,10 +232,10 @@ export default function TabServicos({
                     key={item.OS_CODIGO || index}
                     className="hover:bg-amber-50/50 transition-colors even:bg-stone-50/60"
                   >
-                    <td className="py-3 px-3 text-center text-gray-400 font-mono text-xs">
+                    <td className="py-3 px-3 text-center text-gray-500 font-semibold text-xs tabular-nums">
                       {index + 1}
                     </td>
-                    <td className="py-3 px-3 text-center font-medium text-gray-600">
+                    <td className="py-3 px-3 text-center font-medium text-gray-500 tabular-nums text-xs">
                       {item.OS_SER || "-"}
                     </td>
                     <td className="py-3 px-4 font-semibold text-gray-900">
@@ -236,16 +244,16 @@ export default function TabServicos({
                     <td className="py-3 px-3 text-center uppercase font-medium text-gray-600">
                       {item.OS_UNIDADE_MED}
                     </td>
-                    <td className="py-3 px-3 text-center font-bold text-gray-900">
+                    <td className="py-3 px-3 text-center font-bold text-gray-900 tabular-nums">
                       {item.OS_QUANTIDADE}
                     </td>
-                    <td className="py-3 px-4 text-right font-medium text-gray-700">
+                    <td className="py-3 px-4 text-right font-medium text-gray-700 tabular-nums">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
                       }).format(unitario)}
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-gray-900">
+                    <td className="py-3 px-4 text-right font-bold text-gray-900 tabular-nums">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -285,7 +293,7 @@ export default function TabServicos({
                       Nenhum serviço adicionado nesta ordem.
                     </p>
                     <p className="text-xs text-gray-400">
-                      Preencha os campos na barra acima para incluir o primeiro serviço.
+                      Preencha a descrição, quantidade e valor na barra acima para incluir o serviço.
                     </p>
                   </div>
                 </td>
@@ -298,7 +306,7 @@ export default function TabServicos({
       {/* Rodapé da tabela com contagem e subtotal */}
       <div className="bg-stone-50 px-4 py-3 border-t border-gray-200 flex justify-between items-center text-sm font-semibold text-gray-700">
         <span>Itens cadastrados: {servicos.length}</span>
-        <span className="text-base text-gray-900 font-bold">
+        <span className="text-base text-gray-900 font-bold tabular-nums">
           Total Serviços:{" "}
           {new Intl.NumberFormat("pt-BR", {
             style: "currency",

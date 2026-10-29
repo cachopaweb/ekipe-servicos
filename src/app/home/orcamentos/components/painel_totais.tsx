@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Receipt,
   Percent,
+  Save,
 } from "lucide-react";
 import { mascaraMoeda, maskRealToNumber, mascaraMoedaEvent } from "@/app/functions/utils";
 
@@ -25,6 +26,8 @@ interface PainelTotaisProps {
   onAbrirEmpreitadas: () => void;
   onAbrirArquivos: () => void;
   onImprimir: () => void;
+  onSalvar?: () => void;
+  canSave?: boolean;
 }
 
 export default function PainelTotais({
@@ -41,6 +44,8 @@ export default function PainelTotais({
   onAbrirEmpreitadas,
   onAbrirArquivos,
   onImprimir,
+  onSalvar,
+  canSave,
 }: PainelTotaisProps) {
   const subtotal = totalServicos + totalProdutos;
   const totalLiquido = Math.max(0, subtotal - (valorDesconto || 0));
@@ -106,14 +111,14 @@ export default function PainelTotais({
   const canFaturar = !isFaturado && codigoOrdem > 0 && totalItens > 0;
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Card Principal: Totalizador Financeiro (Sem sombras) */}
+    <div className="flex flex-col gap-3 lg:sticky lg:top-20">
+      {/* Card Principal: Totalizador Financeiro */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {/* Cabeçalho do Card */}
         <div className="bg-amber-500 px-4 py-3 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Receipt className="w-5 h-5" />
-            <h3 className="text-sm font-bold uppercase tracking-wider">
+            <h3 className="text-sm font-bold uppercase">
               Resumo Financeiro
             </h3>
           </div>
@@ -124,12 +129,12 @@ export default function PainelTotais({
           )}
         </div>
 
-        {/* Total Líquido em Destaque com tipografia grande e legível */}
+        {/* Total Líquido em Destaque */}
         <div className="p-5 bg-amber-50/50 border-b border-gray-200 flex flex-col items-center justify-center text-center">
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+          <span className="text-xs font-bold text-gray-600 uppercase mb-1">
             Valor Total Líquido
           </span>
-          <div className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+          <div className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight tabular-nums">
             {new Intl.NumberFormat("pt-BR", {
               style: "currency",
               currency: "BRL",
@@ -141,7 +146,7 @@ export default function PainelTotais({
         <div className="p-4 space-y-3 text-sm">
           <div className="flex justify-between items-center text-gray-700">
             <span>Total Serviços:</span>
-            <span className="font-bold text-gray-900">
+            <span className="font-bold text-gray-900 tabular-nums">
               {new Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -151,7 +156,7 @@ export default function PainelTotais({
 
           <div className="flex justify-between items-center text-gray-700">
             <span>Total Produtos:</span>
-            <span className="font-bold text-gray-900">
+            <span className="font-bold text-gray-900 tabular-nums">
               {new Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -161,7 +166,7 @@ export default function PainelTotais({
 
           <div className="flex justify-between items-center pt-2.5 border-t border-gray-200 font-bold text-gray-800 text-sm">
             <span>Subtotal Bruto:</span>
-            <span>
+            <span className="tabular-nums">
               {new Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -184,7 +189,7 @@ export default function PainelTotais({
                   value={inputDescontoReais}
                   onChange={handleDescontoReaisChange}
                   placeholder="0,00"
-                  className="w-full h-9 px-2.5 text-sm font-bold text-right text-red-600 border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
+                  className="w-full h-9 px-2.5 text-sm font-bold text-right text-red-600 border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
                 />
               </div>
 
@@ -198,7 +203,7 @@ export default function PainelTotais({
                     value={inputDescontoPct}
                     onChange={handleDescontoPctChange}
                     placeholder="0.00"
-                    className="w-full h-9 px-2.5 pr-7 text-sm font-bold text-right text-red-600 border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
+                    className="w-full h-9 px-2.5 pr-7 text-sm font-bold text-right text-red-600 border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
                   />
                   <Percent className="w-3.5 h-3.5 text-gray-400 absolute right-2 top-3 pointer-events-none" />
                 </div>
@@ -206,7 +211,7 @@ export default function PainelTotais({
             </div>
           </div>
 
-          {/* Botão de Faturamento (Sem sombras) */}
+          {/* Botão de Faturamento */}
           <div className="pt-3">
             <button
               type="button"
@@ -225,9 +230,9 @@ export default function PainelTotais({
         </div>
       </div>
 
-      {/* Card Secundário: Atalhos Rápidos (Sem sombras) */}
+      {/* Card Secundário: Atalhos & Módulos */}
       <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-2">
-        <span className="block text-xs font-bold text-gray-500 uppercase tracking-wider px-1">
+        <span className="block text-xs font-bold text-gray-600 uppercase px-1">
           Atalhos & Módulos
         </span>
 
@@ -240,6 +245,7 @@ export default function PainelTotais({
               ? "text-gray-300 bg-gray-50 cursor-not-allowed"
               : "text-gray-700 hover:bg-amber-50 hover:text-amber-800"
           }`}
+          title={codigoOrdem === 0 ? "Salve o orçamento antes de gerenciar empreitadas" : "Gerenciar Empreitadas"}
         >
           <Briefcase className="w-4 h-4 text-amber-500" />
           <span>Gestão de Empreitadas</span>
@@ -254,6 +260,7 @@ export default function PainelTotais({
               ? "text-gray-300 bg-gray-50 cursor-not-allowed"
               : "text-gray-700 hover:bg-amber-50 hover:text-amber-800"
           }`}
+          title={codigoOrdem === 0 ? "Salve o orçamento antes de anexar arquivos" : "Anexar e Visualizar Documentos"}
         >
           <FolderOpen className="w-4 h-4 text-amber-500" />
           <span>Documentos e Anexos</span>
@@ -266,12 +273,45 @@ export default function PainelTotais({
           className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-semibold transition text-left ${
             codigoOrdem === 0
               ? "text-gray-300 bg-gray-50 cursor-not-allowed"
-              : "text-gray-700 hover:bg-blue-50 hover:text-blue-800"
+              : "text-gray-700 hover:bg-brand-soft hover:text-brand"
           }`}
+          title={codigoOrdem === 0 ? "Salve o orçamento antes de imprimir" : "Visualizar Impressão"}
         >
-          <Printer className="w-4 h-4 text-blue-500" />
+          <Printer className={`w-4 h-4 ${codigoOrdem === 0 ? "text-gray-300" : "text-brand"}`} />
           <span>Visualizar Impressão</span>
         </button>
+      </div>
+
+      {/* Barra Inferior Fixa para Mobile (Bottom Bar) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-300 px-4 py-2.5 flex items-center justify-between shadow-lg">
+        <div>
+          <span className="block text-xs font-semibold text-gray-500 uppercase">
+            Total Líquido
+          </span>
+          <span className="text-lg font-black text-gray-900 tabular-nums">
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(totalLiquido)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {onSalvar && (
+            <button
+              type="button"
+              onClick={onSalvar}
+              disabled={!canSave}
+              className={`px-4 py-2 rounded-md text-sm font-bold flex items-center gap-1.5 transition ${
+                canSave
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              <Save className="w-4 h-4" />
+              <span>Salvar</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

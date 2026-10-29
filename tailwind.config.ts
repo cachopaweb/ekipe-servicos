@@ -18,6 +18,20 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-sans)', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
+      },
+      colors: {
+        brand: {
+          DEFAULT: '#312783',
+          blue: '#312783',
+          hover: '#261e68',
+          soft: '#f0effa',
+          border: '#dad7f2',
+          yellow: '#facc00',
+        },
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

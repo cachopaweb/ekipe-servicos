@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { X } from "lucide-react";
 import ProdutoRepository from "@/app/repositories/produto_repository";
 import { ProdutoModel } from "@/app/models/produto_model";
 
@@ -211,7 +212,7 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -345,7 +346,7 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
             </div>
             <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
               <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Preço Atacado</span>
-              <span className="font-semibold text-blue-600 block truncate">{formatCurrency(produtoSelecionado.precoAtacado)}</span>
+              <span className="font-semibold text-brand block truncate">{formatCurrency(produtoSelecionado.precoAtacado)}</span>
             </div>
           </div>
 

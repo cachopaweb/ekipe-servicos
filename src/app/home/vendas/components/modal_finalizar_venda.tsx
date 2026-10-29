@@ -190,7 +190,7 @@ export default function ModalFinalizarVenda({
           <div>
             <h2 className="text-2xl font-black text-gray-800 tracking-tighter uppercase">Fechamento de Venda</h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200">FATURA A GERAR</span>
+              <span className="text-xs font-bold bg-brand-soft text-brand px-2 py-0.5 rounded border border-brand-border">FATURA A GERAR</span>
               <span className="text-xs font-bold text-gray-500 uppercase truncate max-w-[200px]">{clienteNome}</span>
             </div>
           </div>
@@ -364,7 +364,7 @@ export default function ModalFinalizarVenda({
 
           <button
             onClick={handleSave}
-            className="bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-lg shadow-md font-bold uppercase text-sm flex items-center gap-2 transition transform active:scale-95 border-b-4 border-green-800"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-bold uppercase text-sm flex items-center gap-2 transition active:scale-95 shadow-sm"
           >
             <i className="fas fa-check"></i>
             Confirmar (F5)

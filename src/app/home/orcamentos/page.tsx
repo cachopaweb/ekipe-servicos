@@ -185,10 +185,10 @@ export default function Orcamentos() {
 
   // Sincroniza Cliente no Contexto
   useEffect(() => {
-    if (clienteSelecionado?.CODIGO) {
+    if (clienteSelecionado?.CODIGO && OrdemCtx) {
       setOrdemCtx({ ...OrdemCtx, ORD_CLI: clienteSelecionado.CODIGO });
     }
-  }, [clienteSelecionado]);
+  }, [clienteSelecionado, OrdemCtx]);
 
   // Debounce para busca de ordem quando o código é alterado
   useEffect(() => {
@@ -541,7 +541,7 @@ export default function Orcamentos() {
   };
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-64px)] bg-stone-100 p-2 sm:p-4 gap-3 font-sans">
+    <div className="flex flex-col w-full min-h-[calc(100vh-64px)] bg-stone-100 p-2 sm:p-4 pb-20 lg:pb-4 gap-3 font-sans">
       {/* 1. Header Superior com Status e Ações */}
       <HeaderOrcamento
         codigoOrdem={codigoOrdem}
@@ -573,6 +573,8 @@ export default function Orcamentos() {
             setNfs={setNfs}
             codFatura={codFatura}
             nomeFuncionario={nomeFuncionario}
+            solicitacao={solicitacao}
+            setSolicitacao={setSolicitacao}
           />
 
           {/* Abas de Itens: Serviços vs Produtos (Sem sombras, tipografia maior) */}
@@ -634,10 +636,8 @@ export default function Orcamentos() {
             )}
           </div>
 
-          {/* Card de Solicitação e Observações */}
+          {/* Card de Termos e Observações */}
           <FormObservacoes
-            solicitacao={solicitacao}
-            setSolicitacao={setSolicitacao}
             obs={obs}
             setObs={setObs}
             obsAdm={obs_adm}
@@ -661,6 +661,8 @@ export default function Orcamentos() {
             onAbrirEmpreitadas={() => setShowModalEmpreitadas(true)}
             onAbrirArquivos={() => setShowModalListaArquivos(true)}
             onImprimir={handleImprimir}
+            onSalvar={salvaOrdem}
+            canSave={totalItens > 0}
           />
         </div>
       </div>
@@ -771,7 +773,7 @@ export default function Orcamentos() {
                 PF_CAMPO_PED: "ORD_CODIGO",
                 PF_CLIENTE: clienteSelecionado.NOME,
                 PF_COD_PED: codigoOrdem,
-                PF_DATA: new Date().toLocaleDateString(),
+                PF_DATA: FormatDate(new Date()),
                 PF_DATAC: "01/01/1900",
                 PF_DESCONTO: valorDesconto || 0,
                 PF_FAT: 0,

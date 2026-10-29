@@ -1,4 +1,4 @@
-import { FormatDate } from "../functions/utils";
+import { FormatDate, horaFormatadaDB } from "../functions/utils";
 import OrdEstModel from "../models/ord_est_model";
 import OrdSerModel from "../models/ord_ser_model";
 import OrdemModel from "../models/ordem_model";
@@ -10,7 +10,7 @@ export default class OrdemRepository {
             'sql':
                 `UPDATE OR INSERT INTO ORDENS (ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_HORA, ORD_FUN, ORD_CLI, ORD_DATAC, ORD_OBS, ORD_ESTADO,
                  ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT, ORD_FORNECEDOR, ORD_VALOR_DESCONTO, ORD_PORCENTAGEM_DESCONTO, ORD_TOTAL_SEM_DESCONTO)
-                 VALUES (${ordem.ORD_CODIGO}, '${ordem.ORD_DATA}', ${ordem.ORD_VALOR}, '${new Date().toLocaleTimeString()}',
+                 VALUES (${ordem.ORD_CODIGO}, '${FormatDate(ordem.ORD_DATA)}', ${ordem.ORD_VALOR}, '${horaFormatadaDB(ordem.ORD_HORA)}',
                  ${ordem.ORD_FUN}, ${ordem.ORD_CLI}, '1900-01-01', '${ordem.ORD_OBS.replace(/'/g, "''")}', '${ordem.ORD_ESTADO}', ${ordem.ORD_DESCONTO_P},
                  ${ordem.ORD_DESCONTO_S}, '${ordem.ORD_DEVOLUCAO_P.replace(/'/g, "''")}', 0, '${ordem.ORD_SOLICITACAO.replace(/'/g, "''")}',
                  '${ordem.ORD_OBS_ADM.replace(/'/g, "''")}', '${ordem.ORD_NFS}', ${ordem.ORD_FAT ?? 0}, ${ordem.ORD_FORNECEDOR ?? 0}, ${ordem.ORD_VALOR_DESCONTO ?? 0}, ${ordem.ORD_PORCENTAGEM_DESCONTO ?? 0}, 

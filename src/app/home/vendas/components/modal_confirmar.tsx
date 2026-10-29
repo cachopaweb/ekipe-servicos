@@ -51,10 +51,10 @@ export default function ModalConfirmacao({
     },
     info: {
       icon: "fa-circle-info",
-      iconColor: "text-blue-500",
-      bgIcon: "bg-blue-100",
-      btnConfirm: "bg-blue-600 hover:bg-blue-700",
-      border: "border-blue-200"
+      iconColor: "text-brand",
+      bgIcon: "bg-brand-soft",
+      btnConfirm: "bg-brand hover:bg-brand-hover text-white",
+      border: "border-brand-border"
     }
   };
 

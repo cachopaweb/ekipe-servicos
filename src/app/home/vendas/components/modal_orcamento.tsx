@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { X } from "lucide-react";
 import { VendaModel } from "@/app/models/venda_model";
 import { VenEstModel } from "@/app/models/ven_est_model";
 import { DataHoje } from "@/app/functions/utils";
@@ -282,7 +283,9 @@ export default function ModalImprimirOrcamento({ isOpen, onClose, itens, total, 
           <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
             <i className="fas fa-print"></i> Imprimir Orçamento
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition">
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="p-6 bg-stone-50 flex flex-col gap-4">

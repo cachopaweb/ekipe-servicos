@@ -85,7 +85,7 @@ export default function Login() {
                   type="Password" name="name" placeholder="*********" />
               </div>
               <div className="mt-8 flex justify-center text-lg text-black">
-                <button type="submit" className="rounded-3xl bg-amber-300 bg-opacity-50 px-10 py-2 text-indigo-800 shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-amber-500">Login</button>
+                <button type="submit" className="rounded-3xl bg-amber-400 px-10 py-2 text-brand font-bold shadow-xl transition-colors duration-300 hover:bg-amber-500">Login</button>
               </div>
             </form>
           </div>

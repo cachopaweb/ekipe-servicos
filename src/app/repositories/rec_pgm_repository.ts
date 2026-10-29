@@ -1,4 +1,4 @@
-import { FormatDate } from "../functions/utils";
+import { FormatDate, horaFormatadaDB } from "../functions/utils";
 import recPgmModel from "../models/rec_pgm_model";
 import api from "../services/api";
 
@@ -11,7 +11,7 @@ export default class RecPgmRepository{
                     'sql': `UPDATE OR INSERT INTO REC_PGM (RP_CODIGO, RP_DATAPGM, RP_DINHEIRO, RP_CHEQUE, RP_REC, RP_HORA, 
                             RP_FUN, RP_CAI, RP_MOV, RP_JUROS, RP_DESCONTOS)
                             VALUES (${recPgm.RP_CODIGO}, '${FormatDate(recPgm.RP_DATAPGM!)}', ${recPgm.RP_DINHEIRO}, ${recPgm.RP_CHEQUE}, 
-                                    ${recPgm.RP_REC}, '${new Date().toLocaleTimeString()}', ${recPgm.RP_FUN}, ${recPgm.RP_CAI}, 
+                                    ${recPgm.RP_REC}, '${horaFormatadaDB(recPgm.RP_HORA)}', ${recPgm.RP_FUN}, ${recPgm.RP_CAI}, 
                                     ${recPgm.RP_MOV}, ${recPgm.RP_JUROS}, ${recPgm.RP_DESCONTOS})
                             MATCHING (RP_CODIGO)`
                 }

@@ -151,9 +151,10 @@ export default function TabProdutos({
       {/* Barra de Inclusão Rápida */}
       <form
         onSubmit={handleSubmit}
-        className="p-3 bg-stone-50 border-b border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end"
+        className="p-3 bg-stone-50 border-b border-gray-200 grid grid-cols-12 gap-2.5 items-end"
       >
-        <div className="sm:col-span-3 lg:col-span-2">
+        {/* 1. Código com Pesquisa */}
+        <div className="col-span-4 sm:col-span-3 md:col-span-2">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Código (Enter)
           </label>
@@ -164,20 +165,21 @@ export default function TabProdutos({
               value={codProduto}
               onChange={(e) => setCodProduto(e.target.value)}
               onKeyDown={handleCodKeyDown}
-              className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
+              className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
             />
             <button
               type="button"
               onClick={onOpenPesquisaProduto}
               className="h-10 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center transition shrink-0"
-              title="Buscar Produto"
+              title="Buscar Produto no Catálogo"
             >
               <Search className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="sm:col-span-5 lg:col-span-5">
+        {/* 2. Descrição do Produto */}
+        <div className="col-span-8 sm:col-span-9 md:col-span-5">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Descrição do Produto <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -187,6 +189,7 @@ export default function TabProdutos({
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             disabled={Number(codProduto) !== 1}
+            placeholder="Nome do produto..."
             className={`w-full h-10 px-3 text-sm font-semibold uppercase border rounded-md focus:border-amber-500 outline-none ${
               Number(codProduto) !== 1
                 ? "bg-gray-100 text-gray-700 border-gray-200"
@@ -195,24 +198,8 @@ export default function TabProdutos({
           />
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-1">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-            Unidade
-          </label>
-          <select
-            value={unidade}
-            onChange={(e) => setUnidade(e.target.value.toUpperCase())}
-            className="w-full h-10 px-2 text-sm font-semibold uppercase border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white cursor-pointer"
-          >
-            {unidadesMedida.map((u) => (
-              <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>
-                {u.UM_UNIDADE}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="sm:col-span-2 lg:col-span-1">
+        {/* 3. Quantidade */}
+        <div className="col-span-4 sm:col-span-3 md:col-span-2">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Qtd <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -224,13 +211,32 @@ export default function TabProdutos({
             value={quantidade}
             onChange={(e) => setQuantidade(parseFloat(e.target.value) || 0)}
             onKeyDown={handleQtdKeyDown}
-            className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
+            className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
           />
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-2">
+        {/* 4. Unidade */}
+        <div className="col-span-3 sm:col-span-3 md:col-span-1">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-            Valor Unit. (R$) <span className="text-amber-500 font-bold ml-0.5">*</span>
+            UM
+          </label>
+          <select
+            value={unidade}
+            onChange={(e) => setUnidade(e.target.value.toUpperCase())}
+            className="w-full h-10 px-1 text-sm font-semibold uppercase border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white cursor-pointer text-center"
+          >
+            {unidadesMedida.map((u) => (
+              <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>
+                {u.UM_UNIDADE}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 5. Valor Unitário */}
+        <div className="col-span-5 sm:col-span-6 md:col-span-1">
+          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+            Unit. (R$) <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
           <input
             ref={valorInputRef}
@@ -241,18 +247,19 @@ export default function TabProdutos({
               setValorUnitarioStr(e.target.value);
             }}
             onKeyDown={handleValorKeyDown}
-            className="w-full h-10 px-3 text-sm font-bold text-right border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
+            className="w-full h-10 px-2 text-sm font-bold text-right border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
           />
         </div>
 
-        <div className="sm:col-span-12 lg:col-span-1">
+        {/* 6. Botão Adicionar */}
+        <div className="col-span-12 md:col-span-1">
           <button
             type="submit"
             className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center gap-1.5 text-sm font-bold transition"
             title="Adicionar Produto (Enter)"
           >
             <Plus className="w-5 h-5" />
-            <span className="lg:hidden">Adicionar</span>
+            <span className="md:hidden">Adicionar Produto</span>
           </button>
         </div>
       </form>
@@ -265,9 +272,9 @@ export default function TabProdutos({
               <th className="py-3 px-3 w-12 text-center">#</th>
               <th className="py-3 px-3 w-20 text-center">Cód.</th>
               <th className="py-3 px-4">Descrição do Produto</th>
-              <th className="py-3 px-3 w-20 text-center">UM</th>
-              <th className="py-3 px-3 w-24 text-center">Qtd</th>
-              <th className="py-3 px-4 w-32 text-right">Valor Unit.</th>
+              <th className="py-3 px-3 w-16 text-center">UM</th>
+              <th className="py-3 px-3 w-20 text-center">Qtd</th>
+              <th className="py-3 px-4 w-28 text-right">Valor Unit.</th>
               <th className="py-3 px-4 w-32 text-right">Subtotal</th>
               <th className="py-3 px-3 w-24 text-center">Ações</th>
             </tr>
@@ -284,10 +291,10 @@ export default function TabProdutos({
                     key={item.ORE_CODIGO || index}
                     className="hover:bg-amber-50/50 transition-colors even:bg-stone-50/60"
                   >
-                    <td className="py-3 px-3 text-center text-gray-400 font-mono text-xs">
+                    <td className="py-3 px-3 text-center text-gray-500 font-semibold text-xs tabular-nums">
                       {index + 1}
                     </td>
-                    <td className="py-3 px-3 text-center font-medium text-gray-600">
+                    <td className="py-3 px-3 text-center font-medium text-gray-600 tabular-nums">
                       {item.ORE_PRO}
                     </td>
                     <td className="py-3 px-4 font-semibold text-gray-900">
@@ -296,16 +303,16 @@ export default function TabProdutos({
                     <td className="py-3 px-3 text-center uppercase font-medium text-gray-600">
                       {item.ORE_EMBALAGEM}
                     </td>
-                    <td className="py-3 px-3 text-center font-bold text-gray-900">
+                    <td className="py-3 px-3 text-center font-bold text-gray-900 tabular-nums">
                       {item.ORE_QUANTIDADE}
                     </td>
-                    <td className="py-3 px-4 text-right font-medium text-gray-700">
+                    <td className="py-3 px-4 text-right font-medium text-gray-700 tabular-nums">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
                       }).format(unitario)}
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-gray-900">
+                    <td className="py-3 px-4 text-right font-bold text-gray-900 tabular-nums">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -345,7 +352,7 @@ export default function TabProdutos({
                       Nenhum produto adicionado nesta ordem.
                     </p>
                     <p className="text-xs text-gray-400">
-                      Digite o código ou utilize a busca para adicionar produtos.
+                      Digite o código ou utilize a busca para adicionar produtos ao orçamento.
                     </p>
                   </div>
                 </td>
@@ -358,7 +365,7 @@ export default function TabProdutos({
       {/* Rodapé da tabela com contagem e subtotal */}
       <div className="bg-stone-50 px-4 py-3 border-t border-gray-200 flex justify-between items-center text-sm font-semibold text-gray-700">
         <span>Itens cadastrados: {produtos.length}</span>
-        <span className="text-base text-gray-900 font-bold">
+        <span className="text-base text-gray-900 font-bold tabular-nums">
           Total Produtos:{" "}
           {new Intl.NumberFormat("pt-BR", {
             style: "currency",

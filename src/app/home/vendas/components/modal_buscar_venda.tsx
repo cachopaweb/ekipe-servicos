@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import PedidoRepository from "@/app/repositories/pedido_repository";
 import { PedidoModel } from "@/app/models/pedido_model";
 import ClientRepository from "@/app/repositories/cliente_repository";
-import { Trash } from "lucide-react";
+import { Trash, X } from "lucide-react";
 import ModalConfirmacao from "./modal_confirmar";
 
 // Estende a interface do modelo para incluir o nome do cliente na visualização
@@ -209,7 +209,7 @@ export default function ModalBuscarVenda({ isOpen, onClose, onSelect }: ModalBus
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 

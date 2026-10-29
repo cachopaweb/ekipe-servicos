@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { X } from "lucide-react";
 
 import ClientRepository from "@/app/repositories/cliente_repository"; // Ajuste o caminho se necessário
 
@@ -113,7 +114,7 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 

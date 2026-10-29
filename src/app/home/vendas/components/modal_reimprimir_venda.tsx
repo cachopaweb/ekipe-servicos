@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { X } from "lucide-react";
 import ModalImprimirVenda from "./modal_imprimir_venda";
 import VendaRepository, { VendaComNomes } from "@/app/repositories/venda_repository";
 import { VenEstModel } from "@/app/models/ven_est_model";
@@ -139,7 +140,9 @@ export default function ModalReimprimirVenda({ isOpen, onClose }: ModalReimprimi
               <h2 className="text-xl font-black text-gray-800 tracking-tight">REIMPRIMIR VENDA</h2>
               <p className="text-xs text-gray-500 mt-0.5 font-medium">Selecione a venda e pressione <strong>I</strong> para imprimir</p>
             </div>
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors">✕</button>
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           {/* ... (Resto do JSX permanece igual ao anterior) ... */}

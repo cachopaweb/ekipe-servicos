@@ -1,26 +1,29 @@
 'use client'
-import { useEffect, useRef, useState } from "react";
+
+import { useEffect, useState } from "react";
 import UsuarioRepository from "../repositories/usuario_repository";
 import { UsuarioModel } from "../models/usuario_model";
-import { UserRoundX, UserCheck } from 'lucide-react';
+import { UserRoundX, UserCheck, Users as UsersIcon, Loader2 } from 'lucide-react';
 
 export default function Usuarios() {
     const [usuarios, setUsuarios] = useState<UsuarioModel[]>([]);
-    const [divWidth, setDivWidth] = useState<number>(0);
-    const refDiv = useRef<HTMLDivElement>(null);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         carregaUsuarios();
-
-    }, [])
-
-    useEffect(() => {
-        setDivWidth(refDiv.current ? refDiv.current.offsetWidth : 0);
-    }, [refDiv.current]);
+    }, []);
 
     async function carregaUsuarios() {
-        const repository = new UsuarioRepository();
-        const usuarios: UsuarioModel[] = await repository.getAllUsersLessSuport();
-        setUsuarios(usuarios);
+        try {
+            setLoading(true);
+            const repository = new UsuarioRepository();
+            const lista: UsuarioModel[] = await repository.getAllUsersLessSuport();
+            setUsuarios(lista);
+        } catch (error) {
+            console.error("Erro ao carregar usuários:", error);
+        } finally {
+            setLoading(false);
+        }
     }
 
     function mudaEstadoUsuario(item: UsuarioModel) {
@@ -30,58 +33,117 @@ export default function Usuarios() {
     }
 
     function desabilitarUsuario(item: UsuarioModel) {
-        alert('Desabilitar usuário ' + item.FUN_NOME);
-        mudaEstadoUsuario(item);
-
+        if (window.confirm(`Deseja realmente desabilitar o usuário "${item.FUN_NOME}"?`)) {
+            mudaEstadoUsuario(item);
+        }
     }
-
 
     function habilitaUsuario(item: UsuarioModel) {
-        alert('Habilitar usuário ' + item.FUN_NOME);
-        mudaEstadoUsuario(item);
+        if (window.confirm(`Deseja realmente habilitar o usuário "${item.FUN_NOME}"?`)) {
+            mudaEstadoUsuario(item);
+        }
     }
 
+    const getIniciais = (nome: string) => {
+        if (!nome) return "U";
+        const partes = nome.trim().split(" ");
+        if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+        return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+    };
 
     return (
-        <div className="overflow-x-hidden h-[300px]" ref={refDiv}>
-            <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
-                <thead className="text-white w-full">
-                    {divWidth > 100 ?
-
-
-                        <tr className="bg-amber-400 flex flex-col sm:flex-row flex-nowrap rounded-l-lg w-full sm:rounded-none mb-2 sm:mb-0">
-                            <th className="p-3 text-sm text-center sm:w-[50%]">Nome</th>
-                            <th className="p-3 text-sm text-center sm:w-[50%]">Ação</th>
-                        </tr> : usuarios.map((usuario) =>
-                        (<tr key={usuario.USU_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                            <th className="p-3 text-left">Nome</th>
-                            <th className="p-3 text-left">Ação</th>
-
-                        </tr>))
-                    }
-                </thead>
-                <tbody className="flex-1 sm:flex-none text-center">
-                    {usuarios.map((usuario) => (
-                        <tr key={usuario.USU_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
-                            <td className="text-xs border-grey-light border hover:bg-gray-100 p-3 sm:w-[50%]" >{usuario.FUN_NOME}</td>
-                            <td className="sm:px-4 sm:py-2 text-left border-grey-light border sm:w-[50%]">
-                                <div className="items-center flex justify-center">
-                                    {usuario.FUN_ESTADO === 'ATIVO' ?
-                                        <span title="Desabilitar usuário">
-                                            <UserRoundX onClick={() => desabilitarUsuario(usuario)} className="text-red-600 text-xl mr-1 hover:cursor-pointer" />
-                                        </span>
-                                        :
-                                        <span title="Habilitar usuário">
-                                            <UserCheck onClick={() => habilitaUsuario(usuario)} className="text-green-600 text-xl mr-1 hover:cursor-pointer" />
-                                        </span>
-                                    }
-
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <div className="w-full font-sans">
+            <div className="rounded-xl border border-stone-200 bg-white shadow-sm overflow-hidden">
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-stone-500">
+                        <Loader2 className="w-6 h-6 animate-spin text-amber-500 mb-2" />
+                        <span className="text-sm font-medium">Carregando usuários...</span>
+                    </div>
+                ) : usuarios.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-stone-400">
+                        <UsersIcon className="w-8 h-8 text-stone-300 mb-2" />
+                        <span className="text-sm font-medium">Nenhum usuário cadastrado.</span>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto max-h-[420px]">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-stone-50/90 border-b border-stone-200 text-stone-600 text-xs font-semibold uppercase tracking-wider sticky top-0 z-10">
+                                    <th className="py-3 px-4">Nome do Funcionário</th>
+                                    <th className="py-3 px-4 text-center w-36">Situação</th>
+                                    <th className="py-3 px-4 text-right w-36">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-stone-100 text-sm">
+                                {usuarios.map((usuario) => {
+                                    const isAtivo = usuario.FUN_ESTADO === 'ATIVO';
+                                    return (
+                                        <tr
+                                            key={usuario.USU_CODIGO}
+                                            className="hover:bg-amber-50/30 transition-colors"
+                                        >
+                                            <td className="py-3 px-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-stone-100 text-stone-600 font-bold text-xs flex items-center justify-center border border-stone-200 shrink-0">
+                                                        {getIniciais(usuario.FUN_NOME || usuario.USU_LOGIN || "")}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-semibold text-stone-800">
+                                                            {usuario.FUN_NOME || "Sem Nome"}
+                                                        </div>
+                                                        <div className="text-xs text-stone-500 font-mono">
+                                                            @{usuario.USU_LOGIN}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4 text-center">
+                                                <span
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                                                        isAtivo
+                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                            : 'bg-stone-100 text-stone-600 border-stone-200'
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                                                            isAtivo ? 'bg-emerald-500' : 'bg-stone-400'
+                                                        }`}
+                                                    ></span>
+                                                    {usuario.FUN_ESTADO || 'INATIVO'}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 px-4 text-right">
+                                                {isAtivo ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => desabilitarUsuario(usuario)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 border border-rose-200 transition-colors shadow-sm"
+                                                        title="Desabilitar acesso do usuário"
+                                                    >
+                                                        <UserRoundX className="w-3.5 h-3.5" />
+                                                        <span>Desabilitar</span>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => habilitaUsuario(usuario)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 border border-emerald-200 transition-colors shadow-sm"
+                                                        title="Habilitar acesso do usuário"
+                                                    >
+                                                        <UserCheck className="w-3.5 h-3.5" />
+                                                        <span>Habilitar</span>
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

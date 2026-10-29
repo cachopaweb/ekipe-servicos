@@ -1,5 +1,5 @@
 "use client"
-import {toastMixin } from "@/app/functions/utils";
+import { FormatDate, toastMixin } from "@/app/functions/utils";
 import CliForModel from "@/app/models/cli_for_model";
 import EmpreitadasModel from "@/app/models/empreitadas_model";
 import OrdemModel from "@/app/models/ordem_model";
@@ -84,7 +84,7 @@ export default function Empreitadas({ ordemServico }: empreitadasProps) {
                         ES_CODIGO: 0,
                         DESCRICAO: os.OS_NOME,
                         ES_EMP: 0,
-                        ES_PRAZO_CONCLUSAO: new Date().toLocaleDateString(),
+                        ES_PRAZO_CONCLUSAO: FormatDate(new Date()),
                         ES_QUANTIDADE: os.OS_QUANTIDADE,
                         ES_UNIDADE: os.OS_UNIDADE_MED,
                         VLR_UNIT: os.OS_VALOR / os.OS_QUANTIDADE,

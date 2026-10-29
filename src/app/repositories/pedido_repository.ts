@@ -1,11 +1,11 @@
-import { dataFormatadaHojeDotValueInput } from "../functions/utils";
+import { FormatDate } from "../functions/utils";
 import { PedEstModel } from "../models/ped_est_model";
 import { PedidoModel } from "../models/pedido_model";
 import api from "../services/api";
 
 export default class PedidoRepository {
   async inserePedido(pedido: PedidoModel): Promise<boolean> {
-    const dataFormatada = dataFormatadaHojeDotValueInput(new Date(pedido.PED_DATA));
+    const dataFormatada = FormatDate(pedido.PED_DATA || new Date());
     const sql = {
       'sql':
         `UPDATE OR INSERT INTO PEDIDOS (PED_CODIGO, PED_DATA, PED_VALOR, PED_FUN,

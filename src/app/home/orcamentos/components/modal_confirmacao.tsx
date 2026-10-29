@@ -50,10 +50,10 @@ export default function ModalConfirmacao({
     },
     info: {
       Icon: Info,
-      iconColor: "text-blue-600",
-      bgIcon: "bg-blue-50",
-      btnConfirm: "bg-blue-600 hover:bg-blue-700 text-white",
-      borderColor: "border-blue-200",
+      iconColor: "text-brand",
+      bgIcon: "bg-brand-soft",
+      btnConfirm: "bg-brand hover:bg-brand-hover text-white",
+      borderColor: "border-brand-border",
     },
   };
 

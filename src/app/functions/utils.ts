@@ -131,15 +131,8 @@ function converterDataPontoParaTraco(data:string) {
   Usado para os values dos Inputs tipo date.
 
 */ 
-function dataFormatadaHojeDotValueInput(data:Date)
-{
-
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0'); 
-  const ano = String(data.getFullYear());
-
-   return `${dia}.${mes}.${ano}`;
-
+function dataFormatadaHojeDotValueInput(data: Date | string) {
+    return FormatDate(data);
 }
 
 
@@ -159,21 +152,95 @@ function dataFormatadaValueInput(data:Date)
 
 }
 
-function FormatDate(data: Date | string): string{
-    if(data instanceof Date){
-        let dataFmt = data.toLocaleDateString().split('/');
-        return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
-    }else{
-        if(data ==='')
-          {
-            return '';
-          }
-          else
-          {
-            let dataFmt = data.split('/');
-            return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
-          }
+function FormatDate(data: Date | string | null | undefined): string {
+    if (!data) return '';
+    if (data instanceof Date) {
+        if (isNaN(data.getTime())) return '';
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = String(data.getFullYear());
+        return `${dia}.${mes}.${ano}`;
     }
+    const strData = String(data).trim();
+    if (!strData) return '';
+
+    // Se já estiver no formato correto DD.MM.YYYY
+    if (/^\d{2}\.\d{2}\.\d{4}$/.test(strData)) {
+        return strData;
+    }
+
+    // Se vier com traço (ex: YYYY-MM-DD ou ISO 2026-10-29T...)
+    if (strData.includes('-')) {
+        const parteData = strData.split('T')[0].split(' ')[0];
+        const partes = parteData.split('-');
+        if (partes.length === 3) {
+            if (partes[0].length === 4) {
+                // YYYY-MM-DD -> DD.MM.YYYY
+                return `${partes[2].padStart(2, '0')}.${partes[1].padStart(2, '0')}.${partes[0]}`;
+            }
+            return `${partes[0].padStart(2, '0')}.${partes[1].padStart(2, '0')}.${partes[2]}`;
+        }
+    }
+
+    // Se vier com barra (ex: DD/MM/YYYY ou MM/DD/YYYY)
+    if (strData.includes('/')) {
+        const parteData = strData.split(' ')[0];
+        const partes = parteData.split('/');
+        if (partes.length === 3) {
+            const p0 = parseInt(partes[0], 10);
+            const p1 = parseInt(partes[1], 10);
+            const ano = partes[2];
+            // Se o segundo número for > 12, com certeza o segundo é o dia (MM/DD/YYYY)
+            if (p1 > 12 && p0 <= 12) {
+                return `${String(p1).padStart(2, '0')}.${String(p0).padStart(2, '0')}.${ano}`;
+            }
+            // Se o primeiro número for > 12, com certeza o primeiro é o dia (DD/MM/YYYY)
+            if (p0 > 12 && p1 <= 12) {
+                return `${String(p0).padStart(2, '0')}.${String(p1).padStart(2, '0')}.${ano}`;
+            }
+            // Verifica se a máquina do cliente formata com mês primeiro (padrão americano)
+            const ehAmericano = new Date(2026, 0, 25).toLocaleDateString().startsWith('1');
+            if (ehAmericano && p0 <= 12 && p1 <= 31) {
+                return `${String(p1).padStart(2, '0')}.${String(p0).padStart(2, '0')}.${ano}`;
+            }
+            return `${String(p0).padStart(2, '0')}.${String(p1).padStart(2, '0')}.${ano}`;
+        }
+    }
+
+    return strData.replaceAll('/', '.');
+}
+
+/**
+ * Retorna a hora estritamente no padrão 24 horas 'HH:mm:ss' (ex: "15:07:57"),
+ * 100% imune a configurações regionais do navegador, OS ou formatos AM/PM.
+ */
+function horaFormatadaDB(data?: Date | string | null): string {
+    if (typeof data === 'string' && data.trim()) {
+        const str = data.trim();
+        const match = str.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?/i);
+        if (match) {
+            let h = parseInt(match[1], 10);
+            const m = match[2];
+            const s = match[3] || '00';
+            const meridiem = match[4]?.toUpperCase();
+            if (meridiem === 'PM' && h < 12) h += 12;
+            if (meridiem === 'AM' && h === 12) h = 0;
+            return `${String(h).padStart(2, '0')}:${m}:${s}`;
+        }
+    }
+    const d = data instanceof Date && !isNaN(data.getTime()) ? data : new Date();
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    const s = String(d.getSeconds()).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
+
+/**
+ * Retorna a data e hora completas para banco: 'DD.MM.YYYY HH:mm:ss'
+ */
+function dataHoraFormatadaDB(data?: Date | string | null): string {
+    const d = data instanceof Date && !isNaN(data.getTime()) ? data : new Date();
+    return `${FormatDate(d)} ${horaFormatadaDB(d)}`;
 }
 
 /* A Função abaixo pega um valor EM STRING "dd/mm/yyyy"
@@ -181,11 +248,9 @@ e transforma no formato 'dd.mm.yyyy' para enviar ao banco
 de dados
 */
 
- function formatDateDB(data:string)
- {
-  return data.replaceAll('/', '.');
-
- }
+ function formatDateDB(data: string) {
+    return FormatDate(data);
+}
 
 function formatCurrency(value?:number)
 {
@@ -277,5 +342,5 @@ const parseFloatFromString = (value: string): number => {
   return parseFloat(value.replace(/,/g, ''));
 };
 
-export { GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
+export { horaFormatadaDB, dataHoraFormatadaDB, GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
   converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput, formatNumber, parseFloatFromString };

@@ -7,7 +7,7 @@ import OrdemModel from "@/app/models/ordem_model";
 import OrdemRepository from "@/app/repositories/ordem_repository";
 import CaixaModel from "@/app/models/caixa_model";
 import CaixaRepository from "@/app/repositories/caixa_repository";
-import { GeraCodigo, IncrementaGenerator } from "@/app/functions/utils";
+import { GeraCodigo, IncrementaGenerator, FormatDate, horaFormatadaDB, dataHoraFormatadaDB } from "@/app/functions/utils";
 import DAVRepository from "@/app/repositories/dav_repository";
 import OrdEstModel from "@/app/models/ord_est_model";
 import HisProRepository from "@/app/repositories/his_pro_repository";
@@ -65,13 +65,13 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     DAV_CLI: ordem.ORD_CLI,
                     DAV_CLIENTE: ordem.CLI_NOME,
                     DAV_CPF_CNPJ: ordem.CLI_CNPJ_CPF,
-                    DAV_DATA: new Date().toLocaleDateString(),
+                    DAV_DATA: FormatDate(new Date()),
                     DAV_ESTADO: 2,
                     DAV_FATURA: this.codFatura,
                     DAV_FORMAS_PGM: 'DINHEIRO',
                     DAV_FUN: 1,
                     DAV_FUNCAO: 'ORÇAMENTO',
-                    DAV_HORA: new Date().toLocaleTimeString(),
+                    DAV_HORA: horaFormatadaDB(),
                     DAV_NOVO: 1,
                     DAV_VALIDADE: '10 DIAS',
                     DAV_VALOR: ordem.ORD_VALOR,
@@ -101,7 +101,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     const hisProRepository = new HisProRepository();
                     hisProRepository.insereHisPro({
                         HP_CODIGO: await IncrementaGenerator('GEN_HP'),
-                        HP_DATA: new Date().toLocaleDateString(),
+                        HP_DATA: FormatDate(new Date()),
                         HP_DOC: ordEst.ORE_ORD.toString(),
                         HP_ORIGEM: `OS - ${this.nomeCliente}`,
                         HP_PRO: ordEst.ORE_PRO,
@@ -119,7 +119,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     const repositoryDAV = new DAVRepository();
                     repositoryDAV.insereDAVPro({
                         DP_CODIGO: await IncrementaGenerator('GEN_DP'),
-                        DP_DATA: new Date().toLocaleDateString(),
+                        DP_DATA: FormatDate(new Date()),
                         DP_ACRESCIMO: 0,
                         DP_ALIQICMS: ordEst.ORE_ALIQICMS!,
                         DP_CANCELADO: 'N',
@@ -172,13 +172,13 @@ export default class OperacaoOrdens implements OperacoesStrategy {
             const result = repository.inserePedFat(model);
             //ultima venda cli
             const clienteRepository = new ClientRepository();
-            clienteRepository.setUltimaVendaCliente(new Date().toLocaleDateString(), model.PF_COD_CLI);
+            clienteRepository.setUltimaVendaCliente(FormatDate(new Date()), model.PF_COD_CLI);
             //faturamento
             const faturamentosRepository = new FaturamentosRepository();            
             faturamentosRepository.insereFaturamentos({
                 FAT_CODIGO: this.codFatura,
                 FAT_CLI: model.PF_COD_CLI,
-                FAT_DATA: new Date().toLocaleDateString(),
+                FAT_DATA: FormatDate(new Date()),
                 FAT_DESCRICAO: model.PF_COD_PED,
                 FAT_JUROS: 0,
                 FAT_PARCELAS: model.PF_PARCELAS,
@@ -208,7 +208,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                         REC_CODIGO: codRecebimento,
                         REC_CAI: this.caixaModel!.CAI_CODIGO,
                         REC_CON: 0,
-                        REC_DATAR: new Date().toLocaleDateString(),
+                        REC_DATAR: FormatDate(new Date()),
                         REC_DESCONTADO: 'N',
                         REC_DESCONTOS: pp.PP_DESCONTOS,
                         REC_DUPLICATA: pp.PP_DUPLICATA,
@@ -219,7 +219,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                         REC_SITUACAO: 0,
                         REC_TIPO: pp.DescricaoTipoPgm!,
                         REC_VALOR: pp.PP_VALOR,
-                        REC_VENCIMENTO: new Date().toLocaleDateString(),                        
+                        REC_VENCIMENTO: FormatDate(new Date()),                        
                     });
                     //se for a vista insere movimentacao
                     if (pp.PP_TP === 0){
@@ -231,8 +231,8 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                             MOV_CON: 0,
                             MOV_CREDITO: pp.PP_VALORPG,
                             MOV_DEBITO: 0,
-                            MOV_DATA: new Date().toLocaleDateString(),
-                            MOV_DATAHORA: (new Date().toLocaleDateString()) +' '+ (new Date().toLocaleTimeString()),
+                            MOV_DATA: FormatDate(new Date()),
+                            MOV_DATAHORA: dataHoraFormatadaDB(),
                             MOV_DESCRICAO: `OS - ${this.codFatura} - ${this.nomeCliente!}`,
                             MOV_ESTADO: 'A',
                             MOV_NOME: 'ORDEM',
@@ -249,13 +249,13 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                         result = await repositoryRecPgm.insereRecPgm({
                             RP_CODIGO: codRecPgm,
                             RP_DINHEIRO: pp.PP_VALORPG,
-                            RP_DATAPGM: new Date().toLocaleDateString(),
+                            RP_DATAPGM: FormatDate(new Date()),
                             RP_CHEQUE: 0,
                             RP_REC: codRecebimento,
                             RP_CAI: this.caixaModel!.CAI_CODIGO,
                             RP_DESCONTOS: 0,
                             RP_FUN: 1,
-                            RP_HORA: new Date().toLocaleTimeString(),
+                            RP_HORA: horaFormatadaDB(),
                             RP_JUROS: 0,
                             RP_MOV: codMov
                         });

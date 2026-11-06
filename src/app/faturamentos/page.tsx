@@ -3,12 +3,13 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import PedFatModel from "../models/ped_fat_model";
 import PFParcelaModel from "../models/pf_parcela_model";
+import TipoPgmModel from "../models/tipo_pgm_model";
 import TipoPgmRepository from "../repositories/tipo_pgm_repository";
-import { IncrementaGenerator, keyBoardInputEvent, keyBoardSelectEvent, toastMixin } from "../functions/utils";
+import { IncrementaGenerator, keyBoardInputEvent, keyBoardSelectEvent, toastMixin, formatCurrency, formatDataInput, parseDataCalendario } from "../functions/utils";
 import CliForModel from "../models/cli_for_model";
-import Modal from "../../components/component/modal";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 import OperacoesStrategy from "./contracts/operacoes_interfaces";
-import { CheckCircle, AlertCircle, PlusCircle, CreditCard } from "lucide-react";
+import { CheckCircle, AlertCircle, PlusCircle, CreditCard, Loader2 } from "lucide-react";
 
 interface FaturamentoProps {
     valorTotal: number;
@@ -40,8 +41,9 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     const [numParcelasRestantes, setNumParcelasRestantes] = useState(0);
     const [parcela, setParcela] = useState(0);
     const [showModalSalvar, setShowModalSalvar] = useState(false);
+    const [isFinishing, setIsFinishing] = useState(false);
     const [codTipoPgm, setCodTipoPgm] = useState(0);
-    const [vencimento, setVencimento] = useState(new Date());
+    const [vencimentoStr, setVencimentoStr] = useState(() => formatDataInput(new Date()));
 
     useEffect(() => {
         if (numParcelas && (numParcelas > 0))
@@ -70,10 +72,13 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
 
     const iniciaCodFatura = async () => {
         try {
-            const cod = await IncrementaGenerator('GEN_FAT');
+            const genFat = tipoRecPag === 'P' ? 'GEN_FAT2' : 'GEN_FAT';
+            const cod = await IncrementaGenerator(genFat);
             setCodFatura(cod);
-            const codPedFat = await IncrementaGenerator('GEN_PF');
-            setCodPedFat(codPedFat);
+            (Operacao as any).codFatura = cod;
+            const codPf = await IncrementaGenerator('GEN_PF');
+            setCodPedFat(codPf);
+            (Operacao as any).codPedFat = codPf;
         } catch (error) {
             toastMixin.fire('Erro ao iniciar codigo fatura', String(error), 'error');
         }
@@ -99,7 +104,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                 setVlrEntrada(0);
             }
             setParcela(0);
-            setVencimento(new Date());
+            setVencimentoStr(formatDataInput(new Date()));
             setListaPFParcela([])
             const edtParcelas = document.getElementById('edtParcelas');
             edtParcelas?.focus()
@@ -130,7 +135,8 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     const keyDownParcelas = async (e: keyBoardInputEvent) => {
         const tipoPgm = listaTipopgm?.find((tp) => tp.TP_CODIGO === (tipoRecPag === 'R' ? 0 : -1));
         setParcela(0);
-        setVencimento(new Date());
+        const hoje = new Date();
+        setVencimentoStr(formatDataInput(hoje));
         if (e.key === 'Enter') {
             if (!numParcelas || numParcelas === 0) {
                 toastMixin.fire('Número de parcelas não informado!', 'Informe o número de parcelas', 'warning');
@@ -148,7 +154,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                     PP_TP: tipoPgm?.TP_CODIGO ?? 0,
                     PP_VALOR: vlrEntrada!,
                     PP_VALORPG: vlrEntrada!,
-                    PP_VENCIMENTO: vencimento,
+                    PP_VENCIMENTO: new Date(hoje),
                     DescricaoTipoPgm: tipoPgm?.TP_DESCRICAO ?? 'DINHEIRO'
                 }
                 setNumParcelasRestantes(numParcelas!);
@@ -156,7 +162,9 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
 
                 setListaPFParcela([pfParcela])
                 setParcela(1);
-                setVencimento(new Date(vencimento.setDate(vencimento.getDate() + 30)))
+                const proxVenc = new Date(hoje);
+                proxVenc.setDate(proxVenc.getDate() + 30);
+                setVencimentoStr(formatDataInput(proxVenc));
                 edtTipoPgm?.focus();
             } else {
                 setNumParcelasRestantes(numParcelas!);
@@ -170,6 +178,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     const salvarParcela = async (nparcela: number) => {
         const tipoPgm = listaTipopgm?.find((tp) => tp.TP_CODIGO === codTipoPgm);
         const edtTipoPgm = document.getElementById('tipoPgm');
+        const dtVenc = vencimentoStr ? parseDataCalendario(vencimentoStr) : new Date();
         const pfParcela: PFParcelaModel = {
             PP_CODIGO: 0,
             PP_DUPLICATA: `${codFatura}-${nparcela}/${vlrEntrada && vlrEntrada > 0 ? numParcelas! + 1 : numParcelas}`,
@@ -180,7 +189,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
             PP_TP: tipoPgm?.TP_CODIGO ?? 0,
             PP_VALOR: valorParcela!,
             PP_VALORPG: tipoPgm?.TP_CODIGO == 0 ? valorParcela! : 0,
-            PP_VENCIMENTO: vencimento,
+            PP_VENCIMENTO: dtVenc,
             DescricaoTipoPgm: tipoPgm?.TP_DESCRICAO ?? ''
         }
         if (numParcelasRestantes === 1) {
@@ -190,74 +199,53 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
         }
         setNumParcelasRestantes(numParcelasRestantes - 1);
         setListaPFParcela(old => [...old, pfParcela])
-        setVencimento(new Date(vencimento.setDate(vencimento.getDate() + 30)))
+        const proxVenc = new Date(dtVenc);
+        proxVenc.setDate(proxVenc.getDate() + 30);
+        setVencimentoStr(formatDataInput(proxVenc));
         setParcela(nparcela);
         edtTipoPgm?.focus();
     }
 
     const finalizarFaturamento = async () => {
+        if (isFinishing) return;
+        setIsFinishing(true);
         try {
-            toastMixin.fire('Aguarde...', 'finalizando faturamento', 'info');
+            toastMixin.fire({
+                title: 'Aguarde...',
+                text: 'finalizando faturamento',
+                icon: 'info'
+            });
+            if (codFatura > 0) (Operacao as any).codFatura = codFatura;
+            if (codPedFat > 0) (Operacao as any).codPedFat = codPedFat;
+            pedFat.PF_CODIGO = codPedFat;
+            pedFat.PF_FAT = codFatura;
             pedFat.PF_COD_CLI = cliFor.CODIGO;
             pedFat.PF_VALOR = valorTotal!;
             pedFat.PF_VALORB = valorTotal!;
             pedFat.PF_VALORPG = vlrEntrada!;
             pedFat.PF_PARCELAS = (vlrEntrada! && numParcelas!) > 0 ? numParcelas! + 1 : numParcelas!;
-            setShowModalSalvar(false)
+            setShowModalSalvar(false);
             await Operacao.insereOperacao(model);
             await Operacao.insereItens(itens);
             await Operacao.insereItens2?.(itens2);
             await Operacao.inserePedFat(pedFat!);
             await Operacao.inserePFParcelas(listaPFParcela);
-            toastMixin.fire('Finalizado', 'Faturamento finalizado com sucesso', 'success');
+            toastMixin.fire({
+                title: 'Finalizado',
+                text: 'Faturamento finalizado com sucesso',
+                icon: 'success'
+            });
             setFaturado(true);
             setShowModal?.(false);
         } catch (error) {
-            toastMixin.fire('Erro ao finalizar faturamento', String(error), 'error')
+            toastMixin.fire({
+                title: 'Erro ao finalizar faturamento',
+                text: String(error),
+                icon: 'error'
+            });
+        } finally {
+            setIsFinishing(false);
         }
-    }
-
-    const ModalSalvar = () => {
-        return (
-            <Modal
-                showModal={showModalSalvar}
-                setShowModal={setShowModalSalvar}
-                title="Confirmar Faturamento"
-                showButtonExit={false}
-                body={
-                    <div className="flex flex-col gap-4 py-2 font-sans">
-                        <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-200">
-                            <AlertCircle className="w-6 h-6 text-amber-600 shrink-0" />
-                            <div className="text-sm text-stone-700">
-                                Deseja confirmar o fechamento desta fatura no valor de{" "}
-                                <span className="font-bold text-stone-900">
-                                    {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(valorTotal!)}
-                                </span>{" "}
-                                dividida em <span className="font-bold text-stone-900">{listaPFParcela.length} parcela(s)</span>?
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-end gap-3 pt-2">
-                            <button
-                                className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition-colors"
-                                type="button"
-                                onClick={() => setShowModalSalvar(false)}
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                className="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm transition-colors flex items-center gap-2"
-                                type="button"
-                                onClick={finalizarFaturamento}
-                            >
-                                <CheckCircle className="w-4 h-4" />
-                                Confirmar Fechamento
-                            </button>
-                        </div>
-                    </div>
-                }
-            />
-        );
     }
 
     return (
@@ -343,7 +331,16 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                 </div>
             </div>
 
-            {showModalSalvar && <ModalSalvar />}
+            <ModalConfirmacao
+                isOpen={showModalSalvar}
+                onClose={() => setShowModalSalvar(false)}
+                onConfirm={finalizarFaturamento}
+                title="Confirmar Faturamento"
+                message={`Deseja confirmar o fechamento desta fatura no valor de ${formatCurrency(valorTotal)} dividida em ${listaPFParcela.length} parcela(s)?`}
+                type="success"
+                confirmText="Confirmar Fechamento"
+                isLoading={isFinishing}
+            />
 
             {/* Bloco 2: Configuração e Inserção de Parcelas */}
             <div className="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
@@ -390,8 +387,8 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                             type="date"
                             id="edtVencimento"
                             onKeyDown={keydownVencimento}
-                            value={Intl.DateTimeFormat("fr-CA", { year: "numeric", month: "2-digit", day: "2-digit" }).format(vencimento)}
-                            onChange={e => setVencimento(e.target.value ? new Date(e.target.value) : new Date())}
+                            value={vencimentoStr}
+                            onChange={e => setVencimentoStr(e.target.value)}
                             className="w-full bg-white border border-stone-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-lg px-3 py-2 text-sm text-stone-800 font-medium transition-all outline-none"
                         />
                     </div>
@@ -473,12 +470,16 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                 <div className="pt-2">
                     <button
                         type="button"
-                        disabled={(numParcelasRestantes !== 0) || (listaPFParcela.length === 0)}
+                        disabled={(numParcelasRestantes !== 0) || (listaPFParcela.length === 0) || isFinishing}
                         className="w-full py-3.5 px-6 rounded-xl font-bold text-sm sm:text-base text-white shadow-sm transition-all flex items-center justify-center gap-2 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99]"
                         onClick={() => setShowModalSalvar(true)}
                     >
-                        <CheckCircle className="w-5 h-5" />
-                        <span>Finalizar Faturamento</span>
+                        {isFinishing ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <CheckCircle className="w-5 h-5" />
+                        )}
+                        <span>{isFinishing ? "Finalizando..." : "Finalizar Faturamento"}</span>
                     </button>
                 </div>
             </div>

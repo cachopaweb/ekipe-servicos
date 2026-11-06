@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { AlertTriangle, CheckCircle, Info, AlertCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, Info, AlertCircle, Loader2 } from "lucide-react";
 
 interface ModalConfirmacaoProps {
   isOpen: boolean;
@@ -12,6 +12,7 @@ interface ModalConfirmacaoProps {
   type?: "danger" | "success" | "warning" | "info";
   confirmText?: string;
   cancelText?: string;
+  isLoading?: boolean;
 }
 
 export default function ModalConfirmacao({
@@ -23,6 +24,7 @@ export default function ModalConfirmacao({
   type = "info",
   confirmText = "Confirmar",
   cancelText = "Cancelar",
+  isLoading = false,
 }: ModalConfirmacaoProps) {
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -106,7 +108,8 @@ export default function ModalConfirmacao({
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-2.5 px-4 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+              disabled={isLoading}
+              className="w-full py-2.5 px-4 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {cancelText}
             </button>
@@ -114,8 +117,10 @@ export default function ModalConfirmacao({
               ref={confirmButtonRef}
               type="button"
               onClick={onConfirm}
-              className={`w-full py-2.5 px-4 text-sm font-semibold rounded-md transition ${current.btnConfirm}`}
+              disabled={isLoading}
+              className={`w-full py-2.5 px-4 text-sm font-semibold rounded-md transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${current.btnConfirm}`}
             >
+              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               {confirmText}
             </button>
           </div>

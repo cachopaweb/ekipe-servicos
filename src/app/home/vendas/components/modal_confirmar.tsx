@@ -60,17 +60,24 @@ export default function ModalConfirmacao({
 
   const currentStyle = styles[type];
 
-  // Atalhos de Teclado
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      onClose();
-    }
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onConfirm();
-    }
-  }, [onClose, onConfirm]);
+  // Atalhos de Teclado globais quando o modal está aberto
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onConfirm();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, onClose, onConfirm]);
 
   // Foco automático no botão de confirmar para agilidade
   useEffect(() => {
@@ -83,9 +90,7 @@ export default function ModalConfirmacao({
 
   return (
     <div
-      tabIndex={-1}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in outline-none"
-      onKeyDown={handleKeyDown}
     >
       <div className={`bg-white w-full max-w-sm flex flex-col rounded-xl shadow-2xl overflow-hidden font-sans border-2 ${currentStyle.border} transform transition-all scale-100`}>
 

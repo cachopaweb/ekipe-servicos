@@ -44,7 +44,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
     }
 
     constructor(){
-        this.getCodigoFatura();
+        // this.getCodigoFatura();
         this.getCodigoCaixa(); 
     }
     
@@ -53,8 +53,10 @@ export default class OperacaoOrdens implements OperacoesStrategy {
             let result = false;
             const ordem = model as OrdemModel;
             const repository = new OrdemRepository();
+            if (!this.codFatura || this.codFatura <= 0) { this.codFatura = await IncrementaGenerator('GEN_FAT'); }
             ordem.ORD_FAT = this.codFatura;
             ordem.ORD_ESTADO = 'FINALIZADO';
+            ordem.ORD_DATAC = FormatDate(new Date());
             this.nomeCliente = ordem.CLI_NOME;
             result = await repository.insereordem(ordem);
             if (ordem.itensOrdEst.length > 0){
@@ -165,7 +167,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
 
     async inserePedFat(model: PedFatModel): Promise<boolean> {
         try {
-            this.codPedFat = await IncrementaGenerator('GEN_PF');
+            if (!this.codPedFat || this.codPedFat <= 0) { this.codPedFat = await IncrementaGenerator('GEN_PF'); }
             const repository = new PedFatRepository();
             model.PF_CODIGO = this.codPedFat;
             model.PF_FAT = this.codFatura;                        
@@ -204,7 +206,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     //insere recebimento
                     const codRecebimento = await IncrementaGenerator('GEN_REC');
                     const recebimentosRepository = new RecebimentosRepository()
-                    recebimentosRepository.insererecebimentos({
+                    await recebimentosRepository.insererecebimentos({
                         REC_CODIGO: codRecebimento,
                         REC_CAI: this.caixaModel!.CAI_CODIGO,
                         REC_CON: 0,
@@ -219,7 +221,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                         REC_SITUACAO: 0,
                         REC_TIPO: pp.DescricaoTipoPgm!,
                         REC_VALOR: pp.PP_VALOR,
-                        REC_VENCIMENTO: FormatDate(new Date()),                        
+                        REC_VENCIMENTO: FormatDate(pp.PP_VENCIMENTO),
                     });
                     //se for a vista insere movimentacao
                     if (pp.PP_TP === 0){

@@ -23,7 +23,7 @@ import mapItemVendaParaItemPedido, { PedEstModel } from "@/app/models/ped_est_mo
 import { useAppData } from "@/app/contexts/app_context";
 import Modal from "@/components/component/modal";
 import OperacaoVenda from "@/app/faturamentos/implementations/operacao_venda";
-import { IncrementaGenerator, horaFormatadaDB, FormatDate } from "@/app/functions/utils";
+import { IncrementaGenerator, horaFormatadaDB, FormatDate, toastMixin } from "@/app/functions/utils";
 import { PedidoModel } from "@/app/models/pedido_model";
 import PedidoRepository from "@/app/repositories/pedido_repository";
 import ModalBuscarVenda from "./components/modal_buscar_venda";
@@ -226,7 +226,11 @@ export default function Vendas() {
                 const estoqueDisponivel = produto?.estoque ?? 0;
 
                 if (estoqueDisponivel < newQuantity) {
-                    alert(`Estoque insuficiente! Disponível: ${estoqueDisponivel}`);
+                    toastMixin.fire({
+                        title: 'Atenção',
+                        text: `Estoque insuficiente! Disponível: ${estoqueDisponivel}`,
+                        icon: 'warning'
+                    });
                     return;
                 }
             } catch (error) {
@@ -321,7 +325,11 @@ export default function Vendas() {
     // Finalizar
     const handleFinalizarVenda = () => {
         if (items.length === 0) {
-            alert("Adicione produtos antes de finalizar.");
+            toastMixin.fire({
+                title: 'Atenção',
+                text: "Adicione produtos antes de finalizar.",
+                icon: 'warning'
+            });
         } else {
             const novaVenda: VendaCompleta = {
                 VEN_CODIGO: codUltimaVenda + 1,
@@ -349,7 +357,11 @@ export default function Vendas() {
 
     const handleSalvarPedido = async () => {
         if (items.length === 0) {
-            alert("Adicione produtos antes de salvar a venda.");
+            toastMixin.fire({
+                title: 'Atenção',
+                text: "Adicione produtos antes de salvar a venda.",
+                icon: 'warning'
+            });
         } else {
             const pedCod = await IncrementaGenerator('GEN_PED');
 
@@ -387,7 +399,11 @@ export default function Vendas() {
     // Salva a venda em formato de orçamento
     const handleSalvarVenda = () => {
         if (items.length === 0) {
-            alert("Adicione produtos antes de salvar como orçamento.");
+            toastMixin.fire({
+                title: 'Atenção',
+                text: "Adicione produtos antes de salvar como orçamento.",
+                icon: 'warning'
+            });
             return;
         }
 
@@ -470,13 +486,17 @@ export default function Vendas() {
 
         } catch (error) {
             console.error("Erro ao carregar venda salva:", error);
-            alert("Erro ao carregar os itens do pedido.");
+            toastMixin.fire({
+                title: 'Erro',
+                text: "Erro ao carregar os itens do pedido.",
+                icon: 'error'
+            });
         }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.defaultPrevented) return;
-        if (showModalFinalizar || showModalCliente || showModalProduto || showModalAtalhos || showModalImprimirOrcamento || showModalReimprimirVenda || vendaRecemFinalizada) return;
+        if (showModalFinalizar || showModalCliente || showModalProduto || showModalAtalhos || showModalImprimirOrcamento || showModalReimprimirVenda || showModalBuscarVenda || confirmacao.isOpen || vendaRecemFinalizada) return;
 
         const target = e.target as HTMLElement;
         const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
@@ -535,14 +555,22 @@ export default function Vendas() {
             const produtoEncontrado = await buscarProdutoPorCodigo(codProduto);
 
             if (!produtoEncontrado) {
-                alert("Produto não cadastrado!");
+                toastMixin.fire({
+                    title: 'Atenção',
+                    text: "Produto não cadastrado!",
+                    icon: 'warning'
+                });
                 return;
             }
 
             const qtdDesejada = parseInt(qtdProduto) || 1;
 
             if (produtoEncontrado.estoque < (quantItemsUsados + qtdDesejada)) {
-                alert(`Estoque insuficiente! Disponível: ${produtoEncontrado.estoque}`);
+                toastMixin.fire({
+                    title: 'Atenção',
+                    text: `Estoque insuficiente! Disponível: ${produtoEncontrado.estoque}`,
+                    icon: 'warning'
+                });
                 return;
             }
 
@@ -589,7 +617,11 @@ export default function Vendas() {
             codProdutoInputRef.current?.focus();
 
         } catch (error: any) {
-            alert(error.message || "Erro ao buscar produto");
+            toastMixin.fire({
+                title: 'Erro',
+                text: error.message || "Erro ao buscar produto",
+                icon: 'error'
+            });
             setCodProduto("");
             codProdutoInputRef.current?.focus();
         }

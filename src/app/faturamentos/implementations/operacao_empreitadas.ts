@@ -40,7 +40,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
     }
 
     constructor(){
-        this.getCodigoFatura();
+        // this.getCodigoFatura();
         this.getCodigoCaixa(); 
     }
 
@@ -57,6 +57,10 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
                 empreitada.EMP_CODIGO = await IncrementaGenerator('GEN_EMPREITADAS');
                 this.codOperacao = empreitada.EMP_CODIGO;
             } 
+            this.codOperacao = empreitada.EMP_CODIGO;
+            if (!this.codFatura || this.codFatura <= 0) {
+                this.codFatura = await IncrementaGenerator('GEN_FAT2');
+            }
             empreitada.EMP_FAT = this.codFatura;
             await repositoryEmpreitadas.insereEmpreitada(empreitada);            
             ////                                
@@ -71,7 +75,7 @@ export default class OperacaoEmpreitadas implements OperacoesStrategy{
                 LRC_HISTORICO: `Empreitada da OS ${empreitada.EMP_ORD}`,
                 LRC_OBS: empreitada.EMP_NFS != undefined ? `OS ${empreitada.EMP_ORD} / NF ${empreitada.EMP_NFS}`: `OS ${empreitada.EMP_ORD}`,
                 LRC_TIPO: 'C',
-                LRC_VALOR: empreitada.EMP_VALOR,
+                LRC_VALOR: empreitada.EMP_VALOR || 0,
                 LRC_DATAC: '01/01/1900'
             });            
             return result;

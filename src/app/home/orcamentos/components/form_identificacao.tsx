@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { parseDataCalendario, formatDataInput } from "@/app/functions/utils";
 import { ClienteModel } from "@/app/models/cliente_model";
 import { FornecedorModel } from "@/app/models/fornecedor_model";
 import {
@@ -60,25 +61,12 @@ export default function FormIdentificacao({
   // Controle de exibição dos dados fiscais secundários
   const [showFiscal, setShowFiscal] = useState<boolean>(codFatura > 0 || Boolean(nfs));
 
-  // Converte Date para string no formato YYYY-MM-DD para input date
-  const formatInputDate = (d: Date) => {
-    try {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0"); // taste-skill-ignore
-      const day = String(d.getDate()).padStart(2, "0"); // taste-skill-ignore
-      return `${year}-${month}-${day}`;
-    } catch {
-      return "";
-    }
-  };
-
   const handleDateChange = (val: string) => {
-    if (!val) return;
-    const parts = val.split("-");
-    if (parts.length === 3) {
-      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      setDataAbertura(d);
+    if (!val) {
+      setDataAbertura(new Date(NaN));
+      return;
     }
+    setDataAbertura(parseDataCalendario(val));
   };
 
   return (
@@ -184,7 +172,7 @@ export default function FormIdentificacao({
           </label>
           <input
             type="date"
-            value={formatInputDate(dataAbertura)}
+            value={formatDataInput(dataAbertura)}
             onChange={(e) => handleDateChange(e.target.value)}
             className="w-full h-10 px-3 text-sm font-medium text-gray-800 border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white"
           />

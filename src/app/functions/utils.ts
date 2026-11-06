@@ -53,12 +53,23 @@ function streamToBlob(stream:Stream) {
     });
   }
 
-function getFileName(path:string): string{
+function escapeSql(str: string | number | null | undefined): string {
+  if (str === null || str === undefined) return "";
+  return String(str).replace(/'/g, "''");
+}
 
-    const partesDoCaminho = path.split('/');
-    return partesDoCaminho[partesDoCaminho.length - 1];
-
-
+function getFileName(path: string): string {
+  if (!path) return "";
+  const normalized = path.replace(/\\/g, '/');
+  const segments = normalized.split('/');
+  const rawName = segments[segments.length - 1] || "";
+  // Se contiver prefixo gerado com timestamp_random_originalName, extrai o nome original amigável
+  // Ex: "1730734800000_abc12_documento.pdf" -> "documento.pdf"
+  const match = rawName.match(/^\d+_[a-z0-9]+_(.+)$/i);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return rawName;
 }
 
 async function IncrementaGenerator(generator: string): Promise<number>{
@@ -141,73 +152,66 @@ function dataFormatadaHojeDotValueInput(data: Date | string) {
   Usado para os values dos Inputs tipo date.
 
 */ 
-function dataFormatadaValueInput(data:Date)
-{
+/**
+ * Converte qualquer formato de data recebido (YYYY-MM-DD, DD.MM.YYYY, DD/MM/YYYY, ISO ou Date)
+ * em um objeto Date seguro no horário local, sem distorção por fuso UTC (zero timezone shift).
+ */
+function parseDataCalendario(data?: Date | string | null): Date {
+  if (!data) return new Date();
+  if (data instanceof Date) {
+    return isNaN(data.getTime()) ? new Date() : data;
+  }
+  const str = String(data).trim();
+  if (!str) return new Date();
 
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0'); 
-  const ano = String(data.getFullYear());
+  // Caso 1: YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss
+  const matchIso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (matchIso) {
+    const ano = parseInt(matchIso[1], 10);
+    const mes = parseInt(matchIso[2], 10) - 1;
+    const dia = parseInt(matchIso[3], 10);
+    return new Date(ano, mes, dia, 0, 0, 0, 0);
+  }
 
-   return `${ano}-${mes}-${dia}`;
+  // Caso 2: DD.MM.YYYY ou DD/MM/YYYY
+  const matchBr = str.match(/^(\d{2})[./](\d{2})[./](\d{4})/);
+  if (matchBr) {
+    const dia = parseInt(matchBr[1], 10);
+    const mes = parseInt(matchBr[2], 10) - 1;
+    const ano = parseInt(matchBr[3], 10);
+    return new Date(ano, mes, dia, 0, 0, 0, 0);
+  }
 
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+
+/**
+ * Retorna a data no formato normalizado 'YYYY-MM-DD', ideal para <input type="date">
+ * e para contratos de transporte limpos.
+ */
+function formatDataInput(data?: Date | string | null): string {
+  if (!data) return '';
+  if (data instanceof Date && isNaN(data.getTime())) return '';
+  const d = parseDataCalendario(data);
+  if (isNaN(d.getTime())) return '';
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+}
+
+function dataFormatadaValueInput(data: Date | string): string {
+  return formatDataInput(data);
 }
 
 function FormatDate(data: Date | string | null | undefined): string {
-    if (!data) return '';
-    if (data instanceof Date) {
-        if (isNaN(data.getTime())) return '';
-        const dia = String(data.getDate()).padStart(2, '0');
-        const mes = String(data.getMonth() + 1).padStart(2, '0');
-        const ano = String(data.getFullYear());
-        return `${dia}.${mes}.${ano}`;
-    }
-    const strData = String(data).trim();
-    if (!strData) return '';
-
-    // Se já estiver no formato correto DD.MM.YYYY
-    if (/^\d{2}\.\d{2}\.\d{4}$/.test(strData)) {
-        return strData;
-    }
-
-    // Se vier com traço (ex: YYYY-MM-DD ou ISO 2026-10-29T...)
-    if (strData.includes('-')) {
-        const parteData = strData.split('T')[0].split(' ')[0];
-        const partes = parteData.split('-');
-        if (partes.length === 3) {
-            if (partes[0].length === 4) {
-                // YYYY-MM-DD -> DD.MM.YYYY
-                return `${partes[2].padStart(2, '0')}.${partes[1].padStart(2, '0')}.${partes[0]}`;
-            }
-            return `${partes[0].padStart(2, '0')}.${partes[1].padStart(2, '0')}.${partes[2]}`;
-        }
-    }
-
-    // Se vier com barra (ex: DD/MM/YYYY ou MM/DD/YYYY)
-    if (strData.includes('/')) {
-        const parteData = strData.split(' ')[0];
-        const partes = parteData.split('/');
-        if (partes.length === 3) {
-            const p0 = parseInt(partes[0], 10);
-            const p1 = parseInt(partes[1], 10);
-            const ano = partes[2];
-            // Se o segundo número for > 12, com certeza o segundo é o dia (MM/DD/YYYY)
-            if (p1 > 12 && p0 <= 12) {
-                return `${String(p1).padStart(2, '0')}.${String(p0).padStart(2, '0')}.${ano}`;
-            }
-            // Se o primeiro número for > 12, com certeza o primeiro é o dia (DD/MM/YYYY)
-            if (p0 > 12 && p1 <= 12) {
-                return `${String(p0).padStart(2, '0')}.${String(p1).padStart(2, '0')}.${ano}`;
-            }
-            // Verifica se a máquina do cliente formata com mês primeiro (padrão americano)
-            const ehAmericano = new Date(2026, 0, 25).toLocaleDateString().startsWith('1');
-            if (ehAmericano && p0 <= 12 && p1 <= 31) {
-                return `${String(p1).padStart(2, '0')}.${String(p0).padStart(2, '0')}.${ano}`;
-            }
-            return `${String(p0).padStart(2, '0')}.${String(p1).padStart(2, '0')}.${ano}`;
-        }
-    }
-
-    return strData.replaceAll('/', '.');
+  if (!data) return '';
+  const d = parseDataCalendario(data);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const ano = String(d.getFullYear());
+  return `${dia}.${mes}.${ano}`;
 }
 
 /**
@@ -262,22 +266,14 @@ function formatCurrency(value?:number)
     return (Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(value));
 }
 
-function converterDataFormato(data: string|null): string {
-    if(data == null)
-    {
-        return '';
-    }
-    else
-    {
-    // Divide a data em ano, mês e dia
-    const [ano, mes, dia] = data.split('-');
-  
-    // Formata a nova data no formato DD/MM/AAAA
-    const novaDataFormatada = `${dia}/${mes}/${ano}`;
-  
-    return novaDataFormatada;
-    }
-  }
+function converterDataFormato(data?: Date | string | null): string {
+  if (!data) return '';
+  const d = parseDataCalendario(data);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const ano = d.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
 
   const mascaraMoeda = (num : Number) =>
   {
@@ -342,5 +338,5 @@ const parseFloatFromString = (value: string): number => {
   return parseFloat(value.replace(/,/g, ''));
 };
 
-export { horaFormatadaDB, dataHoraFormatadaDB, GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
-  converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput, formatNumber, parseFloatFromString };
+export { parseDataCalendario, formatDataInput, horaFormatadaDB, dataHoraFormatadaDB, GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
+  converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput, formatNumber, parseFloatFromString, escapeSql };

@@ -5,12 +5,16 @@ import { useRouter } from "next/navigation";
 import { useAppData } from "@/app/contexts/app_context";
 import UsuarioRepository from "@/app/repositories/usuario_repository";
 import { FuncionarioModel } from "@/app/models/usuario_model";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
+import { toastMixin } from "@/app/functions/utils";
+import { Loader2, LogOut, User, Fingerprint, BadgeCheck, Mail, Phone, UserX } from "lucide-react";
 
 export default function PerfilUsuario() {
   const { usuarioLogado, setUsuarioLogado } = useAppData();
 
   const [funcionario, setFuncionario] = useState<FuncionarioModel | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,6 +31,11 @@ export default function PerfilUsuario() {
           }
         } catch (error) {
           console.error("Erro ao carregar perfil:", error);
+          toastMixin.fire({
+            title: 'Erro',
+            text: 'Falha ao carregar perfil.',
+            icon: 'error'
+          });
         } finally {
           setLoading(false);
         }
@@ -37,11 +46,14 @@ export default function PerfilUsuario() {
   }, [usuarioLogado]);
 
   const handleLogout = () => {
-    if (window.confirm("Deseja realmente sair do sistema?")) {
-      localStorage.removeItem('usuario_logado');
-      setUsuarioLogado(null as any);
-      router.push('/');
-    }
+    setConfirmLogout(true);
+  };
+
+  const executeLogout = () => {
+    setConfirmLogout(false);
+    localStorage.removeItem('usuario_logado');
+    setUsuarioLogado(null as any);
+    router.push('/');
   };
 
   const getIniciais = (nome: string) => {
@@ -58,7 +70,7 @@ export default function PerfilUsuario() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center text-stone-500 font-medium">
-        <i className="fas fa-circle-notch fa-spin mr-2 text-amber-500"></i> Carregando perfil...
+        <Loader2 className="w-5 h-5 animate-spin mr-2 text-amber-500" /> Carregando perfil...
       </div>
     );
   }
@@ -109,7 +121,7 @@ export default function PerfilUsuario() {
               <div>
                 <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Login</label>
                 <div className="text-sm font-semibold text-stone-800 flex items-center gap-2 truncate">
-                  <i className="fas fa-user text-amber-500 w-4 text-center"></i>
+                  <User className="w-4 h-4 text-amber-500 shrink-0" />
                   <span>{usuarioLogado.USU_LOGIN}</span>
                 </div>
               </div>
@@ -117,7 +129,7 @@ export default function PerfilUsuario() {
               <div>
                 <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">ID Usuário</label>
                 <div className="text-sm font-semibold text-stone-800 flex items-center gap-2">
-                  <i className="fas fa-fingerprint text-amber-500 w-4 text-center"></i>
+                  <Fingerprint className="w-4 h-4 text-amber-500 shrink-0" />
                   <span>#{usuarioLogado.USU_CODIGO}</span>
                 </div>
               </div>
@@ -125,7 +137,7 @@ export default function PerfilUsuario() {
               <div>
                 <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">ID Funcionário</label>
                 <div className="text-sm font-semibold text-stone-800 flex items-center gap-2">
-                  <i className="fas fa-id-badge text-amber-500 w-4 text-center"></i>
+                  <BadgeCheck className="w-4 h-4 text-amber-500 shrink-0" />
                   <span>#{usuarioLogado.USU_FUN?.toString() || "N/A"}</span>
                 </div>
               </div>
@@ -138,7 +150,7 @@ export default function PerfilUsuario() {
               onClick={handleLogout}
               className="w-full bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-700 font-semibold py-2.5 px-4 rounded-lg border border-rose-200 transition-colors flex items-center justify-center gap-2 group text-sm shadow-sm"
             >
-              <i className="fas fa-sign-out-alt group-hover:-translate-x-0.5 transition-transform"></i>
+              <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
               Sair do Sistema
             </button>
           </div>
@@ -163,7 +175,7 @@ export default function PerfilUsuario() {
                 <div className="overflow-hidden">
                   <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">E-mail</label>
                   <div className="text-sm font-medium text-stone-800 border-b border-stone-100 pb-2 flex items-center gap-2 truncate">
-                    <i className="far fa-envelope text-stone-400 text-sm"></i>
+                    <Mail className="w-4 h-4 text-stone-400 shrink-0" />
                     <span className="truncate">{funcionario.FUN_EMAIL || "Não informado"}</span>
                   </div>
                 </div>
@@ -171,7 +183,7 @@ export default function PerfilUsuario() {
                 <div>
                   <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Telefone / Celular</label>
                   <div className="text-sm font-medium text-stone-800 border-b border-stone-100 pb-2 flex items-center gap-2">
-                    <i className="fas fa-phone text-stone-400 text-sm"></i>
+                    <Phone className="w-4 h-4 text-stone-400 shrink-0" />
                     <span>{funcionario.FUN_FONE || "Não informado"}</span>
                   </div>
                 </div>
@@ -193,13 +205,23 @@ export default function PerfilUsuario() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-stone-400 bg-stone-50 rounded-lg border border-dashed border-stone-200">
-                <i className="fas fa-user-slash text-2xl mb-2 text-stone-300"></i>
+                <UserX className="w-8 h-8 mb-2 text-stone-300" />
                 <p className="text-sm">Dados não vinculados ao funcionário.</p>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      <ModalConfirmacao
+        isOpen={confirmLogout}
+        onClose={() => setConfirmLogout(false)}
+        onConfirm={executeLogout}
+        title="Sair do Sistema"
+        message="Deseja realmente encerrar sua sessão no sistema?"
+        type="danger"
+        confirmText="Sim, Sair"
+      />
     </div>
   );
 }

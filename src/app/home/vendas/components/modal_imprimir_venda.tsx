@@ -253,16 +253,31 @@ export default function ModalImprimirVenda({ isOpen, onClose, venda, desconto, f
     }
   };
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      onClose();
-    }
-    if (e.key === 'F8' || e.key === 'Enter') {
-      e.preventDefault();
-      handlePrint();
-    }
-  }, [onClose, venda, observacoes, tipoImpressao]);
+  // Atalhos de teclado globais quando o modal está aberto
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+      if (e.key === 'F8') {
+        e.preventDefault();
+        handlePrint();
+      }
+      if (e.key === 'Enter') {
+        const target = e.target as HTMLElement;
+        if (target?.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          handlePrint();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, onClose, venda, observacoes, tipoImpressao]);
 
   useEffect(() => {
     if (isOpen) {
@@ -275,9 +290,7 @@ export default function ModalImprimirVenda({ isOpen, onClose, venda, desconto, f
   return (
     <div
       ref={containerRef}
-      tabIndex={-1}
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in outline-none"
-      onKeyDown={handleKeyDown}
     >
       <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-gray-300 flex flex-col">
 

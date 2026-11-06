@@ -19,7 +19,7 @@ interface TabServicosProps {
   unidadesMedida: UnidadeMedidaModel[];
   onAdicionarServico: (novoServico: OrdSerModel) => void;
   onEditarServico: (servico: OrdSerModel) => void;
-  onExcluirServico: (codigo: number) => void;
+  onExcluirServico: (codigo: number, index?: number) => void;
 }
 
 export default function TabServicos({
@@ -271,7 +271,7 @@ export default function TabServicos({
                         </button>
                         <button
                           type="button"
-                          onClick={() => onExcluirServico(item.OS_CODIGO)}
+                          onClick={() => onExcluirServico(item.OS_CODIGO, index)}
                           className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition"
                           title="Remover Serviço"
                         >

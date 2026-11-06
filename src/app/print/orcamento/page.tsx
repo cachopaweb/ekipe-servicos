@@ -5,7 +5,8 @@ import { useReactToPrint } from 'react-to-print';
 import logo from '../../../../assets/logo.png'
 import { useAppData } from '@/app/contexts/app_context';
 import { useEffect, useRef, useState } from 'react';
-import { converterDataFormato, formatCurrency, toastMixin } from '../../functions/utils'
+import { converterDataFormato, formatCurrency } from '../../functions/utils'
+import { Printer } from 'lucide-react'
 import { FuncionarioModel } from '@/app/models/usuario_model';
 import UsuarioRepository from '@/app/repositories/usuario_repository';
 
@@ -38,33 +39,42 @@ const PrintOrcamentos = () => {
     }
 
     useEffect(() => {
+        if (!OrdemCtx) {
+            setCarregando(false);
+            return;
+        }
         setCarregando(true);
 
         const repUsuario = new UsuarioRepository();
-        repUsuario.getFuncionario(OrdemCtx!.ORD_FUN).then((res) => {
+        repUsuario.getFuncionario(OrdemCtx.ORD_FUN).then((res) => {
             setFuncionario(res);
         }).catch((err) => {
             console.log(err);
         });
-        var somaProd = 0;
-        var somaServ = 0;
-        if (OrdemCtx!.itensOrdEst.length > 0) {
-            somaProd = OrdemCtx!.itensOrdEst.map(e => e.ORE_VALOR).reduce((item1, item2) => item1 + item2);
+        let somaProd = 0;
+        let somaServ = 0;
+        if (Array.isArray(OrdemCtx.itensOrdEst) && OrdemCtx.itensOrdEst.length > 0) {
+            somaProd = OrdemCtx.itensOrdEst.map(e => e.ORE_VALOR || 0).reduce((item1, item2) => item1 + item2, 0);
         }
-        if (OrdemCtx!.itensOrdSer.length > 0) {
-            somaServ = OrdemCtx!.itensOrdSer.map(e => e.OS_VALOR).reduce((item1, item2) => item1 + item2);
+        if (Array.isArray(OrdemCtx.itensOrdSer) && OrdemCtx.itensOrdSer.length > 0) {
+            somaServ = OrdemCtx.itensOrdSer.map(e => e.OS_VALOR || 0).reduce((item1, item2) => item1 + item2, 0);
         }
 
         setSomaProdutos(somaProd);
         setSomaServicos(somaServ);
-        toastMixin.fire({
-            title: 'Aperte no botão a baixo imprimir!'
-        });
-        OrdemCtx.ORD_FAT == null ? OrdemCtx.ORD_FAT = 0 : OrdemCtx.ORD_FAT = OrdemCtx.ORD_FAT;
-        OrdemCtx.ORD_FAT == 0 ? setTitulo('Orçamento') : setTitulo('Ordem de Serviço');
-        setObs(stringToLinesArray(OrdemCtx.ORD_OBS));
+        const fat = OrdemCtx?.ORD_FAT ?? 0;
+        fat == 0 ? setTitulo('Orçamento') : setTitulo('Ordem de Serviço');
+        setObs(stringToLinesArray(OrdemCtx.ORD_OBS || ''));
         setCarregando(false);
-    }, [])
+    }, [OrdemCtx]);
+
+    if (!OrdemCtx) {
+        return (
+            <div className="p-8 text-center text-gray-500 font-medium">
+                <p>Nenhuma ordem de serviço carregada para impressão.</p>
+            </div>
+        );
+    }
 
     return (
         carregando ?
@@ -198,7 +208,7 @@ const PrintOrcamentos = () => {
                                 </tbody>
                             </table>
                         </div>
-                        {(OrdemCtx.ORD_VALOR_DESCONTO == 0 || OrdemCtx.ORD_VALOR_DESCONTO == undefined || OrdemCtx.ORD_VALOR_DESCONTO == null) ?
+                        {(!OrdemCtx?.ORD_VALOR_DESCONTO) ?
 
                             <div>
                                 <div className='grid grid-cols-8 font-bold'>
@@ -285,7 +295,7 @@ const PrintOrcamentos = () => {
                         className={`px-4 py-3 flex items-center space-x-4 rounded-md group text-black font-bold print:hidden`}
                         onClick={handlePrint}
                     >
-                        <i className="fas fa-print"></i>
+                        <Printer className="w-5 h-5" />
                         <span>Imprimir</span>
                     </button>
                 </div>

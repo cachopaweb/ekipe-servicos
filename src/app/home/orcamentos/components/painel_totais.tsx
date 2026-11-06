@@ -5,10 +5,14 @@ import {
   Briefcase,
   FolderOpen,
   Printer,
+  FileText,
   CheckCircle2,
   Receipt,
   Percent,
   Save,
+  Coins,
+  Clock,
+  Loader2,
 } from "lucide-react";
 import { mascaraMoeda, maskRealToNumber, mascaraMoedaEvent } from "@/app/functions/utils";
 
@@ -22,10 +26,16 @@ interface PainelTotaisProps {
   codigoOrdem: number;
   codFatura: number;
   totalItens: number;
+  totalPago?: number;
+  carregandoTotalPago?: boolean;
+  erroTotalPago?: boolean;
+  onRetryTotalPago?: () => void;
+  isDirty?: boolean;
   onFaturar: () => void;
   onAbrirEmpreitadas: () => void;
   onAbrirArquivos: () => void;
   onImprimir: () => void;
+  onImprimirCompleto?: () => void;
   onSalvar?: () => void;
   canSave?: boolean;
 }
@@ -40,15 +50,23 @@ export default function PainelTotais({
   codigoOrdem,
   codFatura,
   totalItens,
+  totalPago,
+  carregandoTotalPago,
+  erroTotalPago,
+  onRetryTotalPago,
+  isDirty,
   onFaturar,
   onAbrirEmpreitadas,
   onAbrirArquivos,
   onImprimir,
+  onImprimirCompleto,
   onSalvar,
   canSave,
 }: PainelTotaisProps) {
   const subtotal = totalServicos + totalProdutos;
-  const totalLiquido = Math.max(0, subtotal - (valorDesconto || 0));
+  const totalOS = Math.max(0, subtotal - (valorDesconto || 0));
+  const pagoConfirmado = totalPago ?? 0;
+  const saldoAPagar = totalOS - pagoConfirmado;
 
   const [inputDescontoReais, setInputDescontoReais] = useState("");
   const [inputDescontoPct, setInputDescontoPct] = useState("");
@@ -113,7 +131,7 @@ export default function PainelTotais({
   return (
     <div className="flex flex-col gap-3 lg:sticky lg:top-20">
       {/* Card Principal: Totalizador Financeiro */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
         {/* Cabeçalho do Card */}
         <div className="bg-amber-500 px-4 py-3 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -129,16 +147,132 @@ export default function PainelTotais({
           )}
         </div>
 
-        {/* Total Líquido em Destaque */}
-        <div className="p-5 bg-amber-50/50 border-b border-gray-200 flex flex-col items-center justify-center text-center">
-          <span className="text-xs font-bold text-gray-600 uppercase mb-1">
-            Valor Total Líquido
-          </span>
-          <div className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight tabular-nums">
-            {new Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(totalLiquido)}
+        {/* Bloco dos 3 Indicadores Principais (E06 / R04) */}
+        <div className="p-4 bg-amber-50/40 border-b border-gray-200 space-y-3">
+          {/* 1. Total da OS */}
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                Total da OS
+              </span>
+              {isDirty && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold border border-amber-300">
+                  Em edição
+                </span>
+              )}
+            </div>
+            <div className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight tabular-nums font-mono">
+              {new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }).format(totalOS)}
+            </div>
+          </div>
+
+          {/* Grid com Total Pago e Saldo a Pagar */}
+          <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-amber-200/70">
+            {/* Total Pago */}
+            <div className="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-tight">
+                  Total Pago
+                </span>
+                <Coins className="w-3.5 h-3.5 text-emerald-600" />
+              </div>
+              {carregandoTotalPago ? (
+                <div className="flex items-center gap-1 text-xs text-stone-400 py-0.5">
+                  <Loader2 className="w-3 h-3 animate-spin text-emerald-600" />
+                  <span className="text-[11px]">Calculando...</span>
+                </div>
+              ) : erroTotalPago ? (
+                <div className="flex items-center justify-between text-[11px] text-rose-600">
+                  <span>Indisponível</span>
+                  {onRetryTotalPago && (
+                    <button
+                      type="button"
+                      onClick={onRetryTotalPago}
+                      className="text-stone-700 underline font-semibold hover:text-stone-900"
+                    >
+                      Tentar
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <span className="text-sm sm:text-base font-extrabold text-emerald-800 font-mono tabular-nums">
+                  {new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(pagoConfirmado)}
+                </span>
+              )}
+            </div>
+
+            {/* Saldo a Pagar */}
+            <div
+              className={`p-2.5 rounded-lg border flex flex-col justify-between ${
+                saldoAPagar < 0
+                  ? "bg-purple-50 border-purple-200"
+                  : saldoAPagar === 0 && pagoConfirmado > 0
+                  ? "bg-teal-50 border-teal-200"
+                  : "bg-amber-50 border-amber-200"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-tight ${
+                    saldoAPagar < 0
+                      ? "text-purple-800"
+                      : saldoAPagar === 0 && pagoConfirmado > 0
+                      ? "text-teal-800"
+                      : "text-amber-800"
+                  }`}
+                >
+                  Saldo a Pagar
+                </span>
+                <Clock
+                  className={`w-3.5 h-3.5 ${
+                    saldoAPagar < 0
+                      ? "text-purple-600"
+                      : saldoAPagar === 0 && pagoConfirmado > 0
+                      ? "text-teal-600"
+                      : "text-amber-600"
+                  }`}
+                />
+              </div>
+              {carregandoTotalPago ? (
+                <div className="flex items-center gap-1 text-xs text-stone-400 py-0.5">
+                  <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
+                  <span className="text-[11px]">Calculando...</span>
+                </div>
+              ) : (
+                <div>
+                  <span
+                    className={`text-sm sm:text-base font-extrabold font-mono tabular-nums ${
+                      saldoAPagar < 0
+                        ? "text-purple-900"
+                        : saldoAPagar === 0 && pagoConfirmado > 0
+                        ? "text-teal-900"
+                        : "text-amber-900"
+                    }`}
+                  >
+                    {new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(saldoAPagar)}
+                  </span>
+                  {saldoAPagar < 0 && (
+                    <span className="block text-[9px] font-bold text-purple-700 uppercase tracking-tight">
+                      Excedente
+                    </span>
+                  )}
+                  {saldoAPagar === 0 && pagoConfirmado > 0 && (
+                    <span className="block text-[9px] font-bold text-teal-700 uppercase tracking-tight">
+                      Quitado
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -226,6 +360,18 @@ export default function PainelTotais({
               <CheckCircle2 className="w-5 h-5" />
               <span>{isFaturado ? "Ordem Faturada" : "Faturar Ordem"}</span>
             </button>
+
+            {isFaturado && onImprimirCompleto && (
+              <button
+                type="button"
+                onClick={onImprimirCompleto}
+                className="w-full mt-2.5 py-2.5 px-3 rounded-md font-bold text-xs uppercase flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover text-white transition shadow-sm"
+                title="Reemitir PDF Completo da Ordem de Serviço"
+              >
+                <FileText className="w-4 h-4" />
+                <span>PDF Completo da OS</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -235,6 +381,26 @@ export default function PainelTotais({
         <span className="block text-xs font-bold text-gray-600 uppercase px-1">
           Atalhos & Módulos
         </span>
+
+        {/* PDF Completo da OS */}
+        <button
+          type="button"
+          onClick={onImprimirCompleto || onImprimir}
+          disabled={codigoOrdem === 0}
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-semibold transition text-left ${
+            codigoOrdem === 0
+              ? "text-gray-300 bg-gray-50 cursor-not-allowed"
+              : "text-brand bg-brand-soft hover:bg-brand/15 border border-brand-border"
+          }`}
+          title={
+            codigoOrdem === 0
+              ? "Salve o orçamento antes de gerar o relatório completo"
+              : "Gerar Relatório / PDF Completo da OS"
+          }
+        >
+          <FileText className={`w-4 h-4 ${codigoOrdem === 0 ? "text-gray-300" : "text-brand"}`} />
+          <span>PDF Completo da OS</span>
+        </button>
 
         <button
           type="button"
@@ -273,27 +439,32 @@ export default function PainelTotais({
           className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-semibold transition text-left ${
             codigoOrdem === 0
               ? "text-gray-300 bg-gray-50 cursor-not-allowed"
-              : "text-gray-700 hover:bg-brand-soft hover:text-brand"
+              : "text-gray-700 hover:bg-gray-100"
           }`}
-          title={codigoOrdem === 0 ? "Salve o orçamento antes de imprimir" : "Visualizar Impressão"}
+          title={codigoOrdem === 0 ? "Salve o orçamento antes de imprimir" : "Impressão Simples do Orçamento"}
         >
-          <Printer className={`w-4 h-4 ${codigoOrdem === 0 ? "text-gray-300" : "text-brand"}`} />
-          <span>Visualizar Impressão</span>
+          <Printer className={`w-4 h-4 ${codigoOrdem === 0 ? "text-gray-300" : "text-gray-600"}`} />
+          <span>Impressão Simples</span>
         </button>
       </div>
 
       {/* Barra Inferior Fixa para Mobile (Bottom Bar) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-300 px-4 py-2.5 flex items-center justify-between shadow-lg">
-        <div>
-          <span className="block text-xs font-semibold text-gray-500 uppercase">
-            Total Líquido
-          </span>
-          <span className="text-lg font-black text-gray-900 tabular-nums">
-            {new Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(totalLiquido)}
-          </span>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-300 px-4 py-2 flex items-center justify-between shadow-lg">
+        <div className="flex flex-col text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-gray-500 uppercase">Total:</span>
+            <span className="font-black text-gray-900 tabular-nums">
+              {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(totalOS)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className="text-emerald-700 font-bold">
+              Pago: {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pagoConfirmado)}
+            </span>
+            <span className={saldoAPagar <= 0 && pagoConfirmado > 0 ? "text-teal-700 font-bold" : "text-amber-800 font-bold"}>
+              Saldo: {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(saldoAPagar)}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {onSalvar && (

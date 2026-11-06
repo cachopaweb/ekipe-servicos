@@ -1,4 +1,4 @@
-interface TipoPgmModel {
+export default interface TipoPgmModel {
   TP_CODIGO: number;
   TP_DESCRICAO: string;
   TP_CON?: number;

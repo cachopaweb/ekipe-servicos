@@ -1,109 +1,221 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import Modal from "../../components/component/modal";
-import Swal from "sweetalert2";
+"use client";
+
+import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
+import { Search, X, Loader2, Package, Check } from "lucide-react";
 import ProdutoRepository from "../repositories/produto_repository";
 import { ProdutoModel } from "../models/produto_model";
+import { formatCurrency, toastMixin } from "../functions/utils";
 
-type pesquisaProdutoParams = {
-    showModal: boolean;
-    setShowModal: Dispatch<SetStateAction<boolean>>;
-    produtoSelecionado: ProdutoModel;
-    setProdutoSelecionado: Dispatch<SetStateAction<ProdutoModel>>;
-}
+type PesquisaProdutoParams = {
+  showModal?: boolean;
+  setShowModal: Dispatch<SetStateAction<boolean>>;
+  produtoSelecionado?: ProdutoModel;
+  setProdutoSelecionado: Dispatch<SetStateAction<ProdutoModel>>;
+  isOpen?: boolean;
+  onClose?: () => void;
+};
 
-export default function PesquisaProduto({ showModal, setShowModal, setProdutoSelecionado }: pesquisaProdutoParams){ 
-    const [textoPesquisado, setTextoPesquisado] = useState('');
-    const [produtos, setProdutos] = useState<ProdutoModel[]>([]);   
+export default function PesquisaProduto({
+  showModal,
+  setShowModal,
+  setProdutoSelecionado,
+  isOpen,
+  onClose,
+}: PesquisaProdutoParams) {
+  const activeIsOpen = isOpen !== undefined ? isOpen : (showModal ?? true);
 
-    useEffect(()=>{
-        buscarProdutoModel();
-    }, [textoPesquisado])
+  const [textoPesquisado, setTextoPesquisado] = useState("");
+  const [produtos, setProdutos] = useState<ProdutoModel[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-    const buscarProdutoModel = async ()=> {
-        try {
-            const repository = new ProdutoRepository();
-            const listaProdutos = await repository.getProdutos(textoPesquisado);
-            setProdutos(listaProdutos);
-        } catch (error) {
-            Swal.fire('Erro', String(error), 'error');
-        }
+  const inputBuscaRef = useRef<HTMLInputElement>(null);
+
+  const handleClose = useCallback(() => {
+    setShowModal(false);
+    if (onClose) onClose();
+  }, [setShowModal, onClose]);
+
+  const buscarProdutoModel = useCallback(async (termo: string) => {
+    setLoading(true);
+    try {
+      const repository = new ProdutoRepository();
+      const listaProdutos = await repository.getProdutos(termo);
+      setProdutos(listaProdutos || []);
+      setSelectedIndex(0);
+    } catch (error) {
+      toastMixin.fire({
+        title: "Erro ao buscar produtos",
+        text: String(error),
+        icon: "error",
+      });
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    const selecionarProdutoModel = (model: ProdutoModel)=> {        
-        setProdutoSelecionado(model);
-        setShowModal(false);
+  useEffect(() => {
+    if (activeIsOpen) {
+      const timer = setTimeout(() => inputBuscaRef.current?.focus(), 60);
+      return () => clearTimeout(timer);
     }
+  }, [activeIsOpen]);
 
-    return (
-        <>
-            <Modal
-                showModal={showModal}
-                setShowModal={setShowModal}
-                title="Pesquisa Produto"
-                edtSearch={<input className="border rounded-md border-spacing-1 border-amber-400 sm:w-96 sm:p-2 mx-4" type="text" placeholder="Pesquisar" value={textoPesquisado} onChange={(e)=> setTextoPesquisado(e.target.value)} />}
-                body={
-                    <table className="table-auto">
-                        <thead>
-                            <tr>
-                                <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                    <h2 className="text-ml font-bold text-gray-600">Cód.</h2>
-                                </th>
-                                <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                    <h2 className="text-ml font-bold text-gray-600">Nome</h2>
-                                </th>
-                                <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                    <h2 className="text-ml font-bold text-gray-600">Quant</h2>
-                                </th>                                                        
-                                <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                    <h2 className="text-ml font-bold text-gray-600">Custo</h2>
-                                </th>                                                        
-                                <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                    <h2 className="text-ml font-bold text-gray-600">Valor Venda</h2>
-                                </th>                                                        
-                                <th className="sm:px-4 sm:py-2 text-left border-b-2">
-                                    <h2 className="text-ml font-bold text-gray-600">Ação</h2>
-                                </th>                                                        
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {produtos.length > 0 ? (produtos.map((item) =>
-                                <tr key={item.PRO_CODIGO} className="border-b">
-                                    <td className="sm:px-4 sm:py-2 text-left">
-                                        <div>
-                                            <span className="text-xs">{item.PRO_CODIGO}</span>
-                                        </div>
-                                    </td>
-                                    <td className="sm:px-4 sm:py-2 text-left">
-                                        <div>
-                                            <span className="text-xs">{item.PRO_NOME}</span>
-                                        </div>
-                                    </td>
-                                    <td className="sm:px-4 sm:py-2 text-left">
-                                        <div>
-                                            <span className="text-xs">{item.PRO_QUANTIDADE}</span>
-                                        </div>
-                                    </td>                                                            
-                                    <td className="sm:px-4 sm:py-2 text-left">
-                                        <div>
-                                            <span className="text-xs">{item.PRO_VALORC}</span>
-                                        </div>
-                                    </td>                                                            
-                                    <td className="sm:px-4 sm:py-2 text-left">
-                                        <div>
-                                            <span className="text-xs">{item.PRO_VALORV}</span>
-                                        </div>
-                                    </td>                                                            
-                                    <td className="sm:px-4 sm:py-2 text-left">
-                                        <div>
-                                            <button onClick={()=> selecionarProdutoModel(item)} className="bg-green-700 p-2 text-xs rounded-xl shadow-sm text-white">Escolher</button>
-                                        </div>
-                                    </td>                                                            
-                                </tr>
-                            )): <h1>Aguarde, carregando dados...</h1>}
-                        </tbody>
-                    </table>
-                }
+  useEffect(() => {
+    if (!activeIsOpen) return;
+    const timeout = setTimeout(() => {
+      buscarProdutoModel(textoPesquisado);
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [textoPesquisado, activeIsOpen, buscarProdutoModel]);
+
+  const selecionarProduto = useCallback(
+    (model: ProdutoModel) => {
+      setProdutoSelecionado(model);
+      handleClose();
+    },
+    [setProdutoSelecionado, handleClose]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleClose();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((prev) => Math.min(prev + 1, produtos.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((prev) => Math.max(prev - 1, 0));
+      } else if (e.key === "Enter" && produtos[selectedIndex]) {
+        e.preventDefault();
+        selecionarProduto(produtos[selectedIndex]);
+      }
+    },
+    [produtos, selectedIndex, selecionarProduto, handleClose]
+  );
+
+  if (!activeIsOpen) return null;
+
+  return (
+    <div
+      tabIndex={-1}
+      onKeyDown={handleKeyDown}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+    >
+      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
+              <Package className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-stone-800 tracking-tight">Pesquisa de Produtos</h2>
+              <p className="text-xs text-stone-500 font-normal">
+                Navegue com as setas ↑ ↓ e pressione Enter para escolher
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+            title="Fechar (Esc)"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Barra de Pesquisa */}
+        <div className="p-4 border-b border-stone-200 bg-white shrink-0">
+          <div className="relative">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              ref={inputBuscaRef}
+              type="text"
+              value={textoPesquisado}
+              onChange={(e) => setTextoPesquisado(e.target.value)}
+              placeholder="Digite o código ou nome do produto para pesquisar..."
+              className="w-full pl-9 pr-4 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 uppercase transition"
             />
-        </>
-    )
+          </div>
+        </div>
+
+        {/* Tabela de Produtos */}
+        <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-stone-500 gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+              <span className="text-xs font-medium">Buscando produtos...</span>
+            </div>
+          ) : produtos.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-2">
+              <Package className="w-8 h-8 text-stone-300" />
+              <span className="text-sm font-medium">Nenhum produto encontrado.</span>
+              <span className="text-xs text-stone-400">Tente buscar por outro termo ou código.</span>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-stone-100/90 text-stone-600 text-xs font-bold uppercase tracking-wider border-b border-stone-200">
+                  <th className="p-3 w-20">Cód.</th>
+                  <th className="p-3">Nome / Descrição</th>
+                  <th className="p-3 text-center">Quant.</th>
+                  <th className="p-3 text-right">Custo</th>
+                  <th className="p-3 text-right">Valor Venda</th>
+                  <th className="p-3 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {produtos.map((item, idx) => {
+                  const isSelected = idx === selectedIndex;
+                  return (
+                    <tr
+                      key={item.PRO_CODIGO}
+                      onClick={() => selecionarProduto(item)}
+                      className={`cursor-pointer transition-colors text-xs ${
+                        isSelected ? "bg-amber-100/70 font-semibold" : "hover:bg-amber-50/40 text-stone-700"
+                      }`}
+                    >
+                      <td className="p-3 font-mono font-medium text-stone-900">{item.PRO_CODIGO}</td>
+                      <td className="p-3 font-medium text-stone-800">{item.PRO_NOME}</td>
+                      <td className="p-3 text-center font-mono">{item.PRO_QUANTIDADE ?? 0}</td>
+                      <td className="p-3 text-right font-mono text-stone-600">
+                        {formatCurrency(Number(item.PRO_VALORC) || 0)}
+                      </td>
+                      <td className="p-3 text-right font-mono font-medium text-amber-600">
+                        {formatCurrency(Number(item.PRO_VALORV) || 0)}
+                      </td>
+                      <td className="p-3 text-right">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200 hover:bg-amber-100 transition">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Escolher</span>
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-6 py-3.5 border-t border-stone-200/80 bg-stone-50/90 shrink-0">
+          <span className="text-xs text-stone-500">
+            {produtos.length} {produtos.length === 1 ? "produto encontrado" : "produtos encontrados"}
+          </span>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition active:scale-[0.98]"
+          >
+            Fechar (Esc)
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

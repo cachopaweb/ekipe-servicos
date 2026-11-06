@@ -70,37 +70,46 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
     }
   }, [selectedIndex]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev < filteredData.length - 1 ? prev + 1 : prev));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (filteredData[selectedIndex]) {
-        onSelect(filteredData[selectedIndex]);
+  // Atalhos de teclado globais quando o modal está aberto (funciona mesmo após clique do mouse)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev < filteredData.length - 1 ? prev + 1 : prev));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (filteredData[selectedIndex]) {
+          onSelect(filteredData[selectedIndex]);
+          onClose();
+        }
+      } else if (e.key === "Escape") {
+        e.preventDefault();
         onClose();
+      } else if (e.key === "F2") {
+        e.preventDefault();
+        const filters: ("nome" | "codigo" | "cpf")[] = ["nome", "codigo", "cpf"];
+        const currentIdx = filters.indexOf(filterType);
+        const nextIdx = (currentIdx + 1) % filters.length;
+        setFilterType(filters[nextIdx]);
+        setTimeout(() => inputRef.current?.focus(), 50);
       }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      onClose();
-    } else if (e.key === "F2") {
-      e.preventDefault();
-      const filters: ("nome" | "codigo" | "cpf")[] = ["nome", "codigo", "cpf"];
-      const currentIdx = filters.indexOf(filterType);
-      const nextIdx = (currentIdx + 1) % filters.length;
-      setFilterType(filters[nextIdx]);
-    }
-  }, [filteredData, selectedIndex, onSelect, onClose, filterType]);
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, filteredData, selectedIndex, onSelect, onClose, filterType]);
 
   if (!isOpen) return null;
 
   const clienteSelecionado = filteredData[selectedIndex] || {};
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onKeyDown={handleKeyDown}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
 
       <div className="bg-white w-full max-w-4xl h-[85vh] md:h-[650px] flex flex-col rounded-xl shadow-2xl overflow-hidden font-sans border border-gray-200">
 
@@ -130,7 +139,6 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
                 placeholder={`Pesquisar...`}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all uppercase text-sm font-semibold text-gray-700 bg-white shadow-sm"
                 autoComplete="off"
@@ -179,7 +187,10 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
               <div
                 key={cliente.CODIGO}
                 ref={el => { rowRefs.current[index] = el }}
-                onClick={() => setSelectedIndex(index)}
+                onClick={() => {
+                  setSelectedIndex(index);
+                  inputRef.current?.focus();
+                }}
                 onDoubleClick={() => { onSelect(cliente); onClose(); }}
                 className={`
                   grid grid-cols-12 px-4 py-2.5 my-1 rounded-md cursor-pointer transition-colors text-sm items-center

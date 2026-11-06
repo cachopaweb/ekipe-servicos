@@ -6,6 +6,7 @@ import ModalImprimirVenda from "./modal_imprimir_venda";
 import VendaRepository, { VendaComNomes } from "@/app/repositories/venda_repository";
 import { VenEstModel } from "@/app/models/ven_est_model";
 import { VendaModel } from "@/app/models/venda_model";
+import { toastMixin } from "@/app/functions/utils";
 
 // Interfaces
 interface VendaCompleta extends VendaModel {
@@ -89,39 +90,49 @@ export default function ModalReimprimirVenda({ isOpen, onClose }: ModalReimprimi
       };
       setVendaSelecionada(vendaCompleta);
     } catch (error) {
-      alert("Erro ao carregar detalhes da venda.");
+      toastMixin.fire({
+        title: 'Erro',
+        text: 'Erro ao carregar detalhes da venda.',
+        icon: 'error'
+      });
       console.error(error);
     }
   }, [filteredData, selectedIndex]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (vendaSelecionada) return;
+  // Atalhos de teclado globais quando o modal está aberto (funciona mesmo após clique do mouse)
+  useEffect(() => {
+    if (!isOpen || vendaSelecionada) return;
 
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev < filteredData.length - 1 ? prev + 1 : prev));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      handlePrintSelection();
-    } else if (e.key === "i" || e.key === "I") {
-      const target = e.target as HTMLElement;
-      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
-      if (!isInput) {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev < filteredData.length - 1 ? prev + 1 : prev));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === "Enter") {
         e.preventDefault();
         handlePrintSelection();
+      } else if (e.key === "i" || e.key === "I") {
+        const target = e.target as HTMLElement;
+        const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
+        if (!isInput) {
+          e.preventDefault();
+          handlePrintSelection();
+        }
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === "F2") {
+        e.preventDefault();
+        setFilterType(prev => prev === "codigo" ? "cliente" : "codigo");
+        inputRef.current?.focus();
       }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      onClose();
-    } else if (e.key === "F2") {
-      e.preventDefault();
-      setFilterType(prev => prev === "codigo" ? "cliente" : "codigo");
-      inputRef.current?.focus();
-    }
-  }, [filteredData, onClose, vendaSelecionada, handlePrintSelection]); // Adicionado handlePrintSelection
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, vendaSelecionada, filteredData, onClose, handlePrintSelection]);
 
   if (!isOpen) return null;
 
@@ -129,9 +140,7 @@ export default function ModalReimprimirVenda({ isOpen, onClose }: ModalReimprimi
     <>
       <div
         ref={containerRef}
-        tabIndex={-1}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in outline-none"
-        onKeyDown={handleKeyDown}
       >
         <div className="bg-white w-full max-w-5xl h-[85vh] md:h-[650px] flex flex-col rounded-xl shadow-2xl overflow-hidden font-sans border border-gray-200">
 
@@ -158,7 +167,6 @@ export default function ModalReimprimirVenda({ isOpen, onClose }: ModalReimprimi
                   type="text"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  onKeyDown={handleKeyDown}
                   placeholder={`Pesquisar por ${filterType === 'codigo' ? 'código' : 'nome do cliente'}...`}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none transition-all uppercase text-sm font-semibold text-gray-700 bg-white shadow-sm"
                   autoComplete="off"
@@ -193,7 +201,10 @@ export default function ModalReimprimirVenda({ isOpen, onClose }: ModalReimprimi
                 <div
                   key={venda.VEN_CODIGO}
                   ref={el => { rowRefs.current[index] = el }}
-                  onClick={() => setSelectedIndex(index)}
+                  onClick={() => {
+                    setSelectedIndex(index);
+                    inputRef.current?.focus();
+                  }}
                   onDoubleClick={handlePrintSelection}
                   className={`
                   grid grid-cols-12 px-4 py-2.5 my-1 rounded-md cursor-pointer transition-colors text-sm items-center gap-2

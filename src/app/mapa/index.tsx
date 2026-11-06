@@ -67,11 +67,24 @@ export function Mapa({}: propsMapa) {
   async function carregaFornecedores() {
     const repository = new FornecedorRepository();
     const listaFornecedores = await repository.getAllFornecedores();
+    const invalidos = listaFornecedores.filter(
+      (fornecedor) =>
+        fornecedor.LATITUDE &&
+        fornecedor.LONGITUDE &&
+        !isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE)
+    );
+    if (invalidos.length > 0) {
+      toastMixin.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: `${invalidos.length} fornecedor(es) possuem coordenadas inválidas e não serão exibidos no mapa.`,
+      });
+    }
     setFornecedores(listaFornecedores);
   }
 
   async function carregaLatitudelongitude() {
-    if (!isNaN(OrdemCtx.ORD_CLI)) {
+    if (OrdemCtx && !isNaN(OrdemCtx.ORD_CLI)) {
       const repository = new ClientRepository();
       const cidadeRepository = new CidadeRepository();
       const clienteAux: ClienteModel = await repository.getClienteById(OrdemCtx.ORD_CLI);
@@ -197,11 +210,9 @@ export function Mapa({}: propsMapa) {
                 <MarcacaoCliente />
                 {fornecedores.map(
                   (fornecedor) =>
-
                     fornecedor.LATITUDE &&
                     fornecedor.LONGITUDE &&
-                    (
-                      isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE) ?
+                    isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE) ? (
                       <Marker
                         key={fornecedor.CODIGO}
                         position={[Number(fornecedor.LATITUDE), Number(fornecedor.LONGITUDE)]}
@@ -219,14 +230,7 @@ export function Mapa({}: propsMapa) {
                           km de distância
                         </Popup>
                       </Marker>
-                      : 
-                      <>
-                        {toastMixin.fire({
-                          icon: 'error',
-                          title: `Fornecedor ${fornecedor.NOME} possui latitude ou longitude inválida!`,
-                        })}
-                      </>
-                    )
+                    ) : null
                 )}
               </MapContainer>
             )}

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { toastMixin } from "@/app/functions/utils";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 
 /*
  * Este modal é uma nova versão do componente de venda, deve ser
@@ -44,6 +46,7 @@ export default function ModalFinalizarVenda({
   const [formaPagamento, setFormaPagamento] = useState("DINHEIRO");
   const [primeiroVencimento, setPrimeiroVencimento] = useState("");
   const [parcelasGeradas, setParcelasGeradas] = useState<Parcela[]>([]);
+  const [showConfirmacao, setShowConfirmacao] = useState(false);
 
   // --- REFS ---
   const entradaRef = useRef<HTMLInputElement>(null);
@@ -142,35 +145,50 @@ export default function ModalFinalizarVenda({
 
     // Validação de segurança (margem de erro de 1 centavo)
     if (Math.abs(totalGerado - totalVenda) > 0.01) {
-      alert(`Erro de fechamento: Valor gerado (${formatCurrency(totalGerado)}) difere do total da venda! Verifique a entrada.`);
+      toastMixin.fire({
+        title: 'Divergência de Valores',
+        text: `Erro de fechamento: Valor gerado (${formatCurrency(totalGerado)}) difere do total da venda! Verifique a entrada.`,
+        icon: 'warning'
+      });
       return;
     }
 
-    if (window.confirm("Confirma o fechamento e geração financeira?")) {
-      onFinalizar({
-        parcelas: parcelasGeradas,
-        totalVenda,
-        valorEntrada: entrada === "" ? 0 : Number(entrada)
-      });
-      onClose();
-    }
+    setShowConfirmacao(true);
   };
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      onClose();
-    }
-    if (e.key === "F5") {
-      e.preventDefault();
-      handleSave();
-    }
-    // Enter no formulário pode pular campos, mas aqui vamos simplificar
-    if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "INPUT") {
-      e.preventDefault();
-      handleSave();
-    }
-  }, [parcelasGeradas, totalVenda]); // Dependências para o closure funcionar
+  const handleConfirmarFechamento = () => {
+    setShowConfirmacao(false);
+    onFinalizar({
+      parcelas: parcelasGeradas,
+      totalVenda,
+      valorEntrada: entrada === "" ? 0 : Number(entrada)
+    });
+    onClose();
+  };
+
+  // Atalhos de teclado globais quando o modal está aberto
+  useEffect(() => {
+    if (!isOpen || showConfirmacao) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+      if (e.key === "F5") {
+        e.preventDefault();
+        handleSave();
+      }
+      // Enter fora de inputs salva a venda
+      if (e.key === "Enter" && (e.target as HTMLElement)?.tagName !== "INPUT") {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, showConfirmacao, onClose, parcelasGeradas, totalVenda, entrada]);
 
   if (!isOpen) return null;
 
@@ -179,9 +197,7 @@ export default function ModalFinalizarVenda({
   return (
     <div
       ref={containerRef}
-      tabIndex={-1}
       className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in outline-none"
-      onKeyDown={handleKeyDown}
     >
       <div className="bg-white w-full max-w-4xl h-[90vh] md:h-[600px] flex flex-col rounded-xl shadow-2xl overflow-hidden font-sans border border-gray-400">
 
@@ -372,6 +388,17 @@ export default function ModalFinalizarVenda({
         </div>
 
       </div>
+
+      <ModalConfirmacao
+        isOpen={showConfirmacao}
+        onClose={() => setShowConfirmacao(false)}
+        onConfirm={handleConfirmarFechamento}
+        title="Confirmar Fechamento"
+        message="Confirma o fechamento e geração financeira?"
+        type="info"
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+      />
     </div>
   );
 }

@@ -13,6 +13,8 @@ export default interface OrdemModel {
   CLI_NUMERO: string;
   CLI_BAIRRO: string;
   CLI_FONE: string;
+  CLI_EMAIL?: string;
+  CLI_CELULAR?: string;
   CID_NOME?: string;
   CID_UF?: string;
   ORD_OBS: string;
@@ -20,6 +22,7 @@ export default interface OrdemModel {
   ORD_DESCONTO_P: number;
   ORD_DESCONTO_S: number;
   ORD_FAT?: number;
+  ORD_DATAC?: string;
   ORD_DEVOLUCAO_P: string;
   ORD_SOLICITACAO: string;
   ORD_OBS_ADM: string;
@@ -32,4 +35,5 @@ export default interface OrdemModel {
   ORD_VALOR_DESCONTO?: number;
   ORD_PORCENTAGEM_DESCONTO?: number;
   ORD_TOTAL_SEM_DESCONTO?: number;
+  ORD_HORA?: string;
 }

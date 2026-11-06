@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAppData } from '../contexts/app_context';
 import Modal from '@/components/component/modal';
+import ModalConfirmacao from './orcamentos/components/modal_confirmacao';
 import Usuarios from '../usuarios/usuarios';
 import PerfilUsuario from '../usuarios/perfil_usuario';
 import {
@@ -27,7 +28,7 @@ interface HomeLayoutProps {
 }
 
 export default function HomeLayout({ children }: HomeLayoutProps) {
-    const { ultRota, setUltRota, usuarioLogado, setUsuarioLogado, loadingAuth } = useAppData();
+    const { ultRota, setUltRota, usuarioLogado, setUsuarioLogado, loadingAuth, temAlteracoesPendentes, setTemAlteracoesPendentes } = useAppData();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -35,6 +36,9 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
     const [open, setOpen] = useState(false);
     const [showModalTelaUsuarios, setShowModalTelaUsuarios] = useState(false);
     const [showModalPerfil, setShowModalPerfil] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+    const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
     const [authorized, setAuthorized] = useState(false);
     const [agora, setAgora] = useState<Date | null>(null);
 
@@ -77,14 +81,34 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
         return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
     }, []);
 
+    const handleNavWithPendingCheck = (action: () => void) => {
+        if (temAlteracoesPendentes) {
+            setPendingNavigation(() => action);
+            setShowDiscardConfirm(true);
+        } else {
+            action();
+        }
+    };
+
+    const confirmDiscardAction = () => {
+        setTemAlteracoesPendentes(false);
+        setShowDiscardConfirm(false);
+        const action = pendingNavigation;
+        setPendingNavigation(null);
+        if (action) action();
+    };
+
     // Ação rápida de logout
     const handleLogout = () => {
-        if (window.confirm("Deseja realmente sair do sistema?")) {
-            localStorage.removeItem('usuario_logado');
-            localStorage.removeItem('usuario_salvo');
-            setUsuarioLogado(null);
-            router.push('/');
-        }
+        handleNavWithPendingCheck(() => setShowLogoutConfirm(true));
+    };
+
+    const confirmLogoutAction = () => {
+        localStorage.removeItem('usuario_logado');
+        localStorage.removeItem('usuario_salvo');
+        setUsuarioLogado(null);
+        setShowLogoutConfirm(false);
+        router.push('/');
     };
 
     // Identificação de rotas ativas
@@ -128,7 +152,16 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
 
                         <Link
                             href="/home"
-                            onClick={() => {
+                            onClick={(e) => {
+                                if (temAlteracoesPendentes) {
+                                    e.preventDefault();
+                                    handleNavWithPendingCheck(() => {
+                                        setOpen(false);
+                                        setUltRota('home');
+                                        router.push('/home');
+                                    });
+                                    return;
+                                }
                                 setOpen(false);
                                 setUltRota('home');
                             }}
@@ -239,7 +272,16 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                             <div className="flex flex-col gap-1">
                                 <Link
                                     href="/home"
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        if (temAlteracoesPendentes) {
+                                            e.preventDefault();
+                                            handleNavWithPendingCheck(() => {
+                                                setOpen(false);
+                                                setUltRota('home');
+                                                router.push('/home');
+                                            });
+                                            return;
+                                        }
                                         setOpen(false);
                                         setUltRota('home');
                                     }}
@@ -255,7 +297,16 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
 
                                 <Link
                                     href="/home/vendas"
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        if (temAlteracoesPendentes) {
+                                            e.preventDefault();
+                                            handleNavWithPendingCheck(() => {
+                                                setOpen(false);
+                                                setUltRota('vendas');
+                                                router.push('/home/vendas');
+                                            });
+                                            return;
+                                        }
                                         setOpen(false);
                                         setUltRota('vendas');
                                     }}
@@ -276,7 +327,16 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
 
                                 <Link
                                     href="/home/orcamentos"
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        if (temAlteracoesPendentes) {
+                                            e.preventDefault();
+                                            handleNavWithPendingCheck(() => {
+                                                setOpen(false);
+                                                setUltRota('orcamentos');
+                                                router.push('/home/orcamentos');
+                                            });
+                                            return;
+                                        }
                                         setOpen(false);
                                         setUltRota('orcamentos');
                                     }}
@@ -395,6 +455,31 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                     body={<PerfilUsuario />}
                 />
             )}
+
+            {/* Modal de Confirmação de Logout */}
+            <ModalConfirmacao
+                isOpen={showLogoutConfirm}
+                onClose={() => setShowLogoutConfirm(false)}
+                onConfirm={confirmLogoutAction}
+                title="Sair do Sistema"
+                message="Deseja realmente encerrar sua sessão no sistema?"
+                type="danger"
+                confirmText="Sim, Sair"
+            />
+            {/* Modal de Confirmação de Alterações Pendentes */}
+            <ModalConfirmacao
+                isOpen={showDiscardConfirm}
+                onClose={() => {
+                    setShowDiscardConfirm(false);
+                    setPendingNavigation(null);
+                }}
+                onConfirm={confirmDiscardAction}
+                title="Atenção!"
+                message="Existem alterações que ainda não foram salvas. Se você sair desta tela, todas as alterações realizadas serão perdidas. Deseja realmente sair sem salvar?"
+                type="warning"
+                confirmText="Sair sem salvar"
+                cancelText="Continuar editando"
+            />
         </div>
     );
 }

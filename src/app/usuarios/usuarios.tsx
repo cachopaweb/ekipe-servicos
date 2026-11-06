@@ -3,11 +3,30 @@
 import { useEffect, useState } from "react";
 import UsuarioRepository from "../repositories/usuario_repository";
 import { UsuarioModel } from "../models/usuario_model";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
+import { toastMixin } from "@/app/functions/utils";
 import { UserRoundX, UserCheck, Users as UsersIcon, Loader2 } from 'lucide-react';
+
+interface ModalState {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "warning" | "danger" | "success" | "info";
+    confirmText?: string;
+    onConfirm: () => void;
+}
 
 export default function Usuarios() {
     const [usuarios, setUsuarios] = useState<UsuarioModel[]>([]);
     const [loading, setLoading] = useState(true);
+    const [modalConfirmacao, setModalConfirmacao] = useState<ModalState>({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+        confirmText: "Confirmar",
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         carregaUsuarios();
@@ -26,22 +45,52 @@ export default function Usuarios() {
         }
     }
 
-    function mudaEstadoUsuario(item: UsuarioModel) {
-        const repository = new UsuarioRepository();
-        repository.mudaEstadoUsuario(item);
-        carregaUsuarios();
+    async function mudaEstadoUsuario(item: UsuarioModel) {
+        try {
+            const repository = new UsuarioRepository();
+            await repository.mudaEstadoUsuario(item);
+            toastMixin.fire({
+                title: 'Sucesso',
+                text: 'Situação do usuário atualizada!',
+                icon: 'success',
+            });
+            await carregaUsuarios();
+        } catch (error) {
+            console.error("Erro ao alterar situação do usuário:", error);
+            toastMixin.fire({
+                title: 'Erro',
+                text: 'Não foi possível alterar a situação do usuário: ' + String(error),
+                icon: 'error',
+            });
+        }
     }
 
     function desabilitarUsuario(item: UsuarioModel) {
-        if (window.confirm(`Deseja realmente desabilitar o usuário "${item.FUN_NOME}"?`)) {
-            mudaEstadoUsuario(item);
-        }
+        setModalConfirmacao({
+            isOpen: true,
+            title: "Desabilitar Usuário",
+            message: `Deseja realmente desabilitar o usuário "${item.FUN_NOME || item.USU_LOGIN}"?`,
+            type: "danger",
+            confirmText: "Sim, Desabilitar",
+            onConfirm: () => {
+                setModalConfirmacao((prev) => ({ ...prev, isOpen: false }));
+                mudaEstadoUsuario(item);
+            },
+        });
     }
 
     function habilitaUsuario(item: UsuarioModel) {
-        if (window.confirm(`Deseja realmente habilitar o usuário "${item.FUN_NOME}"?`)) {
-            mudaEstadoUsuario(item);
-        }
+        setModalConfirmacao({
+            isOpen: true,
+            title: "Habilitar Usuário",
+            message: `Deseja realmente habilitar o usuário "${item.FUN_NOME || item.USU_LOGIN}"?`,
+            type: "success",
+            confirmText: "Sim, Habilitar",
+            onConfirm: () => {
+                setModalConfirmacao((prev) => ({ ...prev, isOpen: false }));
+                mudaEstadoUsuario(item);
+            },
+        });
     }
 
     const getIniciais = (nome: string) => {
@@ -144,6 +193,16 @@ export default function Usuarios() {
                     </div>
                 )}
             </div>
+
+            <ModalConfirmacao
+                isOpen={modalConfirmacao.isOpen}
+                onClose={() => setModalConfirmacao((prev) => ({ ...prev, isOpen: false }))}
+                onConfirm={modalConfirmacao.onConfirm}
+                title={modalConfirmacao.title}
+                message={modalConfirmacao.message}
+                type={modalConfirmacao.type}
+                confirmText={modalConfirmacao.confirmText}
+            />
         </div>
     );
 }

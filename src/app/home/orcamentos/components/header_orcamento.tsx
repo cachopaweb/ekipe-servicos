@@ -10,6 +10,7 @@ interface HeaderOrcamentoProps {
   onNovoOrcamento: () => void;
   onSalvar: () => void;
   onImprimir: () => void;
+  onImprimirCompleto?: () => void;
 }
 
 export default function HeaderOrcamento({
@@ -20,6 +21,7 @@ export default function HeaderOrcamento({
   onNovoOrcamento,
   onSalvar,
   onImprimir,
+  onImprimirCompleto,
 }: HeaderOrcamentoProps) {
   const getStatusColor = (status: string) => {
     const s = (status || "").toUpperCase();
@@ -88,6 +90,27 @@ export default function HeaderOrcamento({
           <span>Novo</span>
         </button>
 
+        {/* Botão PDF Completo */}
+        <button
+          type="button"
+          onClick={onImprimirCompleto || onImprimir}
+          disabled={codigoOrdem === 0}
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-md transition ${
+            codigoOrdem === 0
+              ? "text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed"
+              : "text-white bg-brand hover:bg-brand-hover shadow-sm"
+          }`}
+          title={
+            codigoOrdem === 0
+              ? "Gere uma OS para emitir o relatório completo"
+              : "Gerar Relatório / PDF Completo da Ordem de Serviço"
+          }
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>PDF Completo</span>
+        </button>
+
+        {/* Botão Impressão Simples */}
         <button
           type="button"
           onClick={onImprimir}
@@ -95,12 +118,12 @@ export default function HeaderOrcamento({
           className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-md transition ${
             codigoOrdem === 0
               ? "text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed"
-              : "text-brand bg-brand-soft hover:bg-brand/15 border border-brand-border"
+              : "text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300"
           }`}
-          title="Imprimir Orçamento"
+          title="Imprimir Orçamento Resumido"
         >
-          <Printer className="w-3.5 h-3.5" />
-          <span>Imprimir</span>
+          <Printer className="w-3.5 h-3.5 text-gray-600" />
+          <span>Simples</span>
         </button>
 
         <button

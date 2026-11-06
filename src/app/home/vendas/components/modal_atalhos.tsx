@@ -11,15 +11,20 @@ interface ModalAtalhosProps {
 export default function ModalAtalhos({ isOpen, onClose }: ModalAtalhosProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+  // Atalhos de teclado globais quando o modal está aberto (ESC para fechar mesmo se clicou com o mouse)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
       }
-    },
-    [onClose]
-  );
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -44,9 +49,7 @@ export default function ModalAtalhos({ isOpen, onClose }: ModalAtalhosProps) {
   return (
     <div
       ref={containerRef}
-      tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
-      onKeyDown={handleKeyDown}
     >
       <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans flex flex-col">
         {/* Header */}

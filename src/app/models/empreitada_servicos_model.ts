@@ -8,4 +8,5 @@ export default interface EmpreitadasServicosModel {
   VLR_UNIT?: number;
   ES_UNIDADE?: string;
   ITENS?: EmpreitadasServicosModel[];
+  isNovo?: boolean;
 }

@@ -12,6 +12,8 @@ interface AppDataContextType {
     EmpreitadaCtx: EmpreitadasModel | null;
     usuarioLogado: UsuarioModel | null;
     loadingAuth: boolean;
+    temAlteracoesPendentes: boolean;
+    setTemAlteracoesPendentes: React.Dispatch<SetStateAction<boolean>>;
     setOrdemCtx: React.Dispatch<SetStateAction<OrdemModel | null>>;
     setEmpreitadaCtx: React.Dispatch<SetStateAction<EmpreitadasModel | null>>;
     setUltRota: React.Dispatch<SetStateAction<string>>;
@@ -30,6 +32,7 @@ function AppProvider({ children }: AppProviderProps) {
     const [EmpreitadaCtx, setEmpreitadaCtx] = useState<EmpreitadasModel | null>(null);
     const [usuarioLogado, setUsuarioLogado] = useState<UsuarioModel | null>(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
+    const [temAlteracoesPendentes, setTemAlteracoesPendentes] = useState<boolean>(false);
 
     useEffect(() => {
         const carregarUsuarioStorage = async () => {
@@ -58,6 +61,8 @@ function AppProvider({ children }: AppProviderProps) {
             EmpreitadaCtx,
             setEmpreitadaCtx,
             usuarioLogado,
+            temAlteracoesPendentes,
+            setTemAlteracoesPendentes,
             setUsuarioLogado,
             loadingAuth
         }}>

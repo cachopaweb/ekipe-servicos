@@ -24,7 +24,7 @@ interface TabProdutosProps {
   unidadesMedida: UnidadeMedidaModel[];
   onAdicionarProduto: (novoProduto: OrdEstModel) => void;
   onEditarProduto: (produto: OrdEstModel) => void;
-  onExcluirProduto: (codigo: number) => void;
+  onExcluirProduto: (codigo: number, index?: number) => void;
   onOpenPesquisaProduto: () => void;
   produtoSelecionado: ProdutoModel;
   setProdutoSelecionado: (p: ProdutoModel) => void;
@@ -330,7 +330,7 @@ export default function TabProdutos({
                         </button>
                         <button
                           type="button"
-                          onClick={() => onExcluirProduto(item.ORE_CODIGO)}
+                          onClick={() => onExcluirProduto(item.ORE_CODIGO, index)}
                           className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition"
                           title="Remover Produto"
                         >

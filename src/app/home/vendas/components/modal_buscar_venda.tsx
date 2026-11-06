@@ -143,34 +143,40 @@ export default function ModalBuscarVenda({ isOpen, onClose, onSelect }: ModalBus
     }
   }, [selectedIndex]);
 
-  // --- HANDLERS ---
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev < pedidos.length - 1 ? prev + 1 : prev));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (pedidos[selectedIndex]) {
-        onSelect(pedidos[selectedIndex]);
-        onClose();
-      }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      onClose();
-    } else if (e.key === "F2") {
-      e.preventDefault();
-      // Corrigido para alternar corretamente entre os tipos definidos no state
-      setFilterType(prev => prev === "pedido" ? "cliente_nome" : "pedido");
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [pedidos, selectedIndex, onSelect, onClose]);
-
   const fecharConfirmacao = () => {
     setConfirmacao(prev => ({ ...prev, isOpen: false }));
   };
+
+  // Atalhos de teclado globais quando o modal está aberto (funciona mesmo após clique do mouse)
+  useEffect(() => {
+    if (!isOpen || confirmacao.isOpen) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev < pedidos.length - 1 ? prev + 1 : prev));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (pedidos[selectedIndex]) {
+          onSelect(pedidos[selectedIndex]);
+          onClose();
+        }
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === "F2") {
+        e.preventDefault();
+        setFilterType(prev => prev === "pedido" ? "cliente_nome" : "pedido");
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, confirmacao.isOpen, pedidos, selectedIndex, onSelect, onClose]);
 
   const handleExcluirPedido = async (pedido: PedidoModel) => {
     setConfirmacao({
@@ -192,8 +198,6 @@ export default function ModalBuscarVenda({ isOpen, onClose, onSelect }: ModalBus
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in outline-none"
-      onKeyDown={handleKeyDown}
-      tabIndex={-1}
     >
       <div className="bg-white w-full max-w-4xl h-[85vh] md:h-[600px] flex flex-col rounded-xl shadow-2xl overflow-hidden font-sans border border-gray-300">
 
@@ -225,7 +229,6 @@ export default function ModalBuscarVenda({ isOpen, onClose, onSelect }: ModalBus
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
                 placeholder={`Pesquisar por ${filterType === 'pedido' ? 'Código do Pedido' : 'Nome do Cliente'}...`}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all uppercase text-sm font-semibold text-gray-700 bg-white shadow-sm"
                 autoComplete="off"
@@ -277,7 +280,10 @@ export default function ModalBuscarVenda({ isOpen, onClose, onSelect }: ModalBus
               <div
                 key={pedido.PED_CODIGO}
                 ref={el => { rowRefs.current[index] = el }}
-                onClick={() => setSelectedIndex(index)}
+                onClick={() => {
+                  setSelectedIndex(index);
+                  inputRef.current?.focus();
+                }}
                 onDoubleClick={() => { onSelect(pedido); onClose(); }}
                 className={`
                   grid grid-cols-12 px-4 py-3 my-1 rounded-md cursor-pointer transition-colors text-sm items-center gap-2 border

@@ -26,8 +26,8 @@ import {
   History,
   AlertCircle,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import {
+  converterDataFormato,
   FormatDate,
   formatDataInput,
   GeraCodigo,
@@ -53,7 +53,27 @@ import { PagamentoEmpreitadaItem } from "@/app/models/pagamentos_model";
 import Faturamentos from "@/app/faturamentos/page";
 import OperacaoEmpreitadas from "@/app/faturamentos/implementations/operacao_empreitadas";
 import PrintEmpreitadas from "@/app/print/empreitadas/page";
-import { useMask } from "@react-input/mask";
+
+function aplicarMascaraData(valor: string): string {
+  const digitos = valor.replace(/\D/g, "").slice(0, 8);
+  if (digitos.length <= 2) return digitos;
+  if (digitos.length <= 4) return `${digitos.slice(0, 2)}/${digitos.slice(2)}`;
+  return `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}/${digitos.slice(4, 8)}`;
+}
+
+function obterOpcoesUnidades(
+  unidadesMedida: UnidadeMedidaModel[],
+  unidadeAtual: string
+): string[] {
+  const padroes = ["UN", "PC", "M", "M2", "M3", "KG", "HR", "SV", "CJ", "LT"];
+  const vindasDoBanco = (unidadesMedida || [])
+    .map((u) => (u.UM_UNIDADE || "").trim().toUpperCase())
+    .filter(Boolean);
+  const base = vindasDoBanco.length > 0 ? vindasDoBanco : padroes;
+  const atualLimpa = (unidadeAtual || "").trim().toUpperCase();
+  const unicas = Array.from(new Set(atualLimpa ? [atualLimpa, ...base] : base));
+  return unicas;
+}
 
 interface EmpreitadaProps {
   empreitadaSelecionada: EmpreitadasModel | undefined;
@@ -81,22 +101,39 @@ function ModalEdtEmpreitada({
   onSave,
 }: ModalEdtEmpreitadaProps) {
   const [descricao, setDescricao] = useState("");
-  const [osQuantidade, setOsQuantidade] = useState(1);
+  const [osQuantidadeStr, setOsQuantidadeStr] = useState("1");
   const [osUnidadeMedida, setOsUnidadeMedida] = useState("UN");
-  const [osValorStr, setOsValorStr] = useState("0,00");
+  const [osValorStr, setOsValorStr] = useState(mascaraMoeda(0));
   const [prazo, setPrazo] = useState("");
-  const inputDataRef = useMask({ mask: "__/__/____", replacement: { _: /\d/ } });
+  const loadedKeyRef = useRef<string>("");
 
   useEffect(() => {
-    if (servico && isOpen) {
+    if (!isOpen) {
+      loadedKeyRef.current = "";
+      return;
+    }
+    const key = `${servico?.ES_CODIGO ?? 0}`;
+    if (servico && loadedKeyRef.current !== key) {
+      loadedKeyRef.current = key;
       setDescricao(servico.DESCRICAO || "");
-      const qtd = servico.ES_QUANTIDADE || 1;
-      setOsQuantidade(qtd);
-      setOsUnidadeMedida(servico.ES_UNIDADE || unidadesMedida[0]?.UM_UNIDADE || "UN");
+      const qtd = Number(servico.ES_QUANTIDADE) > 0 ? Number(servico.ES_QUANTIDADE) : 1;
+      setOsQuantidadeStr(String(qtd));
+      const defaultUm = (
+        servico.ES_UNIDADE ||
+        unidadesMedida[0]?.UM_UNIDADE ||
+        "UN"
+      )
+        .trim()
+        .toUpperCase();
+      setOsUnidadeMedida(defaultUm || "UN");
       const unitario =
         servico.VLR_UNIT ?? (qtd > 0 ? (servico.ES_VALOR || 0) / qtd : 0);
       setOsValorStr(mascaraMoeda(unitario));
-      setPrazo(servico.ES_PRAZO_CONCLUSAO || "");
+      setPrazo(
+        servico.ES_PRAZO_CONCLUSAO
+          ? converterDataFormato(servico.ES_PRAZO_CONCLUSAO)
+          : converterDataFormato(new Date())
+      );
     }
   }, [servico, isOpen, unidadesMedida]);
 
@@ -114,17 +151,35 @@ function ModalEdtEmpreitada({
 
   if (!isOpen) return null;
 
+  const osQuantidadeNum = parseFloat(String(osQuantidadeStr).replace(",", ".")) || 0;
   const valorUnitario = maskRealToNumber(osValorStr) || 0;
-  const valorTotalCalculado = valorUnitario * (osQuantidade || 1);
+  const valorTotalCalculado = valorUnitario * (osQuantidadeNum > 0 ? osQuantidadeNum : 0);
+  const opcoesUnidades = obterOpcoesUnidades(unidadesMedida, osUnidadeMedida);
 
   const handleSalvar = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!descricao.trim()) {
+      toastMixin.fire({
+        title: "Atenção",
+        text: "Informe a descrição do serviço.",
+        icon: "warning",
+      });
+      return;
+    }
+    if (osQuantidadeNum <= 0) {
+      toastMixin.fire({
+        title: "Atenção",
+        text: "A quantidade deve ser maior que zero.",
+        icon: "warning",
+      });
+      return;
+    }
     const servicoAtualizado: EmpreitadasServicosModel = {
       ...servico,
       DESCRICAO: descricao.trim().toUpperCase(),
-      ES_QUANTIDADE: osQuantidade,
-      ES_UNIDADE: osUnidadeMedida,
-      ES_PRAZO_CONCLUSAO: prazo,
+      ES_QUANTIDADE: osQuantidadeNum,
+      ES_UNIDADE: (osUnidadeMedida || "UN").trim().toUpperCase(),
+      ES_PRAZO_CONCLUSAO: prazo.trim() || converterDataFormato(new Date()),
       VLR_UNIT: valorUnitario,
       ES_VALOR: valorTotalCalculado,
     };
@@ -163,9 +218,10 @@ function ModalEdtEmpreitada({
             <input
               type="text"
               value={descricao}
-              onChange={(e) => setDescricao(e.target.value.toUpperCase())}
+              onChange={(e) => setDescricao(e.target.value)}
               required
-              className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              placeholder="Informe a descrição do serviço"
+              className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
             />
           </div>
 
@@ -176,12 +232,12 @@ function ModalEdtEmpreitada({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
                 min="0.01"
-                value={osQuantidade}
-                onChange={(e) => setOsQuantidade(parseFloat(e.target.value) || 0)}
+                value={osQuantidadeStr}
+                onChange={(e) => setOsQuantidadeStr(e.target.value)}
                 required
-                className="w-full px-3 py-2 text-sm font-semibold bg-stone-50 border border-stone-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="w-full px-3 py-2 text-sm font-semibold text-stone-900 bg-stone-50 border border-stone-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
               />
             </div>
 
@@ -192,11 +248,11 @@ function ModalEdtEmpreitada({
               <select
                 value={osUnidadeMedida}
                 onChange={(e) => setOsUnidadeMedida(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
               >
-                {unidadesMedida.map((u) => (
-                  <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>
-                    {u.UM_UNIDADE}
+                {opcoesUnidades.map((um) => (
+                  <option key={um} value={um}>
+                    {um}
                   </option>
                 ))}
               </select>
@@ -214,7 +270,7 @@ function ModalEdtEmpreitada({
                   setOsValorStr(e.target.value);
                 }}
                 required
-                className="w-full px-3 py-2 text-sm font-semibold bg-stone-50 border border-stone-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="w-full px-3 py-2 text-sm font-semibold text-stone-900 bg-stone-50 border border-stone-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
               />
             </div>
           </div>
@@ -223,12 +279,14 @@ function ModalEdtEmpreitada({
             <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
               Prazo de Conclusão
             </label>
-            <Input
-              ref={inputDataRef}
+            <input
               type="text"
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="DD/MM/AAAA"
               value={prazo}
-              onChange={(e) => setPrazo(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              onChange={(e) => setPrazo(aplicarMascaraData(e.target.value))}
+              className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
             />
           </div>
 
@@ -281,35 +339,46 @@ function ModalServicos({
   ordem,
   onSave,
 }: ModalServicosProps) {
+  const [servicoSelecionadoCod, setServicoSelecionadoCod] = useState<string>("");
   const [descricao, setDescricao] = useState("");
-  const [quantidade, setQuantidade] = useState(1);
+  const [quantidadeStr, setQuantidadeStr] = useState("1");
   const [unidadeMedida, setUnidadeMedida] = useState("UN");
-  const [valorUnitarioStr, setValorUnitarioStr] = useState("0,00");
-  const [prazo, setPrazo] = useState(FormatDate(new Date()));
+  const [valorUnitarioStr, setValorUnitarioStr] = useState(mascaraMoeda(0));
+  const [prazo, setPrazo] = useState(converterDataFormato(new Date()));
   const [servicosDisponiveis, setServicosDisponiveis] = useState<OrdSerModel[]>([]);
-  const inputPrazoRef = useMask({ mask: "__/__/____", replacement: { _: /\d/ } });
+  const wasOpenRef = useRef(false);
 
+  // Reseta os campos do formulário APENAS quando o modal abre (transição fechado -> aberto)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !wasOpenRef.current) {
+      wasOpenRef.current = true;
+      setServicoSelecionadoCod("");
       setDescricao("");
-      setQuantidade(1);
-      setUnidadeMedida(unidadesMedida[0]?.UM_UNIDADE || "UN");
-      setValorUnitarioStr("0,00");
-      setPrazo(FormatDate(new Date()));
-
-      if (ordem?.itensOrdSer && ordem.itensOrdSer.length > 0) {
-        setServicosDisponiveis(ordem.itensOrdSer);
-      } else if (ordem?.ORD_CODIGO && ordem.ORD_CODIGO > 0) {
-        const rep = new OrdemRepository();
-        rep
-          .buscaServicosOrdem(ordem.ORD_CODIGO)
-          .then((res) => setServicosDisponiveis(Array.isArray(res) ? res : []))
-          .catch(() => setServicosDisponiveis([]));
-      } else {
-        setServicosDisponiveis([]);
-      }
+      setQuantidadeStr("1");
+      const defaultUm = (unidadesMedida[0]?.UM_UNIDADE || "UN").trim().toUpperCase();
+      setUnidadeMedida(defaultUm || "UN");
+      setValorUnitarioStr(mascaraMoeda(0));
+      setPrazo(converterDataFormato(new Date()));
+    } else if (!isOpen && wasOpenRef.current) {
+      wasOpenRef.current = false;
     }
-  }, [isOpen, unidadesMedida, ordem]);
+  }, [isOpen, unidadesMedida]);
+
+  // Carrega a lista de serviços da OS sem interferir nos campos digitados pelo usuário
+  useEffect(() => {
+    if (!isOpen) return;
+    if (ordem?.itensOrdSer && ordem.itensOrdSer.length > 0) {
+      setServicosDisponiveis(ordem.itensOrdSer);
+    } else if (ordem?.ORD_CODIGO && ordem.ORD_CODIGO > 0) {
+      const rep = new OrdemRepository();
+      rep
+        .buscaServicosOrdem(ordem.ORD_CODIGO)
+        .then((res) => setServicosDisponiveis(Array.isArray(res) ? res : []))
+        .catch(() => setServicosDisponiveis([]));
+    } else {
+      setServicosDisponiveis([]);
+    }
+  }, [isOpen, ordem?.ORD_CODIGO, ordem?.itensOrdSer]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -325,34 +394,60 @@ function ModalServicos({
 
   if (!isOpen) return null;
 
+  const quantidadeNum = parseFloat(String(quantidadeStr).replace(",", ".")) || 0;
   const valorUnitario = maskRealToNumber(valorUnitarioStr) || 0;
-  const valorTotalCalc = valorUnitario * (quantidade || 1);
+  const valorTotalCalc = valorUnitario * (quantidadeNum > 0 ? quantidadeNum : 0);
+  const opcoesUnidades = obterOpcoesUnidades(unidadesMedida, unidadeMedida);
 
   const handleSelecionarServicoOS = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const cod = Number(e.target.value);
-    if (!cod) return;
-    const servOs = servicosDisponiveis.find((s) => s.OS_CODIGO === cod);
+    const val = e.target.value;
+    setServicoSelecionadoCod(val);
+    if (!val) return;
+    const idxOrCod = Number(val);
+    const servOs = servicosDisponiveis.find(
+      (s, idx) => Number(s.OS_CODIGO) === idxOrCod || idx === idxOrCod
+    );
     if (servOs) {
-      setDescricao(servOs.OS_NOME.toUpperCase());
-      const qtd = servOs.OS_QUANTIDADE || 1;
-      setQuantidade(qtd);
-      setUnidadeMedida(servOs.OS_UNIDADE_MED || "UN");
-      const unit = qtd > 0 ? (servOs.OS_VALOR || 0) / qtd : 0;
+      setDescricao((servOs.OS_NOME || "").trim().toUpperCase());
+      const qtd = Number(servOs.OS_QUANTIDADE) > 0 ? Number(servOs.OS_QUANTIDADE) : 1;
+      setQuantidadeStr(String(qtd));
+      const um = (servOs.OS_UNIDADE_MED || "").trim().toUpperCase();
+      if (um) {
+        setUnidadeMedida(um);
+      }
+      const valorTotalOs = Number(servOs.OS_VALOR) || 0;
+      const unit = qtd > 0 ? valorTotalOs / qtd : valorTotalOs;
       setValorUnitarioStr(mascaraMoeda(unit));
     }
   };
 
   const handleSalvar = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!descricao.trim()) {
+      toastMixin.fire({
+        title: "Atenção",
+        text: "Informe a descrição do serviço.",
+        icon: "warning",
+      });
+      return;
+    }
+    if (quantidadeNum <= 0) {
+      toastMixin.fire({
+        title: "Atenção",
+        text: "A quantidade deve ser maior que zero.",
+        icon: "warning",
+      });
+      return;
+    }
     const tempId = -Date.now() - Math.floor(Math.random() * 10000);
     const novoServico: EmpreitadasServicosModel = {
       ES_CODIGO: tempId,
       isNovo: true,
       DESCRICAO: descricao.trim().toUpperCase(),
       ES_EMP: 0,
-      ES_PRAZO_CONCLUSAO: prazo,
-      ES_QUANTIDADE: quantidade,
-      ES_UNIDADE: unidadeMedida,
+      ES_PRAZO_CONCLUSAO: prazo.trim() || converterDataFormato(new Date()),
+      ES_QUANTIDADE: quantidadeNum,
+      ES_UNIDADE: (unidadeMedida || "UN").trim().toUpperCase(),
       VLR_UNIT: valorUnitario,
       ES_VALOR: valorTotalCalc,
     };
@@ -390,16 +485,19 @@ function ModalServicos({
                 Selecionar Serviço Cadastrado na OS (opcional)
               </label>
               <select
-                defaultValue=""
+                value={servicoSelecionadoCod}
                 onChange={handleSelecionarServicoOS}
-                className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
               >
                 <option value="">-- Selecione um serviço cadastrado ou digite abaixo --</option>
-                {servicosDisponiveis.map((s) => (
-                  <option key={s.OS_CODIGO} value={s.OS_CODIGO}>
-                    {s.OS_NOME} ({s.OS_QUANTIDADE} {s.OS_UNIDADE_MED} - {mascaraMoeda(s.OS_VALOR)})
-                  </option>
-                ))}
+                {servicosDisponiveis.map((s, idx) => {
+                  const valOption = s.OS_CODIGO ? String(s.OS_CODIGO) : String(idx);
+                  return (
+                    <option key={`${valOption}_${idx}`} value={valOption}>
+                      {s.OS_NOME} ({s.OS_QUANTIDADE} {s.OS_UNIDADE_MED} - {mascaraMoeda(s.OS_VALOR)})
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
@@ -415,7 +513,7 @@ function ModalServicos({
               required
               placeholder="Informe a descrição do serviço"
               autoFocus
-              className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
             />
           </div>
 
@@ -426,12 +524,12 @@ function ModalServicos({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
                 min="0.01"
-                value={quantidade}
-                onChange={(e) => setQuantidade(parseFloat(e.target.value) || 0)}
+                value={quantidadeStr}
+                onChange={(e) => setQuantidadeStr(e.target.value)}
                 required
-                className="w-full px-3 py-2 text-sm font-semibold bg-stone-50 border border-stone-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="w-full px-3 py-2 text-sm font-semibold text-stone-900 bg-stone-50 border border-stone-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
               />
             </div>
 
@@ -442,11 +540,11 @@ function ModalServicos({
               <select
                 value={unidadeMedida}
                 onChange={(e) => setUnidadeMedida(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
               >
-                {unidadesMedida.map((u) => (
-                  <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>
-                    {u.UM_UNIDADE}
+                {opcoesUnidades.map((um) => (
+                  <option key={um} value={um}>
+                    {um}
                   </option>
                 ))}
               </select>
@@ -464,7 +562,7 @@ function ModalServicos({
                   setValorUnitarioStr(e.target.value);
                 }}
                 required
-                className="w-full px-3 py-2 text-sm font-semibold bg-stone-50 border border-stone-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="w-full px-3 py-2 text-sm font-semibold text-stone-900 bg-stone-50 border border-stone-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
               />
             </div>
           </div>
@@ -473,12 +571,14 @@ function ModalServicos({
             <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
               Prazo de Conclusão
             </label>
-            <Input
-              ref={inputPrazoRef}
+            <input
               type="text"
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="DD/MM/AAAA"
               value={prazo}
-              onChange={(e) => setPrazo(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              onChange={(e) => setPrazo(aplicarMascaraData(e.target.value))}
+              className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
             />
           </div>
 
@@ -539,20 +639,23 @@ function ModalRegistrarPagamento({
   isLoading,
 }: ModalRegistrarPagamentoProps) {
   const [valorStr, setValorStr] = useState("0,00");
-  const [dataPgm, setDataPgm] = useState(formatDataInput(new Date()));
+  const [dataPgm, setDataPgm] = useState(converterDataFormato(new Date()));
   const [formaPgm, setFormaPgm] = useState("PIX");
   const [duplicata, setDuplicata] = useState("");
   const [obs, setObs] = useState("");
-  const inputDataRef = useMask({ mask: "__/__/____", replacement: { _: /\d/ } });
+  const wasOpenPgmRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !wasOpenPgmRef.current) {
+      wasOpenPgmRef.current = true;
       const defaultVal = saldoRestante > 0 ? saldoRestante : 0;
       setValorStr(mascaraMoeda(defaultVal));
-      setDataPgm(formatDataInput(new Date()));
+      setDataPgm(converterDataFormato(new Date()));
       setFormaPgm("PIX");
       setDuplicata("");
       setObs("");
+    } else if (!isOpen && wasOpenPgmRef.current) {
+      wasOpenPgmRef.current = false;
     }
   }, [isOpen, saldoRestante]);
 
@@ -637,12 +740,14 @@ function ModalRegistrarPagamento({
               <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
                 Data do Pagamento *
               </label>
-              <Input
-                ref={inputDataRef}
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={10}
                 value={dataPgm}
-                onChange={(e) => setDataPgm(e.target.value)}
+                onChange={(e) => setDataPgm(aplicarMascaraData(e.target.value))}
                 placeholder="DD/MM/AAAA"
-                className="w-full text-sm font-mono"
+                className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
               />
             </div>
           </div>

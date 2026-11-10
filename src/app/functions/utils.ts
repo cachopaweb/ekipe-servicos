@@ -277,8 +277,8 @@ function converterDataFormato(data?: Date | string | null): string {
 
   const mascaraMoeda = (num : Number) =>
   {
-    num = Number(num) * 100;
-    const aux = num.toString();
+    const cents = Math.round((Number(num) || 0) * 100);
+    const aux = Math.abs(cents).toString();
     const onlyDigits = aux
     .split("")
     .filter((s: string) => /\d/.test(s))
@@ -308,9 +308,12 @@ function converterDataFormato(data?: Date | string | null): string {
   
   function maskRealToNumber (mask:string)
   {
-    let valorFormatado = mask.replace("R$", "").replaceAll(".","");
+    if (!mask) return 0;
+    let valorFormatado = String(mask).replace("R$", "").replaceAll(".","").trim();
     valorFormatado = valorFormatado.replace(",", ".");
-    const retorno = parseFloat(valorFormatado).toFixed(2);
+    const parsed = parseFloat(valorFormatado);
+    if (isNaN(parsed)) return 0;
+    const retorno = parsed.toFixed(2);
     return parseFloat(retorno);
   }
 

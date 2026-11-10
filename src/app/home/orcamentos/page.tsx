@@ -361,12 +361,54 @@ export default function Orcamentos() {
     }
   }, [foiFaturado]);
 
-  // Sincroniza Cliente no Contexto
+  // Sincroniza Cliente no Contexto apenas quando o código realmente mudar
   useEffect(() => {
-    if (clienteSelecionado?.CODIGO && OrdemCtx) {
-      setOrdemCtx({ ...OrdemCtx, ORD_CLI: clienteSelecionado.CODIGO });
+    if (clienteSelecionado?.CODIGO && OrdemCtx && OrdemCtx.ORD_CLI !== clienteSelecionado.CODIGO) {
+      setOrdemCtx((prev) => (prev ? { ...prev, ORD_CLI: clienteSelecionado.CODIGO } : prev));
     }
-  }, [clienteSelecionado, OrdemCtx]);
+  }, [clienteSelecionado?.CODIGO, OrdemCtx, setOrdemCtx]);
+
+  const ordemServicoParaEmpreitadas = useMemo<OrdemModel>(() => {
+    return {
+      ...(ordem || {
+        ORD_CODIGO: codigoOrdem,
+        ORD_DATA: formatDataInput(dataAbertura),
+        ORD_VALOR: totalProdutos + totalServicos - (valorDesconto ?? 0),
+        ORD_CLI: clienteSelecionado.CODIGO,
+        ORD_DESCONTO_P: 0,
+        ORD_DESCONTO_S: 0,
+        ORD_DEVOLUCAO_P: "N",
+        ORD_ESTADO: statusOrdem,
+        ORD_FUN: idFuncionario,
+        ORD_NFS: nfs,
+        ORD_OBS: obs,
+        ORD_OBS_ADM: obs_adm,
+        ORD_SOLICITACAO: solicitacao,
+        CLI_NOME: clienteSelecionado.NOME,
+        ORD_FAT: codFatura,
+      }),
+      itensOrdSer: listaServicosInseridos,
+      itensOrdEst: listaProdutosInseridos,
+    };
+  }, [
+    ordem,
+    codigoOrdem,
+    dataAbertura,
+    totalProdutos,
+    totalServicos,
+    valorDesconto,
+    clienteSelecionado.CODIGO,
+    clienteSelecionado.NOME,
+    statusOrdem,
+    idFuncionario,
+    nfs,
+    obs,
+    obs_adm,
+    solicitacao,
+    codFatura,
+    listaServicosInseridos,
+    listaProdutosInseridos,
+  ]);
 
   // Carrega o total pago/faturado da OS (recebimentos do cliente vinculados à OS)
   const carregaTotalPagoOS = async (codigo: number) => {
@@ -1197,11 +1239,7 @@ export default function Orcamentos() {
           showButtonExit={false}
           body={
             <Empreitadas
-              ordemServico={{
-                ...ordem!,
-                itensOrdSer: listaServicosInseridos,
-                itensOrdEst: listaProdutosInseridos,
-              }}
+              ordemServico={ordemServicoParaEmpreitadas}
               onUpdateTotalPago={() => {
                 if (codigoOrdem > 0) carregaTotalPagoOS(codigoOrdem);
               }}

@@ -9,6 +9,7 @@ import {
   mascaraMoeda,
   mascaraMoedaEvent,
   maskRealToNumber,
+  formatCurrency,
   toastMixin,
 } from "@/app/functions/utils";
 import {
@@ -45,6 +46,9 @@ export default function TabProdutos({
   const [unidade, setUnidade] = useState("PC");
   const [quantidade, setQuantidade] = useState(1);
   const [valorUnitarioStr, setValorUnitarioStr] = useState("0,00");
+
+  const valorUnitario = maskRealToNumber(valorUnitarioStr) || 0;
+  const valorTotalCalculado = valorUnitario * (quantidade || 0);
 
   const codInputRef = useRef<HTMLInputElement>(null);
   const nomeInputRef = useRef<HTMLInputElement>(null);
@@ -179,7 +183,7 @@ export default function TabProdutos({
         </div>
 
         {/* 2. Descrição do Produto */}
-        <div className="col-span-8 sm:col-span-9 md:col-span-5">
+        <div className="col-span-8 sm:col-span-9 md:col-span-4">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Descrição do Produto <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -199,7 +203,7 @@ export default function TabProdutos({
         </div>
 
         {/* 3. Quantidade */}
-        <div className="col-span-4 sm:col-span-3 md:col-span-2">
+        <div className="col-span-4 sm:col-span-3 md:col-span-1">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Qtd <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -216,7 +220,7 @@ export default function TabProdutos({
         </div>
 
         {/* 4. Unidade */}
-        <div className="col-span-3 sm:col-span-3 md:col-span-1">
+        <div className="col-span-4 sm:col-span-3 md:col-span-1">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             UM
           </label>
@@ -234,7 +238,7 @@ export default function TabProdutos({
         </div>
 
         {/* 5. Valor Unitário */}
-        <div className="col-span-5 sm:col-span-6 md:col-span-1">
+        <div className="col-span-4 sm:col-span-6 md:col-span-1">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Unit. (R$) <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -251,15 +255,31 @@ export default function TabProdutos({
           />
         </div>
 
-        {/* 6. Botão Adicionar */}
-        <div className="col-span-12 md:col-span-1">
+        {/* 6. Total (Quantidade × Valor Unitário) */}
+        <div className="col-span-6 sm:col-span-6 md:col-span-2">
+          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+            Total (R$)
+          </label>
+          <input
+            type="text"
+            readOnly
+            tabIndex={-1}
+            value={formatCurrency(valorTotalCalculado)}
+            placeholder="R$ 0,00"
+            className="w-full h-10 px-3 text-sm font-bold text-right border border-gray-200 rounded-md bg-stone-100 text-stone-800 outline-none tabular-nums cursor-default select-none"
+            title="Total = Quantidade × Valor Unitário"
+          />
+        </div>
+
+        {/* 7. Botão Adicionar */}
+        <div className="col-span-6 sm:col-span-6 md:col-span-1">
           <button
             type="submit"
             className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center gap-1.5 text-sm font-bold transition"
             title="Adicionar Produto (Enter)"
           >
             <Plus className="w-5 h-5" />
-            <span className="md:hidden">Adicionar Produto</span>
+            <span className="md:hidden">Adicionar</span>
           </button>
         </div>
       </form>

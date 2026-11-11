@@ -159,7 +159,7 @@ export default function PesquisaCliente({
         onKeyDown={handleKeyDown}
         className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
       >
-        <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+        <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
             <div className="flex items-center gap-2.5">
@@ -226,11 +226,11 @@ export default function PesquisaCliente({
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-stone-100/90 text-stone-600 text-xs font-bold uppercase tracking-wider border-b border-stone-200">
-                    <th className="p-3 w-20">Cód.</th>
+                    <th className="p-3 w-16 text-center whitespace-nowrap">Cód.</th>
                     <th className="p-3">Nome</th>
-                    <th className="p-3">CPF / CNPJ</th>
-                    <th className="p-3">Telefone</th>
-                    <th className="p-3 text-right">Ações</th>
+                    <th className="p-3 whitespace-nowrap w-48">CPF / CNPJ</th>
+                    <th className="p-3 whitespace-nowrap w-40">Telefone</th>
+                    <th className="p-3 text-center w-28 whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -240,44 +240,45 @@ export default function PesquisaCliente({
                       <tr
                         key={item.CODIGO}
                         onClick={() => selecionarCliente(item)}
-                        className={`cursor-pointer transition-colors text-xs ${
+                        className={`cursor-pointer transition-colors text-sm ${
                           isSelected ? "bg-amber-100/70 font-semibold" : "hover:bg-amber-50/40 text-stone-700"
                         }`}
                       >
-                        <td className="p-3 font-mono font-medium text-stone-900">{item.CODIGO}</td>
+                        <td className="p-3 font-mono font-medium text-stone-900 text-center whitespace-nowrap">{item.CODIGO}</td>
                         <td className="p-3 font-medium text-stone-800">{item.NOME}</td>
-                        <td className="p-3 font-mono text-stone-600">{item.CPF_CNPJ || "—"}</td>
-                        <td className="p-3 text-stone-600">{item.FONE || "—"}</td>
-                        <td className="p-3 text-right">
+                        <td className="p-3 font-mono text-stone-600 whitespace-nowrap">{item.CPF_CNPJ || "—"}</td>
+                        <td className="p-3 text-stone-600 whitespace-nowrap">{item.FONE || "—"}</td>
+                        <td className="p-3 text-center whitespace-nowrap">
                           <div
-                            className="inline-flex items-center gap-1.5"
+                            className="inline-flex items-center justify-center gap-1.5"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
                               type="button"
                               onClick={() => visualizarCliente(item)}
                               title="Visualizar ou editar cadastro"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition"
+                              aria-label="Visualizar ou editar cadastro"
+                              className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-md transition"
                             >
-                              <Eye className="w-3.5 h-3.5 text-stone-500" />
-                              <span>Ver</span>
+                              <Eye className="w-4 h-4" />
                             </button>
                             <button
                               type="button"
                               onClick={() => selecionarCliente(item)}
                               title="Selecionar este cliente"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition"
+                              aria-label="Selecionar este cliente"
+                              className="p-1.5 text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition"
                             >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Escolher</span>
+                              <Check className="w-4 h-4" />
                             </button>
                             <button
                               type="button"
                               onClick={() => solicitarDesativacao(item)}
                               title="Desativar cliente"
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition"
+                              aria-label="Desativar cliente"
+                              className="p-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition"
                             >
-                              <UserX className="w-3.5 h-3.5" />
+                              <UserX className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -323,7 +324,7 @@ export default function PesquisaCliente({
           tabIndex={-1}
           className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
         >
-          <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+          <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
             <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">

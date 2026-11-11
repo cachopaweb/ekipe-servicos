@@ -36,4 +36,10 @@ export default interface OrdemModel {
   ORD_PORCENTAGEM_DESCONTO?: number;
   ORD_TOTAL_SEM_DESCONTO?: number;
   ORD_HORA?: string;
+  ORD_OM?: string;
+  ORD_PEDIDO_COMPRA?: string;
+  ORD_PREVISAO_CONCLUSAO?: string;
+  ORD_JUSTIFICATIVA_ATRASO?: string;
+  ORD_SOLICITANTE_ID?: number;
+  ORD_SOLICITANTE_NOME?: string;
 }

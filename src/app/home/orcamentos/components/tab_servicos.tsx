@@ -6,6 +6,7 @@ import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import {
   mascaraMoedaEvent,
   maskRealToNumber,
+  formatCurrency,
 } from "@/app/functions/utils";
 import {
   Plus,
@@ -35,6 +36,9 @@ export default function TabServicos({
   const [unidade, setUnidade] = useState("PC");
   const [quantidade, setQuantidade] = useState(1);
   const [valorUnitarioStr, setValorUnitarioStr] = useState("");
+
+  const valorUnitario = maskRealToNumber(valorUnitarioStr) || 0;
+  const valorTotalCalculado = valorUnitario * (quantidade || 0);
 
   const nomeInputRef = useRef<HTMLInputElement>(null);
   const qtdInputRef = useRef<HTMLInputElement>(null);
@@ -108,7 +112,7 @@ export default function TabServicos({
         className="p-3 bg-stone-50 border-b border-gray-200 grid grid-cols-12 gap-2.5 items-end"
       >
         {/* 1. Descrição do Serviço (Foco Principal) */}
-        <div className="col-span-12 md:col-span-5">
+        <div className="col-span-12 md:col-span-4">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Descrição do Serviço <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -124,7 +128,7 @@ export default function TabServicos({
         </div>
 
         {/* 2. Quantidade */}
-        <div className="col-span-4 sm:col-span-3 md:col-span-2">
+        <div className="col-span-4 sm:col-span-3 md:col-span-1">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Qtd <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -141,7 +145,7 @@ export default function TabServicos({
         </div>
 
         {/* 3. Unidade de Medida */}
-        <div className="col-span-3 sm:col-span-3 md:col-span-1">
+        <div className="col-span-4 sm:col-span-3 md:col-span-1">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             UM
           </label>
@@ -159,7 +163,7 @@ export default function TabServicos({
         </div>
 
         {/* 4. Valor Unitário */}
-        <div className="col-span-5 sm:col-span-6 md:col-span-2">
+        <div className="col-span-4 sm:col-span-6 md:col-span-2">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Valor Unit. (R$) <span className="text-amber-500 font-bold ml-0.5">*</span>
           </label>
@@ -177,8 +181,24 @@ export default function TabServicos({
           />
         </div>
 
-        {/* 5. Cód. Ref (Secundário/Opcional) */}
-        <div className="col-span-4 sm:col-span-4 md:col-span-1">
+        {/* 5. Total (Quantidade × Valor Unitário) */}
+        <div className="col-span-6 sm:col-span-6 md:col-span-2">
+          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+            Total (R$)
+          </label>
+          <input
+            type="text"
+            readOnly
+            tabIndex={-1}
+            value={formatCurrency(valorTotalCalculado)}
+            placeholder="R$ 0,00"
+            className="w-full h-10 px-3 text-sm font-bold text-right border border-gray-200 rounded-md bg-stone-100 text-stone-800 outline-none tabular-nums cursor-default select-none"
+            title="Total = Quantidade × Valor Unitário"
+          />
+        </div>
+
+        {/* 6. Cód. Ref (Secundário/Opcional) */}
+        <div className="col-span-3 sm:col-span-3 md:col-span-1">
           <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
             Ref
           </label>
@@ -192,8 +212,8 @@ export default function TabServicos({
           />
         </div>
 
-        {/* 6. Botão de Inclusão */}
-        <div className="col-span-8 sm:col-span-8 md:col-span-1">
+        {/* 7. Botão de Inclusão */}
+        <div className="col-span-3 sm:col-span-3 md:col-span-1">
           <button
             type="submit"
             className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center gap-1.5 text-sm font-bold transition"

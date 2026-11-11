@@ -20,7 +20,8 @@ import {
     User,
     LogOut,
     ChevronDown,
-    Clock
+    Clock,
+    FileSpreadsheet
 } from 'lucide-react';
 
 interface HomeLayoutProps {
@@ -115,6 +116,7 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
     const isHome = pathname === '/home';
     const isVendas = pathname?.startsWith('/home/vendas');
     const isOrcamentos = pathname?.startsWith('/home/orcamentos');
+    const isRelatorios = pathname?.startsWith('/home/relatorios');
 
     const nomeUsuario = usuarioLogado?.FUN_NOME || usuarioLogado?.USU_LOGIN || "Operador";
     const isAdmin = Number(usuarioLogado?.USU_FUN) === 1 || Number(usuarioLogado?.USU_FUN) === 2;
@@ -180,7 +182,7 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                         <div className="hidden md:flex items-center gap-2 pl-2">
                             <span className="h-4 w-px bg-gray-200"></span>
                             <span className="text-xs font-semibold text-gray-500">
-                                {isVendas ? "Frente de Caixa (PDV)" : isOrcamentos ? "Orçamentos & Serviços" : "Painel Geral"}
+                                {isVendas ? "Frente de Caixa (PDV)" : isOrcamentos ? "Orçamentos & Serviços" : isRelatorios ? "Relatórios & Empreitadas" : "Painel Geral"}
                             </span>
                         </div>
                     </div>
@@ -348,6 +350,31 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                                 >
                                     <FileText className={`w-4 h-4 ${isOrcamentos ? 'text-amber-600' : 'text-gray-400'}`} />
                                     <span>Orçamentos & OS</span>
+                                </Link>
+
+                                <Link
+                                    href="/home/relatorios"
+                                    onClick={(e) => {
+                                        if (temAlteracoesPendentes) {
+                                            e.preventDefault();
+                                            handleNavWithPendingCheck(() => {
+                                                setOpen(false);
+                                                setUltRota('relatorios');
+                                                router.push('/home/relatorios');
+                                            });
+                                            return;
+                                        }
+                                        setOpen(false);
+                                        setUltRota('relatorios');
+                                    }}
+                                    className={`px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-bold transition ${
+                                        isRelatorios
+                                            ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-none'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
+                                    }`}
+                                >
+                                    <FileSpreadsheet className={`w-4 h-4 ${isRelatorios ? 'text-amber-600' : 'text-gray-400'}`} />
+                                    <span>Relatórios</span>
                                 </Link>
                             </div>
                         </div>

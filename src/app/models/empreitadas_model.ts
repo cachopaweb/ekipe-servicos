@@ -11,6 +11,7 @@ export default interface EmpreitadasModel {
   LRC_FAT2?: number;
   EMP_FAT?: number;
   EMP_NFS?: string | number;
+  EMP_PROTOCOLO?: string;
   EMP_LOJA?: string;
   EMP_PEDIDO?: string;
   EMP_VALOR?: number;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
-import { Search, X, Loader2, FileText, Eye, Check, Package, Wrench, Calendar } from "lucide-react";
+import { Search, X, Loader2, FileText, Eye, Check, Package, Wrench, Calendar, AlertTriangle } from "lucide-react";
 import OrdemRepository from "../repositories/ordem_repository";
 import OrdemModel from "../models/ordem_model";
 import OrdEstModel from "../models/ord_est_model";
@@ -282,12 +282,20 @@ export default function PesquisaOrdem({
     if (onClose) onClose();
   }, [setShowModal, onClose]);
 
-  // Lista de status dinâmicos
+  // Função auxiliar para verificar se a OS aprovada está com prazo estourado
+  const isOrdemAtrasada = useCallback((item: OrdemModel): boolean => {
+    if (item.ORD_ESTADO !== "APROVADO" || !item.ORD_PREVISAO_CONCLUSAO) return false;
+    const prevStr = formatDataInput(parseDataCalendario(item.ORD_PREVISAO_CONCLUSAO));
+    if (!prevStr || prevStr === "1900-01-01") return false;
+    const hojeStr = formatDataInput(new Date());
+    return prevStr < hojeStr;
+  }, []);
+
+  // Lista de status dinâmicos (incluindo filtro rápido para ATRASADAS)
   const listaStatus = useCallback(() => {
     let list = Object.values(Status).filter((v) => isNaN(Number(v)));
     const mapped = list.map((v) => v.toString().toUpperCase());
-    mapped.unshift("TODOS");
-    return mapped;
+    return ["TODOS", "⚠️ ATRASADAS", ...mapped];
   }, []);
 
   // Foco inicial
@@ -310,15 +318,19 @@ export default function PesquisaOrdem({
       const repository = new OrdemRepository();
       const d1 = data1Str ? parseDataCalendario(data1Str) : new Date();
       const d2 = data2Str ? parseDataCalendario(data2Str) : new Date();
+      const statusParam = statusOrdem === "⚠️ ATRASADAS" ? "APROVADO" : statusOrdem;
       const listaOrdems = await repository.pesquisaOrdem(
         textoBusca.toUpperCase(),
         tipoBusca,
         porPeriodo,
-        statusOrdem,
+        statusParam,
         d1,
         d2
       );
-      setOrdems(listaOrdems || []);
+      const resultadoFinal = statusOrdem === "⚠️ ATRASADAS"
+        ? (listaOrdems || []).filter(isOrdemAtrasada)
+        : (listaOrdems || []);
+      setOrdems(resultadoFinal);
       setSelectedIndex(0);
     } catch (error) {
       toastMixin.fire({
@@ -329,7 +341,7 @@ export default function PesquisaOrdem({
     } finally {
       setLoading(false);
     }
-  }, [textoBusca, tipoBusca, porPeriodo, statusOrdem, data1Str, data2Str]);
+  }, [textoBusca, tipoBusca, porPeriodo, statusOrdem, data1Str, data2Str, isOrdemAtrasada]);
 
   // Debounce na busca
   useEffect(() => {
@@ -403,7 +415,7 @@ export default function PesquisaOrdem({
         onKeyDown={handleKeyDown}
         className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
       >
-        <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+        <div className="relative w-full max-w-6xl xl:max-w-7xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
             <div className="flex items-center gap-2.5">
@@ -530,14 +542,14 @@ export default function PesquisaOrdem({
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-stone-100/90 text-stone-600 text-xs font-bold uppercase tracking-wider border-b border-stone-200">
-                    <th className="p-3 w-16">Cód.</th>
-                    <th className="p-3 w-24">Data</th>
+                    <th className="p-3 w-16 whitespace-nowrap">Cód.</th>
+                    <th className="p-3 w-24 whitespace-nowrap">Data</th>
                     <th className="p-3">Cliente</th>
                     <th className="p-3">Solicitação</th>
-                    <th className="p-3 text-right">Valor</th>
-                    <th className="p-3 text-center">Estado</th>
+                    <th className="p-3 text-right whitespace-nowrap">Valor</th>
+                    <th className="p-3 text-center whitespace-nowrap">Estado</th>
                     <th className="p-3">Parceiro</th>
-                    <th className="p-3 text-right">Ações</th>
+                    <th className="p-3 text-right whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -551,45 +563,84 @@ export default function PesquisaOrdem({
                           isSelected ? "bg-amber-100/70 font-semibold" : "hover:bg-amber-50/40 text-stone-700"
                         }`}
                       >
-                        <td className="p-3 font-mono font-medium text-stone-900">{item.ORD_CODIGO}</td>
-                        <td className="p-3 font-mono text-stone-600">
+                        <td className="p-3 font-mono font-medium text-stone-900 whitespace-nowrap">{item.ORD_CODIGO}</td>
+                        <td className="p-3 font-mono text-stone-600 whitespace-nowrap">
                           {item.ORD_DATA ? converterDataFormato(item.ORD_DATA) : "—"}
                         </td>
                         <td className="p-3 font-medium text-stone-800">{item.CLI_NOME || "—"}</td>
-                        <td className="p-3 text-stone-600 truncate max-w-xs">{item.ORD_SOLICITACAO || "—"}</td>
-                        <td className="p-3 text-right font-mono font-semibold text-stone-900">
+                        <td className="p-3 text-stone-600">
+                          <div className="font-medium line-clamp-2">{item.ORD_SOLICITACAO || "—"}</div>
+                          {(item.ORD_OM || item.ORD_PEDIDO_COMPRA) && (
+                            <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-stone-500 mt-1 font-mono">
+                              {item.ORD_OM && (
+                                <span className="bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200 whitespace-nowrap">
+                                  OM: <strong className="text-stone-700">{item.ORD_OM}</strong>
+                                </span>
+                              )}
+                              {item.ORD_PEDIDO_COMPRA && (
+                                <span className="bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200 whitespace-nowrap">
+                                  Ped: <strong className="text-stone-700">{item.ORD_PEDIDO_COMPRA}</strong>
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-3 text-right font-mono font-semibold text-stone-900 whitespace-nowrap">
                           {formatCurrency(Number(item.ORD_VALOR) || 0)}
                         </td>
-                        <td className="p-3 text-center">
-                          <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-stone-100 text-stone-700 border border-stone-200 uppercase">
-                            {item.ORD_ESTADO || "ABERTO"}
+                        <td className="p-3 text-center whitespace-nowrap">
+                          <div className="flex flex-col items-center justify-center gap-1">
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase whitespace-nowrap ${
+                                item.ORD_ESTADO === "APROVADO"
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : "bg-stone-100 text-stone-700 border border-stone-200"
+                              }`}
+                            >
+                              {item.ORD_ESTADO || "ABERTO"}
+                            </span>
+                            {isOrdemAtrasada(item) && (
+                              <span
+                                title={
+                                  item.ORD_JUSTIFICATIVA_ATRASO
+                                    ? `Prazo de conclusão expirado (${converterDataFormato(item.ORD_PREVISAO_CONCLUSAO || "")})!\nJustificativa: ${item.ORD_JUSTIFICATIVA_ATRASO}`
+                                    : `Prazo de conclusão expirado (${converterDataFormato(item.ORD_PREVISAO_CONCLUSAO || "")})!`
+                                }
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-300 shadow-xs cursor-help whitespace-nowrap"
+                              >
+                                <AlertTriangle className="w-3 h-3 text-red-600 shrink-0" />
+                                <span>Atrasada</span>
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-3 text-stone-600">
+                          <span className="truncate block max-w-[150px]" title={item.PARCEIRO || "SEM PARC."}>
+                            {item.PARCEIRO || "SEM PARC."}
                           </span>
                         </td>
-                        <td className="p-3 text-stone-600 truncate max-w-[120px]">
-                          {item.PARCEIRO || "SEM PARC."}
-                        </td>
-                        <td className="p-3 text-right">
+                        <td className="p-3 text-right whitespace-nowrap">
                           <div
-                            className="inline-flex items-center gap-1.5"
+                            className="inline-flex items-center justify-end gap-1.5"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
                               type="button"
                               onClick={() => visualizarDetalhes(item)}
                               title="Visualizar produtos e serviços da OS"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition"
+                              aria-label="Visualizar produtos e serviços da OS"
+                              className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-md transition"
                             >
-                              <Eye className="w-3.5 h-3.5 text-stone-500" />
-                              <span>Ver</span>
+                              <Eye className="w-4 h-4" />
                             </button>
                             <button
                               type="button"
                               onClick={() => selecionarOrdem(item)}
                               title="Selecionar esta OS"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition"
+                              aria-label="Selecionar esta OS"
+                              className="p-1.5 text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition"
                             >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Escolher</span>
+                              <Check className="w-4 h-4" />
                             </button>
                           </div>
                         </td>

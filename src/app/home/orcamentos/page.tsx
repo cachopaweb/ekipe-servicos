@@ -20,6 +20,7 @@ import { ProdutoModel } from "@/app/models/produto_model";
 import OrdEstModel from "@/app/models/ord_est_model";
 import OrdSerModel from "@/app/models/ord_ser_model";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
+import { SolicitanteModel } from "@/app/models/solicitante_model";
 
 // Repositórios
 import OrdemRepository from "@/app/repositories/ordem_repository";
@@ -28,6 +29,7 @@ import ClientRepository from "@/app/repositories/cliente_repository";
 import FornecedorRepository from "@/app/repositories/fornecedor_repository";
 import CidadeRepository from "@/app/repositories/cidade_repository";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
+import SolicitanteRepository from "@/app/repositories/solicitante_repository";
 
 // Modais Externos e Pesquisas
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
@@ -52,6 +54,7 @@ import PainelTotais from "./components/painel_totais";
 import ModalItemServico from "./components/modal_item_servico";
 import ModalItemProduto from "./components/modal_item_produto";
 import ModalConfirmacao from "./components/modal_confirmacao";
+import ModalCadastroSolicitante from "./components/modal_cadastro_solicitante";
 
 // Ícones Profissionais
 import { Wrench, Package, CheckCircle2, FileText, Printer } from "lucide-react";
@@ -84,6 +87,18 @@ export default function Orcamentos() {
   const [solicitacao, setSolicitacao] = useState<string>("");
   const [obs, setObs] = useState<string>("");
   const [obs_adm, setObs_adm] = useState<string>("");
+
+  // Campos Operacionais de OS Aprovada (OM, Pedido, Previsão e Justificativa)
+  const [om, setOm] = useState<string>("");
+  const [pedidoCompra, setPedidoCompra] = useState<string>("");
+  const [dataPrevisaoConclusao, setDataPrevisaoConclusao] = useState<string>("");
+  const [justificativaAtraso, setJustificativaAtraso] = useState<string>("");
+
+  // Solicitante (Coordenador que abre/aprova o chamado)
+  const [solicitanteId, setSolicitanteId] = useState<number>(0);
+  const [solicitanteNome, setSolicitanteNome] = useState<string>("");
+  const [solicitantes, setSolicitantes] = useState<SolicitanteModel[]>([]);
+  const [showModalNovoSolicitante, setShowModalNovoSolicitante] = useState<boolean>(false);
 
   // Entidades Vinculadas
   const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({
@@ -174,6 +189,11 @@ export default function Orcamentos() {
       obsAdmVal: string;
       descVal: number;
       descPct: number;
+      omVal?: string;
+      pedVal?: string;
+      prevVal?: string;
+      justVal?: string;
+      solicId?: number;
       servs: OrdSerModel[];
       prods: OrdEstModel[];
     }) =>
@@ -188,6 +208,11 @@ export default function Orcamentos() {
         obsAdmVal: (params.obsAdmVal || "").trim(),
         descVal: Number(params.descVal || 0),
         descPct: Number(params.descPct || 0),
+        omVal: (params.omVal || "").trim(),
+        pedVal: (params.pedVal || "").trim(),
+        prevVal: (params.prevVal || "").trim(),
+        justVal: (params.justVal || "").trim(),
+        solicId: Number(params.solicId || 0),
         servs: (params.servs || []).map((s) => ({
           cod: s.OS_CODIGO,
           nome: (s.OS_NOME || "").trim(),
@@ -224,6 +249,11 @@ export default function Orcamentos() {
         obsAdmVal: "",
         descVal: 0,
         descPct: 0,
+        omVal: "",
+        pedVal: "",
+        prevVal: "",
+        justVal: "",
+        solicId: 0,
         servs: [],
         prods: [],
       });
@@ -244,6 +274,11 @@ export default function Orcamentos() {
       obsAdmVal: obs_adm,
       descVal: valorDesconto,
       descPct: valorPorcentagemDesconto,
+      omVal: om,
+      pedVal: pedidoCompra,
+      prevVal: dataPrevisaoConclusao,
+      justVal: justificativaAtraso,
+      solicId: solicitanteId,
       servs: listaServicosInseridos,
       prods: listaProdutosInseridos,
     });
@@ -260,6 +295,11 @@ export default function Orcamentos() {
     obs_adm,
     valorDesconto,
     valorPorcentagemDesconto,
+    om,
+    pedidoCompra,
+    dataPrevisaoConclusao,
+    justificativaAtraso,
+    solicitanteId,
     listaServicosInseridos,
     listaProdutosInseridos,
   ]);
@@ -332,6 +372,7 @@ export default function Orcamentos() {
   // Carregamento Inicial
   useEffect(() => {
     carregaUnidadesMed();
+    carregaSolicitantes();
     try {
       const funcionario = JSON.parse(localStorage.getItem("usuario_logado") || "null");
       if (funcionario) {
@@ -340,6 +381,16 @@ export default function Orcamentos() {
       }
     } catch {
       // Ignora erro de JSON
+    }
+  }, []);
+
+  const carregaSolicitantes = useCallback(async () => {
+    try {
+      const repository = new SolicitanteRepository();
+      const lista = await repository.getSolicitantes();
+      setSolicitantes(lista || []);
+    } catch (error) {
+      console.error("Erro ao carregar solicitantes:", error);
     }
   }, []);
 
@@ -389,7 +440,7 @@ export default function Orcamentos() {
       }),
       itensOrdSer: listaServicosInseridos,
       itensOrdEst: listaProdutosInseridos,
-    };
+    } as OrdemModel;
   }, [
     ordem,
     codigoOrdem,
@@ -489,6 +540,19 @@ export default function Orcamentos() {
       setValorPorcentagemDesconto(ord.ORD_PORCENTAGEM_DESCONTO ?? 0);
       setValorDesconto(ord.ORD_VALOR_DESCONTO ?? 0);
 
+      // Carrega campos operacionais de OS Aprovada
+      setOm(ord.ORD_OM || "");
+      setPedidoCompra(ord.ORD_PEDIDO_COMPRA || "");
+      const previsaoFormatada = ord.ORD_PREVISAO_CONCLUSAO && ord.ORD_PREVISAO_CONCLUSAO !== "1900-01-01"
+        ? formatDataInput(parseDataCalendario(ord.ORD_PREVISAO_CONCLUSAO))
+        : "";
+      setDataPrevisaoConclusao(previsaoFormatada);
+      setJustificativaAtraso(ord.ORD_JUSTIFICATIVA_ATRASO || "");
+
+      // Solicitante (Coordenador que abre/aprova o chamado)
+      setSolicitanteId(ord.ORD_SOLICITANTE_ID ?? 0);
+      setSolicitanteNome(ord.ORD_SOLICITANTE_NOME || "");
+
       // Busca Produtos e Serviços
       const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
       setListaProdutosInseridos(Array.isArray(produtos) ? produtos : []);
@@ -524,6 +588,11 @@ export default function Orcamentos() {
         obsAdmVal: ord.ORD_OBS_ADM ?? "",
         descVal: ord.ORD_VALOR_DESCONTO ?? 0,
         descPct: ord.ORD_PORCENTAGEM_DESCONTO ?? 0,
+        omVal: ord.ORD_OM || "",
+        pedVal: ord.ORD_PEDIDO_COMPRA || "",
+        prevVal: previsaoFormatada,
+        justVal: ord.ORD_JUSTIFICATIVA_ATRASO || "",
+        solicId: ord.ORD_SOLICITANTE_ID ?? 0,
         servs: servsLoaded,
         prods: prodsLoaded,
       });
@@ -559,6 +628,12 @@ export default function Orcamentos() {
     setSolicitacao("");
     setObs("");
     setObs_adm("");
+    setOm("");
+    setPedidoCompra("");
+    setDataPrevisaoConclusao("");
+    setJustificativaAtraso("");
+    setSolicitanteId(0);
+    setSolicitanteNome("");
     setClienteSelecionado({ CODIGO: 1, NOME: "CONSUMIDOR" });
     serParceiroSelecionado({ CODIGO: 0, NOME: "" });
     setListaServicosInseridos([]);
@@ -576,6 +651,11 @@ export default function Orcamentos() {
       obsAdmVal: "",
       descVal: 0,
       descPct: 0,
+      omVal: "",
+      pedVal: "",
+      prevVal: "",
+      justVal: "",
+      solicId: 0,
       servs: [],
       prods: [],
     });
@@ -652,6 +732,12 @@ export default function Orcamentos() {
         ORD_VALOR_DESCONTO: valorDesconto ?? 0,
         ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto ?? 0,
         ORD_TOTAL_SEM_DESCONTO: totalProdutos + totalServicos,
+        ORD_OM: om,
+        ORD_PEDIDO_COMPRA: pedidoCompra,
+        ORD_PREVISAO_CONCLUSAO: dataPrevisaoConclusao,
+        ORD_JUSTIFICATIVA_ATRASO: justificativaAtraso,
+        ORD_SOLICITANTE_ID: solicitanteId > 0 ? solicitanteId : undefined,
+        ORD_SOLICITANTE_NOME: solicitanteNome || undefined,
       };
 
       const repository = new OrdemRepository();
@@ -712,6 +798,11 @@ export default function Orcamentos() {
         obsAdmVal: obs_adm,
         descVal: valorDesconto,
         descPct: valorPorcentagemDesconto,
+        omVal: om,
+        pedVal: pedidoCompra,
+        prevVal: dataPrevisaoConclusao,
+        justVal: justificativaAtraso,
+        solicId: solicitanteId,
         servs: listaServicosInseridos,
         prods: listaProdutosInseridos,
       });
@@ -951,6 +1042,38 @@ export default function Orcamentos() {
               setSolicitacao(s);
               setIsDirty(true);
             }}
+            om={om}
+            setOm={(v) => {
+              setOm(v);
+              setIsDirty(true);
+            }}
+            pedidoCompra={pedidoCompra}
+            setPedidoCompra={(v) => {
+              setPedidoCompra(v);
+              setIsDirty(true);
+            }}
+            dataPrevisaoConclusao={dataPrevisaoConclusao}
+            setDataPrevisaoConclusao={(v) => {
+              setDataPrevisaoConclusao(v);
+              setIsDirty(true);
+            }}
+            justificativaAtraso={justificativaAtraso}
+            setJustificativaAtraso={(v) => {
+              setJustificativaAtraso(v);
+              setIsDirty(true);
+            }}
+            solicitanteId={solicitanteId}
+            setSolicitanteId={(id) => {
+              setSolicitanteId(id);
+              setIsDirty(true);
+            }}
+            solicitanteNome={solicitanteNome}
+            setSolicitanteNome={(nome) => {
+              setSolicitanteNome(nome);
+              setIsDirty(true);
+            }}
+            solicitantes={solicitantes}
+            onOpenNovoSolicitante={() => setShowModalNovoSolicitante(true)}
           />
 
           {/* Abas de Itens: Serviços vs Produtos (Sem sombras, tipografia maior) */}
@@ -1332,6 +1455,24 @@ export default function Orcamentos() {
           }
         />
       )}
+
+      {/* Modal Cadastro Rápido de Solicitante */}
+      <ModalCadastroSolicitante
+        isOpen={showModalNovoSolicitante}
+        onClose={() => setShowModalNovoSolicitante(false)}
+        onSalvo={(novo) => {
+          setSolicitantes((prev) => {
+            const exists = prev.some((s) => s.SOL_CODIGO === novo.SOL_CODIGO);
+            if (exists) {
+              return prev.map((s) => (s.SOL_CODIGO === novo.SOL_CODIGO ? novo : s));
+            }
+            return [...prev, novo].sort((a, b) => a.SOL_NOME.localeCompare(b.SOL_NOME));
+          });
+          setSolicitanteId(novo.SOL_CODIGO);
+          setSolicitanteNome(novo.SOL_NOME);
+          setIsDirty(true);
+        }}
+      />
     </div>
   );
 }

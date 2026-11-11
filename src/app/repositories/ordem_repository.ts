@@ -15,9 +15,15 @@ function parseListResponse<T>(data: any): T[] {
 
 export default class OrdemRepository {
   async insereordem(ordem: OrdemModel): Promise<boolean> {
+    const dataPrevisaoSql = ordem.ORD_PREVISAO_CONCLUSAO && ordem.ORD_PREVISAO_CONCLUSAO !== "1900-01-01"
+      ? `'${FormatDate(ordem.ORD_PREVISAO_CONCLUSAO)}'`
+      : "NULL";
+
     const sql = {
       sql: `UPDATE OR INSERT INTO ORDENS (ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_HORA, ORD_FUN, ORD_CLI, ORD_DATAC, ORD_OBS, ORD_ESTADO,
-                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT, ORD_FORNECEDOR, ORD_VALOR_DESCONTO, ORD_PORCENTAGEM_DESCONTO, ORD_TOTAL_SEM_DESCONTO)
+                 ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_DEVOLUCAO_P, ORD_USADO, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, ORD_FAT, ORD_FORNECEDOR, ORD_VALOR_DESCONTO, ORD_PORCENTAGEM_DESCONTO, ORD_TOTAL_SEM_DESCONTO,
+                 ORD_OM, ORD_PEDIDO_COMPRA, ORD_PREVISAO_CONCLUSAO, ORD_JUSTIFICATIVA_ATRASO,
+                 ORD_SOLICITANTE_ID, ORD_SOLICITANTE_NOME)
                  VALUES (${ordem.ORD_CODIGO}, '${FormatDate(ordem.ORD_DATA)}', ${ordem.ORD_VALOR}, '${
         ordem.ORD_HORA ? horaFormatadaDB(ordem.ORD_HORA) : horaFormatadaDB()
       }',
@@ -35,7 +41,13 @@ export default class OrdemRepository {
       }, ${ordem.ORD_FORNECEDOR ?? 0}, ${ordem.ORD_VALOR_DESCONTO ?? 0}, ${
         ordem.ORD_PORCENTAGEM_DESCONTO ?? 0
       }, 
-                 ${ordem.ORD_TOTAL_SEM_DESCONTO ?? 0})
+                 ${ordem.ORD_TOTAL_SEM_DESCONTO ?? 0},
+                 '${(ordem.ORD_OM || "").replace(/'/g, "''")}',
+                 '${(ordem.ORD_PEDIDO_COMPRA || "").replace(/'/g, "''")}',
+                 ${dataPrevisaoSql},
+                 '${(ordem.ORD_JUSTIFICATIVA_ATRASO || "").replace(/'/g, "''")}',
+                 ${ordem.ORD_SOLICITANTE_ID && ordem.ORD_SOLICITANTE_ID > 0 ? ordem.ORD_SOLICITANTE_ID : "NULL"},
+                 '${(ordem.ORD_SOLICITANTE_NOME || "").replace(/'/g, "''")}')
                  MATCHING (ORD_CODIGO)`,
     };
     try {
@@ -83,7 +95,9 @@ export default class OrdemRepository {
     const sql = `SELECT ORD_CODIGO, ORD_DATA, ORD_HORA, ORD_DATAC, ORD_VALOR, ORD_FUN, CLI_CNPJ_CPF, ORD_CLI, CLI_NOME,
             CLI_FONE, CLI_CELULAR, CLI_EMAIL, CLI_BAIRRO, CLI_ENDERECO, CLI_NUMERO, ORD_OBS, ORD_ESTADO, CID_NOME, CID_UF,
             ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, 
-            ORD_NFS, FUN_NOME, ORD_FORNECEDOR, ORD_VALOR_DESCONTO, ORD_PORCENTAGEM_DESCONTO, ORD_TOTAL_SEM_DESCONTO
+            ORD_NFS, FUN_NOME, ORD_FORNECEDOR, ORD_VALOR_DESCONTO, ORD_PORCENTAGEM_DESCONTO, ORD_TOTAL_SEM_DESCONTO,
+            ORD_OM, ORD_PEDIDO_COMPRA, ORD_PREVISAO_CONCLUSAO, ORD_JUSTIFICATIVA_ATRASO,
+            ORD_SOLICITANTE_ID, ORD_SOLICITANTE_NOME
             FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO 
             LEFT JOIN FUNCIONARIOS ON FUN_CODIGO = ORD_FUN 
             LEFT JOIN CIDADES ON CID_CODIGO = CLI_CID
@@ -145,7 +159,9 @@ export default class OrdemRepository {
   ): Promise<OrdemModel[]> {
     try {
       let SQL = `SELECT FIRST 50 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
-                   ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FORN.FOR_NOME AS PARCEIRO
+                   ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FORN.FOR_NOME AS PARCEIRO,
+                   ORD_OM, ORD_PEDIDO_COMPRA, ORD_PREVISAO_CONCLUSAO, ORD_JUSTIFICATIVA_ATRASO,
+                   ORD_SOLICITANTE_ID, ORD_SOLICITANTE_NOME
                    FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO LEFT JOIN FORNECEDORES FORN ON ORD_FORNECEDOR = FORN.FOR_CODIGO  WHERE 1=1 [PERIODO][STATUS][BUSCA] 
                    ORDER BY [ORDEM]`;
       if (textoBusca != "") {

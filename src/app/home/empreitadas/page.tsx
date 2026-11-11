@@ -84,6 +84,7 @@ export default function Empreitadas({ ordemServico, onUpdateTotalPago }: Empreit
         EMP_ORD: ordemServico.ORD_CODIGO,
         FOR_NOME: fornecedorSelecionado.NOME,
         EMP_FOR: fornecedorSelecionado.CODIGO,
+        EMP_PROTOCOLO: "",
         EMP_NFS: "",
         EMP_LOJA: "",
         EMP_PEDIDO: "",

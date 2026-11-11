@@ -978,6 +978,7 @@ export default function EmpreitadaModal({
   const [empreitada, setEmpreitada] = useState<EmpreitadasModel | undefined>(empreitadaSelecionada);
 
   // Campos do formulário
+  const [protocolo, setProtocolo] = useState<string>("");
   const [nfs, setNfs] = useState<string>("");
   const [loja, setLoja] = useState<string>("");
   const [pedido, setPedido] = useState<string>("");
@@ -1032,6 +1033,7 @@ export default function EmpreitadaModal({
 
   const makeSnapshot = useCallback(
     (
+      _protocolo: string,
       _nfs: string,
       _loja: string,
       _pedido: string,
@@ -1043,6 +1045,7 @@ export default function EmpreitadaModal({
       _itens: EmpreitadasServicosModel[]
     ) => {
       return JSON.stringify({
+        protocolo: (_protocolo || "").trim(),
         nfs: (_nfs || "").trim(),
         loja: (_loja || "").trim(),
         pedido: (_pedido || "").trim(),
@@ -1253,6 +1256,7 @@ export default function EmpreitadaModal({
 
     if (empreitadaSelecionada) {
       setEmpreitada(empreitadaSelecionada);
+      const curProtocolo = empreitadaSelecionada.EMP_PROTOCOLO || "";
       const curNfs = empreitadaSelecionada.EMP_NFS ? String(empreitadaSelecionada.EMP_NFS) : "";
       const curLoja = empreitadaSelecionada.EMP_LOJA || "";
       const curPedido = empreitadaSelecionada.EMP_PEDIDO || "";
@@ -1278,6 +1282,7 @@ export default function EmpreitadaModal({
           : totalItens
       );
 
+      setProtocolo(curProtocolo);
       setNfs(curNfs);
       setLoja(curLoja);
       setPedido(curPedido);
@@ -1291,6 +1296,7 @@ export default function EmpreitadaModal({
       await carregaPagamentos(empreitadaSelecionada.EMP_FAT);
 
       snapshotRef.current = makeSnapshot(
+        curProtocolo,
         curNfs,
         curLoja,
         curPedido,
@@ -1321,6 +1327,7 @@ export default function EmpreitadaModal({
 
   const isFormDirty = () => {
     const current = makeSnapshot(
+      protocolo,
       nfs,
       loja,
       pedido,
@@ -1492,6 +1499,7 @@ export default function EmpreitadaModal({
         EMP_ORD: ordem.ORD_CODIGO,
         EMP_FOR: empreitada?.EMP_FOR || fornecedor.CODIGO,
         FOR_NOME: empreitada?.FOR_NOME || fornecedor.NOME,
+        EMP_PROTOCOLO: protocolo.trim(),
         EMP_NFS: nfs.trim(),
         EMP_LOJA: loja.trim(),
         EMP_PEDIDO: pedido.trim(),
@@ -1514,6 +1522,7 @@ export default function EmpreitadaModal({
 
       // Atualiza o snapshot para limpar o estado sujo
       snapshotRef.current = makeSnapshot(
+        protocolo,
         nfs,
         loja,
         pedido,
@@ -1648,7 +1657,22 @@ export default function EmpreitadaModal({
                     Dados Fiscais e de Compra
                   </h3>
                 </div>
-                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-amber-500" />
+                      Protocolo Agendamento
+                    </label>
+                    <input
+                      type="text"
+                      value={protocolo}
+                      disabled={estaFaturada()}
+                      onChange={(e) => setProtocolo(e.target.value)}
+                      placeholder="Ex: 42661835"
+                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-xs font-bold text-stone-600 uppercase mb-1 flex items-center gap-1">
                       <Hash className="w-3.5 h-3.5 text-stone-400" />

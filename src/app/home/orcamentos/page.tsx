@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { Suspense, useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAppData } from "@/app/contexts/app_context";
 import {
   FormatDate,
@@ -59,8 +60,10 @@ import ModalCadastroSolicitante from "./components/modal_cadastro_solicitante";
 // Ícones Profissionais
 import { Wrench, Package, CheckCircle2, FileText, Printer } from "lucide-react";
 
-export default function Orcamentos() {
+function OrcamentosContent() {
+    const searchParams = useSearchParams();
     const { setOrdemCtx, OrdemCtx, setTemAlteracoesPendentes } = useAppData();
+    const lastOrdemParamRef = useRef<string | null>(null);
 
   // Filas de exclusão pendente (E02: persistem apenas ao salvar com sucesso)
   const [servicosParaExcluir, setServicosParaExcluir] = useState<number[]>([]);
@@ -368,6 +371,18 @@ export default function Orcamentos() {
   }, [listaServicosInseridos]);
 
   const totalItens = (Array.isArray(listaProdutosInseridos) ? listaProdutosInseridos.length : 0) + (Array.isArray(listaServicosInseridos) ? listaServicosInseridos.length : 0);
+
+  // Carrega automaticamente a OS informada via query string (?ordem=1234)
+  const ordemParam = searchParams?.get("ordem") ?? null;
+  useEffect(() => {
+    if (ordemParam && ordemParam !== lastOrdemParamRef.current) {
+      const parsed = Number(ordemParam);
+      if (Number.isInteger(parsed) && parsed > 0) {
+        lastOrdemParamRef.current = ordemParam;
+        setCodigoOrdem(parsed);
+      }
+    }
+  }, [ordemParam]);
 
   // Carregamento Inicial
   useEffect(() => {
@@ -1474,5 +1489,17 @@ export default function Orcamentos() {
         }}
       />
     </div>
+  );
+}
+
+export default function Orcamentos() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm text-ek-muted">Carregando orçamento...</div>
+      }
+    >
+      <OrcamentosContent />
+    </Suspense>
   );
 }

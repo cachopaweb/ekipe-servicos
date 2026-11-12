@@ -694,15 +694,20 @@ export default function RelatoriosPage() {
                       </td>
 
                       <td className="py-2.5 px-3 text-center">
-                        <Link
-                          href={`/home/orcamentos?ordem=${item.EMP_ORD}`}
-                          target="_blank"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-ek-raised border border-ek-border hover:border-brand-border hover:bg-brand-soft text-ek-text hover:text-brand font-medium text-xs transition-colors tabular-nums"
-                          title={`Abrir OS Nº ${item.EMP_ORD} em nova aba`}
-                        >
-                          <span>OS #{item.EMP_ORD}</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </Link>
+                        {item.EMP_ORD ? (
+                          <Link
+                            href={`/home/orcamentos?ordem=${item.EMP_ORD}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-ek-raised border border-ek-border hover:border-brand-border hover:bg-brand-soft text-ek-text hover:text-brand font-medium text-xs transition-colors tabular-nums"
+                            title={`Abrir OS Nº ${item.EMP_ORD} em nova aba`}
+                          >
+                            <span>OS #{item.EMP_ORD}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        ) : (
+                          <span className="text-ek-faint">-</span>
+                        )}
                       </td>
                     </tr>
                   );

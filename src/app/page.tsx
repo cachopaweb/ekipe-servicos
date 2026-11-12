@@ -15,7 +15,6 @@ import {
   Loader2,
   LogIn,
   AlertCircle,
-  ShieldCheck,
   AlertTriangle
 } from 'lucide-react';
 
@@ -135,35 +134,31 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-stone-100 relative overflow-hidden font-sans">
-      {/* Luz ambiente e elementos decorativos de fundo */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#312783]/10 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
-      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#d6d3d1_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
-
-      <div className="relative w-full max-w-[420px] z-10 flex flex-col items-center">
+    <main className="min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 bg-ek-ground font-sans text-ek-text">
+      <div className="w-full max-w-[400px] flex flex-col items-center">
         {/* Card Principal de Login */}
-        <div className="w-full bg-white rounded-2xl shadow-xl shadow-stone-300/40 border border-stone-200/90 overflow-hidden">
-          {/* Faixa decorativa superior com as cores do sistema */}
-          <div className="h-2 w-full bg-gradient-to-r from-[#312783] via-indigo-700 to-amber-500" />
+        <div className="w-full bg-white rounded-[10px] border border-ek-border overflow-hidden">
+          {/* Assinatura geométrica da logo Ekipe Serviços */}
+          <div className="flex h-1 w-full">
+            <div className="flex-1 bg-brand" />
+            <div className="w-20 bg-brand-gold" />
+          </div>
 
-          <div className="p-6 sm:p-8">
+          <div className="p-7 sm:p-8">
             {/* Cabeçalho do Card */}
-            <div className="flex flex-col items-center text-center mb-6">
-              <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100 shadow-sm mb-3.5 flex items-center justify-center">
-                <Image
-                  src={logo}
-                  height={44}
-                  alt="Ekipe Serviços"
-                  className="h-9 sm:h-10 w-auto object-contain"
-                  priority
-                />
-              </div>
-              <h1 className="text-xl font-bold text-stone-900 tracking-tight">
+            <div className="flex flex-col items-start mb-7">
+              <Image
+                src={logo}
+                height={42}
+                alt="Ekipe Serviços"
+                className="h-9 w-auto object-contain mb-5"
+                priority
+              />
+              <h1 className="text-[20px] font-semibold text-ek-text tracking-tight">
                 Acesso ao Sistema
               </h1>
-              <p className="text-xs text-stone-500 font-medium mt-1">
-                Identifique-se para acessar o painel de gestão
+              <p className="text-sm text-ek-muted mt-1">
+                Identifique-se para acessar o painel de gestão.
               </p>
             </div>
 
@@ -171,9 +166,9 @@ export default function Login() {
             {errorMessage && (
               <div
                 role="alert"
-                className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2.5 transition-all"
+                className="mb-5 p-3 rounded-[6px] bg-red-50 border border-red-200 text-red-800 text-xs font-medium flex items-start gap-2.5"
               >
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
                 <span className="flex-1 leading-relaxed">{errorMessage}</span>
               </div>
             )}
@@ -184,12 +179,12 @@ export default function Login() {
               <div>
                 <label
                   htmlFor="loginUsuario"
-                  className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5"
+                  className="ek-label"
                 >
                   Usuário
                 </label>
                 <div className="relative flex items-center">
-                  <div className="absolute left-3.5 pointer-events-none text-stone-400">
+                  <div className="absolute left-3 pointer-events-none text-ek-faint">
                     <User className="w-4 h-4" />
                   </div>
                   <input
@@ -209,7 +204,7 @@ export default function Login() {
                     autoCapitalize="none"
                     spellCheck={false}
                     disabled={loading}
-                    className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:bg-white focus:border-[#312783] focus:ring-4 focus:ring-[#312783]/10 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="ek-input pl-9"
                   />
                 </div>
               </div>
@@ -218,12 +213,12 @@ export default function Login() {
               <div>
                 <label
                   htmlFor="loginSenha"
-                  className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5"
+                  className="ek-label"
                 >
                   Senha
                 </label>
                 <div className="relative flex items-center">
-                  <div className="absolute left-3.5 pointer-events-none text-stone-400">
+                  <div className="absolute left-3 pointer-events-none text-ek-faint">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -241,7 +236,7 @@ export default function Login() {
                     placeholder="Digite sua senha"
                     autoComplete="current-password"
                     disabled={loading}
-                    className="w-full pl-10 pr-11 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:bg-white focus:border-[#312783] focus:ring-4 focus:ring-[#312783]/10 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="ek-input pl-9 pr-10"
                   />
                   <button
                     type="button"
@@ -249,7 +244,7 @@ export default function Login() {
                     tabIndex={-1}
                     title={showPassword ? "Ocultar senha" : "Exibir senha"}
                     aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
-                    className="absolute right-2.5 p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-200/50 transition-colors"
+                    className="absolute right-2 p-1 text-ek-faint hover:text-ek-text rounded-[4px] hover:bg-ek-raised transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -261,7 +256,7 @@ export default function Login() {
 
                 {/* Alerta de Caps Lock Ativado */}
                 {capsLockAtivo && (
-                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-amber-600 font-medium">
+                  <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-800 font-medium">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                     <span>Caps Lock ativado</span>
                   </div>
@@ -269,7 +264,7 @@ export default function Login() {
               </div>
 
               {/* Opção Lembrar Usuário */}
-              <div className="pt-1 flex items-center justify-between">
+              <div className="pt-0.5 flex items-center justify-between">
                 <label
                   htmlFor="rememberUser"
                   className="inline-flex items-center gap-2 cursor-pointer select-none group"
@@ -280,30 +275,30 @@ export default function Login() {
                     checked={rememberUser}
                     onChange={(e) => setRememberUser(e.target.checked)}
                     disabled={loading}
-                    className="w-4 h-4 rounded border-stone-300 text-[#312783] focus:ring-[#312783]/30 cursor-pointer accent-[#312783]"
+                    className="w-4 h-4 rounded border-ek-control text-brand focus:ring-brand/30 cursor-pointer accent-[#312783]"
                   />
-                  <span className="text-xs font-medium text-stone-600 group-hover:text-stone-900 transition-colors">
+                  <span className="text-xs font-medium text-ek-muted group-hover:text-ek-text transition-colors">
                     Lembrar usuário
                   </span>
                 </label>
               </div>
 
               {/* Botão de Submissão */}
-              <div className="pt-2">
+              <div className="pt-1">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 px-4 rounded-xl bg-[#312783] hover:bg-[#261e68] text-white font-bold text-sm shadow-md shadow-[#312783]/20 hover:shadow-lg hover:shadow-[#312783]/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed group"
+                  className="ek-btn-primary w-full h-10"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-gold" />
                       <span>Autenticando...</span>
                     </>
                   ) : (
                     <>
                       <span>Entrar no Sistema</span>
-                      <LogIn className="w-4 h-4 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+                      <LogIn className="w-4 h-4 text-brand-gold" />
                     </>
                   )}
                 </button>
@@ -311,17 +306,17 @@ export default function Login() {
             </form>
 
             {/* Rodapé Interno do Card */}
-            <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-center gap-2 text-[11px] font-medium text-stone-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Ambiente Seguro • Ekipe Serviços</span>
+            <div className="mt-6 pt-4 border-t border-ek-rule flex items-center justify-between text-xs text-ek-faint">
+              <span>Ekipe Serviços</span>
+              <span>Versão 2.0</span>
             </div>
           </div>
         </div>
 
         {/* Informações de Rodapé */}
-        <div className="mt-5 flex items-center gap-2 text-center text-xs text-stone-400 font-medium">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
-          <span>Servidor Online • Versão 2.0</span>
+        <div className="mt-4 flex items-center justify-center gap-2 text-center text-xs text-ek-muted">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+          <span>Servidor Online</span>
         </div>
       </div>
     </main>

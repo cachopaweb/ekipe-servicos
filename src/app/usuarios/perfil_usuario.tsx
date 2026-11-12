@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppData } from "@/app/contexts/app_context";
-import UsuarioRepository from "@/app/repositories/usuario_repository";
+import UsuarioRepository, { isUsuarioAdmin } from "@/app/repositories/usuario_repository";
 import { FuncionarioModel } from "@/app/models/usuario_model";
 import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 import { toastMixin } from "@/app/functions/utils";
-import { Loader2, LogOut, User, Fingerprint, BadgeCheck, Mail, Phone, UserX } from "lucide-react";
+import { Loader2, LogOut, User, Fingerprint, BadgeCheck, Mail, Phone, UserX, Shield } from "lucide-react";
 
 export default function PerfilUsuario() {
   const { usuarioLogado, setUsuarioLogado } = useAppData();
@@ -69,143 +69,151 @@ export default function PerfilUsuario() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-stone-500 font-medium">
-        <Loader2 className="w-5 h-5 animate-spin mr-2 text-amber-500" /> Carregando perfil...
+      <div className="flex h-64 items-center justify-center text-ek-muted font-medium">
+        <Loader2 className="w-5 h-5 animate-spin mr-2 text-brand" /> Carregando perfil...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col w-full gap-5 animate-fade-in font-sans">
+    <div className="flex flex-col w-full gap-4 font-sans">
 
       {/* Cabeçalho do Cartão */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-200 shrink-0">
-        <div className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 h-24 sm:h-28 w-full relative">
-          <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+      <div className="ek-card overflow-hidden shrink-0">
+        <div className="h-[4px] w-full flex">
+          <div className="flex-1 bg-brand" />
+          <div className="w-24 bg-brand-gold" />
         </div>
 
-        <div className="px-5 sm:px-6 pb-5 relative">
-          <div className="absolute -top-12 left-5 sm:-top-14 sm:left-6">
-            <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full border-4 border-white bg-stone-100 flex items-center justify-center shadow-md text-stone-600 text-2xl sm:text-3xl font-extrabold select-none ring-1 ring-stone-200">
+        <div className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-[8px] border border-brand-border bg-brand-soft flex items-center justify-center text-brand text-xl font-bold select-none shrink-0">
               {getIniciais(funcionario?.FUN_NOME || usuarioLogado.USU_LOGIN || "")}
             </div>
-          </div>
 
-          <div className="ml-28 sm:ml-36 pt-2 flex flex-col sm:flex-row justify-between items-start sm:items-center min-h-[50px] gap-2">
-            <div className="w-full pr-2">
-              <h1 className="text-lg sm:text-xl font-bold text-stone-900 uppercase tracking-tight truncate w-full">
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-ek-text uppercase tracking-[-0.01em] truncate">
                 {funcionario?.FUN_NOME || usuarioLogado.USU_LOGIN}
               </h1>
-              <p className="text-xs sm:text-sm text-stone-500 font-medium truncate">
+              <p className="text-xs sm:text-sm text-ek-muted font-mono truncate">
                 @{usuarioLogado.USU_LOGIN}
               </p>
             </div>
-            <div className={`px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 ${usuarioLogado.FUN_ESTADO === 'ATIVO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
-              {usuarioLogado.FUN_ESTADO || 'DESCONHECIDO'}
-            </div>
+          </div>
+
+          <div className={`px-2.5 py-1 rounded-[6px] text-xs font-semibold border shrink-0 ${usuarioLogado.FUN_ESTADO === 'ATIVO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+            {usuarioLogado.FUN_ESTADO || 'DESCONHECIDO'}
           </div>
         </div>
       </div>
 
-      {/* Detalhes do Perfil - Grid alinhado em altura */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+      {/* Detalhes do Perfil */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
 
         {/* Coluna Esquerda: Dados de Acesso */}
-        <div className="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-stone-200 lg:col-span-1 flex flex-col justify-between h-full">
+        <div className="ek-card p-5 sm:p-6 lg:col-span-1 flex flex-col justify-between h-full">
           <div>
-            <h3 className="text-stone-400 font-bold text-xs uppercase mb-4 border-b border-stone-100 pb-2 tracking-wider">
-              Dados de Acesso
+            <h3 className="text-xs font-semibold text-ek-muted mb-4 border-b border-ek-rule pb-2">
+              Dados de acesso
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Login</label>
-                <div className="text-sm font-semibold text-stone-800 flex items-center gap-2 truncate">
-                  <User className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="text-xs font-medium text-ek-muted block mb-1">Login</span>
+                <div className="text-sm font-semibold text-ek-text flex items-center gap-2 truncate">
+                  <User className="w-4 h-4 text-brand shrink-0" />
                   <span>{usuarioLogado.USU_LOGIN}</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">ID Usuário</label>
-                <div className="text-sm font-semibold text-stone-800 flex items-center gap-2">
-                  <Fingerprint className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="text-xs font-medium text-ek-muted block mb-1">ID usuário</span>
+                <div className="text-sm font-semibold text-ek-text flex items-center gap-2 tabular-nums">
+                  <Fingerprint className="w-4 h-4 text-brand shrink-0" />
                   <span>#{usuarioLogado.USU_CODIGO}</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">ID Funcionário</label>
-                <div className="text-sm font-semibold text-stone-800 flex items-center gap-2">
-                  <BadgeCheck className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="text-xs font-medium text-ek-muted block mb-1">ID funcionário</span>
+                <div className="text-sm font-semibold text-ek-text flex items-center gap-2 tabular-nums">
+                  <BadgeCheck className="w-4 h-4 text-brand shrink-0" />
                   <span>#{usuarioLogado.USU_FUN?.toString() || "N/A"}</span>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xs font-medium text-ek-muted block mb-1">Perfil de acesso</span>
+                <div className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-brand shrink-0" />
+                  <span>{isUsuarioAdmin(usuarioLogado) ? "Admin" : "Operador"}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-stone-100">
+          <div className="mt-6 pt-4 border-t border-ek-rule">
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-700 font-semibold py-2.5 px-4 rounded-lg border border-rose-200 transition-colors flex items-center justify-center gap-2 group text-sm shadow-sm"
+              className="ek-btn-danger w-full justify-center text-sm"
             >
-              <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              Sair do Sistema
+              <LogOut className="w-4 h-4" />
+              Sair do sistema
             </button>
           </div>
         </div>
 
         {/* Coluna Direita: Dados Pessoais */}
-        <div className="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-stone-200 lg:col-span-2 flex flex-col justify-between h-full">
+        <div className="ek-card p-5 sm:p-6 lg:col-span-2 flex flex-col justify-between h-full">
           <div>
-            <h3 className="text-stone-400 font-bold text-xs uppercase mb-4 border-b border-stone-100 pb-2 tracking-wider">
-              Dados Pessoais
+            <h3 className="text-xs font-semibold text-ek-muted mb-4 border-b border-ek-rule pb-2">
+              Dados pessoais
             </h3>
 
             {funcionario ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                 <div className="md:col-span-2">
-                  <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Nome Completo</label>
-                  <div className="text-sm font-semibold text-stone-800 border-b border-stone-100 pb-2 truncate">
+                  <span className="text-xs font-medium text-ek-muted block mb-1">Nome completo</span>
+                  <div className="text-sm font-semibold text-ek-text border-b border-ek-rule pb-2 truncate">
                     {funcionario.FUN_NOME}
                   </div>
                 </div>
 
                 <div className="overflow-hidden">
-                  <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">E-mail</label>
-                  <div className="text-sm font-medium text-stone-800 border-b border-stone-100 pb-2 flex items-center gap-2 truncate">
-                    <Mail className="w-4 h-4 text-stone-400 shrink-0" />
+                  <span className="text-xs font-medium text-ek-muted block mb-1">E-mail</span>
+                  <div className="text-sm font-medium text-ek-text border-b border-ek-rule pb-2 flex items-center gap-2 truncate">
+                    <Mail className="w-4 h-4 text-ek-faint shrink-0" />
                     <span className="truncate">{funcionario.FUN_EMAIL || "Não informado"}</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Telefone / Celular</label>
-                  <div className="text-sm font-medium text-stone-800 border-b border-stone-100 pb-2 flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-stone-400 shrink-0" />
+                  <span className="text-xs font-medium text-ek-muted block mb-1">Telefone / Celular</span>
+                  <div className="text-sm font-medium text-ek-text border-b border-ek-rule pb-2 flex items-center gap-2 tabular-nums">
+                    <Phone className="w-4 h-4 text-ek-faint shrink-0" />
                     <span>{funcionario.FUN_FONE || "Não informado"}</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Situação Cadastral</label>
-                  <div className="text-sm font-semibold text-stone-800 border-b border-stone-100 pb-2 flex items-center gap-2">
-                    <span className={`inline-block w-2 h-2 rounded-full ${funcionario.FUN_ESTADO === 'ATIVO' ? 'bg-emerald-500' : 'bg-stone-400'}`}></span>
+                  <span className="text-xs font-medium text-ek-muted block mb-1">Situação cadastral</span>
+                  <div className="text-sm font-semibold text-ek-text border-b border-ek-rule pb-2 flex items-center gap-2">
+                    <span className={`inline-block w-2 h-2 rounded-full ${funcionario.FUN_ESTADO === 'ATIVO' ? 'bg-emerald-500' : 'bg-ek-faint'}`} />
                     <span>{funcionario.FUN_ESTADO}</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Código Interno</label>
-                  <div className="text-sm font-semibold font-mono text-stone-800 border-b border-stone-100 pb-2">
+                  <span className="text-xs font-medium text-ek-muted block mb-1">Código interno</span>
+                  <div className="text-sm font-semibold font-mono text-ek-text border-b border-ek-rule pb-2 tabular-nums">
                     {funcionario.FUN_CODIGO}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-stone-400 bg-stone-50 rounded-lg border border-dashed border-stone-200">
-                <UserX className="w-8 h-8 mb-2 text-stone-300" />
+              <div className="flex flex-col items-center justify-center py-10 text-ek-muted bg-ek-raised rounded-[6px] border border-dashed border-ek-border">
+                <UserX className="w-8 h-8 mb-2 text-ek-faint" />
                 <p className="text-sm">Dados não vinculados ao funcionário.</p>
               </div>
             )}

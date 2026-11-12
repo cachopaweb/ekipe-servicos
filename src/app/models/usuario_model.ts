@@ -1,9 +1,12 @@
+export type PerfilUsuarioTipo = 'ADMIN' | 'OPERADOR';
+
 export interface UsuarioModel {
     USU_CODIGO: number;
     USU_LOGIN: string;
     USU_FUN: Number;
     FUN_NOME: string;
     FUN_ESTADO: string;
+    PERFIL?: PerfilUsuarioTipo;
 }
 
 export interface FuncionarioModel {

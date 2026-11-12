@@ -10,6 +10,7 @@ import Modal from '@/components/component/modal';
 import ModalConfirmacao from './orcamentos/components/modal_confirmacao';
 import Usuarios from '../usuarios/usuarios';
 import PerfilUsuario from '../usuarios/perfil_usuario';
+import { isUsuarioAdmin } from '../repositories/usuario_repository';
 import {
     Menu,
     X,
@@ -35,6 +36,7 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
 
     // Estados de controle de navegação e modais
     const [open, setOpen] = useState(false);
+    const [desktopCollapsed, setDesktopCollapsed] = useState(false);
     const [showModalTelaUsuarios, setShowModalTelaUsuarios] = useState(false);
     const [showModalPerfil, setShowModalPerfil] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -42,6 +44,14 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
     const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
     const [authorized, setAuthorized] = useState(false);
     const [agora, setAgora] = useState<Date | null>(null);
+
+    const handleToggleSidebar = () => {
+        if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+            setDesktopCollapsed((prev) => !prev);
+        } else {
+            setOpen((prev) => !prev);
+        }
+    };
 
     // Relógio em tempo real da Navbar
     useEffect(() => {
@@ -119,14 +129,14 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
     const isRelatorios = pathname?.startsWith('/home/relatorios');
 
     const nomeUsuario = usuarioLogado?.FUN_NOME || usuarioLogado?.USU_LOGIN || "Operador";
-    const isAdmin = Number(usuarioLogado?.USU_FUN) === 1 || Number(usuarioLogado?.USU_FUN) === 2;
+    const isAdmin = isUsuarioAdmin(usuarioLogado);
 
     if (loadingAuth || !authorized) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-stone-100 font-sans">
+            <div className="min-h-screen flex items-center justify-center bg-ek-ground font-sans">
                 <div className="flex flex-col items-center gap-3">
-                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-amber-500"></div>
-                    <span className="text-xs font-medium text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-ek-border border-t-brand" />
+                    <span className="text-xs font-medium text-ek-muted">
                         Verificando credenciais...
                     </span>
                 </div>
@@ -135,21 +145,22 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
     }
 
     return (
-        <div className="bg-stone-100 h-screen flex flex-col font-sans text-gray-900 overflow-hidden">
-            {/* 1. TOP BAR / NAVBAR (Limpa, neutra e de alto contraste) */}
-            <nav className="bg-white border-b border-gray-200 sticky top-0 z-40 h-14 shrink-0 px-3 sm:px-6">
+        <div className="bg-ek-ground h-screen flex flex-col font-sans text-ek-text overflow-hidden">
+            {/* 1. TOP BAR (Chrome unificado de 48px sem divisória pesada) */}
+            <nav className="bg-ek-ground sticky top-0 z-40 h-12 shrink-0 px-3 sm:px-5">
                 <div className="flex justify-between items-center h-full gap-3">
                     {/* Esquerda: Botão Menu + Logo Ekipe + Módulo Ativo */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                         <button
                             id="menuBtn"
                             type="button"
-                            onClick={() => setOpen(!open)}
-                            className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                            onClick={handleToggleSidebar}
+                            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
                             aria-label={open ? "Fechar menu de navegação" : "Abrir menu de navegação"}
                             title="Alternar Menu Lateral"
                         >
-                            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                            {open ? <X className="w-4 h-4 lg:hidden" /> : null}
+                            <Menu className={`w-4 h-4 ${open ? 'hidden lg:block' : 'block'}`} />
                         </button>
 
                         <Link
@@ -167,59 +178,56 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                                 setOpen(false);
                                 setUltRota('home');
                             }}
-                            className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
+                            className="flex items-center gap-2.5 transition-opacity hover:opacity-85"
                             title="Ir para o Início"
                         >
                             <Image
                                 src={logo}
-                                height={32}
+                                height={28}
                                 alt="Ekipe Serviços"
-                                className="h-7 w-auto object-contain"
+                                className="h-6 w-auto object-contain"
                                 priority
                             />
                         </Link>
 
-                        <div className="hidden md:flex items-center gap-2 pl-2">
-                            <span className="h-4 w-px bg-gray-200"></span>
-                            <span className="text-xs font-semibold text-gray-500">
+                        <div className="hidden md:flex items-center gap-2.5 pl-1.5">
+                            <span className="h-3.5 w-[2px] rounded-full bg-brand-gold" />
+                            <span className="text-xs font-medium text-ek-muted">
                                 {isVendas ? "Frente de Caixa (PDV)" : isOrcamentos ? "Orçamentos & Serviços" : isRelatorios ? "Relatórios & Empreitadas" : "Painel Geral"}
                             </span>
                         </div>
                     </div>
 
-                    {/* Direita: Status Online + Administração + Perfil */}
+                    {/* Direita: Relógio + Status + Administração + Perfil */}
                     <div className="flex items-center gap-2 sm:gap-3">
-                        {/* Relógio em Tempo Real (Sem background) */}
                         {agora && (
                             <div
-                                className="hidden md:flex items-center gap-1.5 text-gray-700 select-none"
+                                className="hidden md:flex items-center gap-1.5 text-ek-muted select-none tabular-nums"
                                 title={agora.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             >
-                                <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                                <span className="hidden xl:inline text-xs font-medium text-gray-500 capitalize">
+                                <Clock className="w-3.5 h-3.5 text-ek-faint shrink-0" />
+                                <span className="hidden xl:inline text-xs capitalize">
                                     {agora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).replace('.', '')}
                                 </span>
-                                <span className="hidden xl:inline w-1 h-1 rounded-full bg-gray-300"></span>
-                                <span className="font-mono font-bold text-xs text-gray-800 tracking-tight">
+                                <span className="hidden xl:inline text-ek-control">·</span>
+                                <span className="text-xs font-medium text-ek-text">
                                     {agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                 </span>
                             </div>
                         )}
 
-                        <span className="h-4 w-px bg-gray-200 hidden md:block"></span>
+                        <span className="h-3.5 w-px bg-ek-border hidden md:block" />
 
-                        {/* Status de Conexão Online (Sem background) */}
-                        <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-gray-600 select-none">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <div className="hidden sm:flex items-center gap-1.5 text-xs text-ek-muted select-none">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                             <span>Online</span>
                         </div>
 
-                        {/* Botão Gestão de Usuários (Apenas Administradores) */}
                         {isAdmin && (
                             <button
                                 type="button"
                                 onClick={() => setShowModalTelaUsuarios(true)}
-                                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="w-8 h-8 flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active rounded-[6px] transition-colors"
                                 title="Gestão de Usuários e Permissões"
                                 aria-label="Abrir gestão de usuários"
                             >
@@ -227,51 +235,49 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                             </button>
                         )}
 
-                        <span className="h-5 w-px bg-gray-200 hidden sm:block"></span>
-
-                        {/* Card do Usuário Logado */}
                         <button
                             type="button"
                             onClick={() => setShowModalPerfil(true)}
-                            className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-lg hover:bg-gray-100 transition-colors text-left"
+                            className="flex items-center gap-2 py-1 pl-1 pr-2 rounded-[6px] hover:bg-ek-active transition-colors text-left"
                             title="Ver meu perfil e configurações"
                         >
-                            <div className="w-7 h-7 rounded-full bg-brand-soft text-brand font-bold text-xs flex items-center justify-center border border-brand-border shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-brand text-white font-semibold text-[11px] flex items-center justify-center shrink-0">
                                 {getIniciais(nomeUsuario)}
                             </div>
-                            <div className="hidden sm:flex flex-col">
-                                <span className="text-xs font-bold text-gray-800 leading-tight truncate max-w-[120px]">
+                            <div className="hidden sm:flex items-center gap-1.5">
+                                <span className="text-xs font-medium text-ek-text leading-none truncate max-w-[120px]">
                                     {nomeUsuario}
                                 </span>
-                                <span className="text-[10px] text-gray-400 font-medium leading-none uppercase">
-                                    {isAdmin ? "Administrador" : "Operador"}
+                                <span className="text-[11px] text-ek-faint leading-none hidden xl:inline">
+                                    · {isAdmin ? "Admin" : "Operador"}
                                 </span>
                             </div>
-                            <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden sm:block" />
+                            <ChevronDown className="w-3.5 h-3.5 text-ek-faint hidden sm:block" />
                         </button>
                     </div>
                 </div>
             </nav>
 
-            {/* 2. ÁREA DE CONTEÚDO COM SIDEBAR */}
+            {/* 2. FRAME PRINCIPAL: SIDEBAR NO CHROME + FOLHA DE TRABALHO BRANCA */}
             <div className="flex-1 flex min-w-0 overflow-hidden">
                 {/* SIDEBAR DESKTOP & MOBILE */}
                 <aside
                     id="sideNav"
                     aria-label="Navegação Principal"
                     className={`
-                        fixed lg:sticky top-14 left-0 z-30 h-[calc(100vh-56px)] bg-white border-r border-gray-200 
-                        flex flex-col justify-between transition-[width,transform] duration-200 ease-in-out shrink-0
-                        ${open ? 'translate-x-0 w-60' : '-translate-x-full lg:translate-x-0 lg:w-0 lg:border-r-0 lg:overflow-hidden'}
+                        fixed lg:static top-12 left-0 z-30 h-[calc(100vh-48px)] lg:h-full bg-ek-ground
+                        flex flex-col justify-between transition-[width,transform] duration-200 ease-out shrink-0
+                        ${open ? 'translate-x-0 w-[236px] border-r border-ek-border lg:border-r-0' : '-translate-x-full lg:translate-x-0'}
+                        ${desktopCollapsed ? 'lg:w-0 lg:overflow-hidden' : 'lg:w-[228px]'}
                     `}
                 >
-                    <div className="p-3.5 flex flex-col gap-5 overflow-y-auto">
+                    <div className="px-3 py-3 flex flex-col gap-5 overflow-y-auto">
                         {/* Seção Principal de Módulos */}
                         <div>
-                            <span className="text-xs font-semibold text-gray-400 px-2.5 mb-1.5 block">
+                            <span className="text-xs font-medium text-ek-faint px-2.5 mb-1.5 block">
                                 Módulos comerciais
                             </span>
-                            <div className="flex flex-col gap-1">
+                            <div className="flex flex-col gap-0.5">
                                 <Link
                                     href="/home"
                                     onClick={(e) => {
@@ -287,13 +293,14 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                                         setOpen(false);
                                         setUltRota('home');
                                     }}
-                                    className={`px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-bold transition ${
+                                    className={`relative px-2.5 h-8 rounded-[6px] flex items-center gap-2.5 text-[13px] transition-colors ${
                                         isHome
-                                            ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-none'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
+                                            ? 'bg-ek-active text-ek-text font-semibold'
+                                            : 'text-ek-muted font-medium hover:text-ek-text hover:bg-ek-active/60'
                                     }`}
                                 >
-                                    <LayoutDashboard className={`w-4 h-4 ${isHome ? 'text-amber-600' : 'text-gray-400'}`} />
+                                    {isHome && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-brand" />}
+                                    <LayoutDashboard className={`w-4 h-4 shrink-0 ${isHome ? 'text-brand' : 'text-ek-faint'}`} />
                                     <span>Visão Geral</span>
                                 </Link>
 
@@ -312,17 +319,18 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                                         setOpen(false);
                                         setUltRota('vendas');
                                     }}
-                                    className={`px-3 py-2.5 rounded-lg flex items-center justify-between text-sm font-bold transition ${
+                                    className={`relative px-2.5 h-8 rounded-[6px] flex items-center justify-between text-[13px] transition-colors ${
                                         isVendas
-                                            ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-none'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
+                                            ? 'bg-ek-active text-ek-text font-semibold'
+                                            : 'text-ek-muted font-medium hover:text-ek-text hover:bg-ek-active/60'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <ShoppingBag className={`w-4 h-4 ${isVendas ? 'text-amber-600' : 'text-gray-400'}`} />
+                                    {isVendas && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-brand" />}
+                                    <div className="flex items-center gap-2.5">
+                                        <ShoppingBag className={`w-4 h-4 shrink-0 ${isVendas ? 'text-brand' : 'text-ek-faint'}`} />
                                         <span>Vendas</span>
                                     </div>
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">
+                                    <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-white border border-ek-border text-ek-muted">
                                         PDV
                                     </span>
                                 </Link>
@@ -342,13 +350,14 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                                         setOpen(false);
                                         setUltRota('orcamentos');
                                     }}
-                                    className={`px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-bold transition ${
+                                    className={`relative px-2.5 h-8 rounded-[6px] flex items-center gap-2.5 text-[13px] transition-colors ${
                                         isOrcamentos
-                                            ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-none'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
+                                            ? 'bg-ek-active text-ek-text font-semibold'
+                                            : 'text-ek-muted font-medium hover:text-ek-text hover:bg-ek-active/60'
                                     }`}
                                 >
-                                    <FileText className={`w-4 h-4 ${isOrcamentos ? 'text-amber-600' : 'text-gray-400'}`} />
+                                    {isOrcamentos && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-brand" />}
+                                    <FileText className={`w-4 h-4 shrink-0 ${isOrcamentos ? 'text-brand' : 'text-ek-faint'}`} />
                                     <span>Orçamentos & OS</span>
                                 </Link>
 
@@ -367,13 +376,14 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                                         setOpen(false);
                                         setUltRota('relatorios');
                                     }}
-                                    className={`px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-bold transition ${
+                                    className={`relative px-2.5 h-8 rounded-[6px] flex items-center gap-2.5 text-[13px] transition-colors ${
                                         isRelatorios
-                                            ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-none'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
+                                            ? 'bg-ek-active text-ek-text font-semibold'
+                                            : 'text-ek-muted font-medium hover:text-ek-text hover:bg-ek-active/60'
                                     }`}
                                 >
-                                    <FileSpreadsheet className={`w-4 h-4 ${isRelatorios ? 'text-amber-600' : 'text-gray-400'}`} />
+                                    {isRelatorios && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-brand" />}
+                                    <FileSpreadsheet className={`w-4 h-4 shrink-0 ${isRelatorios ? 'text-brand' : 'text-ek-faint'}`} />
                                     <span>Relatórios</span>
                                 </Link>
                             </div>
@@ -381,10 +391,10 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
 
                         {/* Seção Administração */}
                         <div>
-                            <span className="text-xs font-semibold text-gray-400 px-2.5 mb-1.5 block">
+                            <span className="text-xs font-medium text-ek-faint px-2.5 mb-1.5 block">
                                 Configurações
                             </span>
-                            <div className="flex flex-col gap-1">
+                            <div className="flex flex-col gap-0.5">
                                 {isAdmin && (
                                     <button
                                         type="button"
@@ -392,9 +402,9 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                                             setOpen(false);
                                             setShowModalTelaUsuarios(true);
                                         }}
-                                        className="w-full px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100/70 transition text-left"
+                                        className="w-full px-2.5 h-8 rounded-[6px] flex items-center gap-2.5 text-[13px] font-medium text-ek-muted hover:text-ek-text hover:bg-ek-active/60 transition-colors text-left"
                                     >
-                                        <Users className="w-4 h-4 text-gray-400" />
+                                        <Users className="w-4 h-4 shrink-0 text-ek-faint" />
                                         <span>Gestão de Usuários</span>
                                     </button>
                                 )}
@@ -405,9 +415,9 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                                         setOpen(false);
                                         setShowModalPerfil(true);
                                     }}
-                                    className="w-full px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100/70 transition text-left"
+                                    className="w-full px-2.5 h-8 rounded-[6px] flex items-center gap-2.5 text-[13px] font-medium text-ek-muted hover:text-ek-text hover:bg-ek-active/60 transition-colors text-left"
                                 >
-                                    <User className="w-4 h-4 text-gray-400" />
+                                    <User className="w-4 h-4 shrink-0 text-ek-faint" />
                                     <span>Meu Perfil</span>
                                 </button>
                             </div>
@@ -415,17 +425,17 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                     </div>
 
                     {/* Rodapé da Sidebar: Usuário & Logout */}
-                    <div className="p-3 border-t border-gray-200 bg-stone-50/60 flex flex-col gap-2 shrink-0">
+                    <div className="px-3 py-2.5 border-t border-ek-border shrink-0">
                         <div className="flex items-center justify-between gap-2 px-1">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="w-7 h-7 rounded-full bg-brand-soft text-brand font-bold text-xs flex items-center justify-center border border-brand-border shrink-0">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-7 h-7 rounded-full bg-brand-soft text-brand font-semibold text-xs flex items-center justify-center border border-brand-border shrink-0">
                                     {getIniciais(nomeUsuario)}
                                 </div>
                                 <div className="min-w-0 flex flex-col">
-                                    <span className="text-xs font-bold text-gray-800 truncate">
+                                    <span className="text-xs font-semibold text-ek-text truncate">
                                         {nomeUsuario}
                                     </span>
-                                    <span className="text-[10px] text-gray-400 font-medium">
+                                    <span className="text-[11px] text-ek-faint truncate">
                                         {usuarioLogado?.USU_LOGIN || "Sessão Ativa"}
                                     </span>
                                 </div>
@@ -433,15 +443,12 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                             <button
                                 type="button"
                                 onClick={handleLogout}
-                                className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
+                                className="p-1.5 text-ek-muted hover:text-red-700 hover:bg-red-50 rounded-[6px] transition-colors"
                                 title="Sair do Sistema"
                                 aria-label="Sair do sistema"
                             >
                                 <LogOut className="w-4 h-4" />
                             </button>
-                        </div>
-                        <div className="text-[10px] text-gray-400 font-medium px-1 text-center">
-                            Ekipe Serviços • v1.0
                         </div>
                     </div>
                 </aside>
@@ -449,20 +456,20 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                 {/* BACKDROP EM DISPOSITIVOS MÓVEIS */}
                 {open && (
                     <div
-                        className="fixed inset-0 bg-black/20 z-20 lg:hidden"
+                        className="fixed inset-0 bg-slate-950/35 z-20 lg:hidden"
                         onClick={() => setOpen(false)}
                         aria-hidden="true"
-                    ></div>
+                    />
                 )}
 
-                {/* 3. CONTEÚDO DA TELA */}
-                <main className="flex-1 min-w-0 flex flex-col overflow-y-auto">
+                {/* 3. CONTEÚDO DA TELA (FOLHA BRANCA FRAMED SHEET) */}
+                <main className="flex-1 min-w-0 flex flex-col overflow-y-auto bg-white border-t lg:border-l border-ek-border lg:rounded-tl-[16px]">
                     {children}
                 </main>
             </div>
 
             {/* Modal de Gestão de Usuários */}
-            {showModalTelaUsuarios && (
+            {isAdmin && showModalTelaUsuarios && (
                 <Modal
                     showModal={showModalTelaUsuarios}
                     setShowModal={setShowModalTelaUsuarios}

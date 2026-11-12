@@ -256,20 +256,20 @@ export default function RelatoriosPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-stone-100 overflow-y-auto p-4 sm:p-6 lg:p-8">
+    <div className="flex-1 flex flex-col min-h-full bg-ek-surface p-4 sm:p-6 lg:p-8">
       {/* 1. TOPO: Título, Descrição e Botões de Exportação */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-gray-200">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-ek-border">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-            <span>Relatórios Gerenciais</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-amber-700">Atendimentos & Empreitadas</span>
+          <div className="flex items-center gap-1.5 text-xs font-medium text-ek-muted mb-1">
+            <span>Relatórios gerenciais</span>
+            <ChevronRight className="w-3.5 h-3.5 text-ek-faint" />
+            <span className="text-brand font-semibold">Atendimentos &amp; Empreitadas</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
-            <FileSpreadsheet className="w-7 h-7 text-amber-600 shrink-0" />
-            <span>Relatório de Atendimentos & Empreitadas</span>
+          <h1 className="text-[22px] font-bold text-ek-text tracking-[-0.02em] flex items-center gap-2.5">
+            <span className="inline-block w-1 h-5 rounded-full bg-brand-gold shrink-0" aria-hidden="true" />
+            <span>Relatório de Atendimentos &amp; Empreitadas</span>
           </h1>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-ek-muted mt-1 pl-3.5">
             Consolidação de protocolos, notas fiscais, lojas, pedidos, serviços executados e controle de faturamento
           </p>
         </div>
@@ -280,7 +280,7 @@ export default function RelatoriosPage() {
             type="button"
             onClick={handleExportarExcel}
             disabled={carregando || dadosFiltrados.length === 0}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-9 px-3.5 rounded-[6px] border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[13px] font-medium inline-flex items-center gap-2 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
             title="Baixar planilha formatada em Excel (.xlsx)"
           >
             <FileSpreadsheet className="w-4 h-4" />
@@ -291,10 +291,10 @@ export default function RelatoriosPage() {
             type="button"
             onClick={handleExportarCSV}
             disabled={carregando || dadosFiltrados.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-50 active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ek-btn-secondary disabled:opacity-45 disabled:cursor-not-allowed"
             title="Exportar arquivo CSV separado por ponto e vírgula"
           >
-            <Download className="w-4 h-4 text-gray-500" />
+            <Download className="w-4 h-4 text-ek-muted" />
             <span>CSV</span>
           </button>
 
@@ -302,7 +302,7 @@ export default function RelatoriosPage() {
             type="button"
             onClick={() => handlePrint()}
             disabled={carregando || dadosFiltrados.length === 0}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ek-btn-primary disabled:opacity-45 disabled:cursor-not-allowed"
             title="Imprimir relatório ou Salvar em PDF"
           >
             <Printer className="w-4 h-4" />
@@ -312,49 +312,49 @@ export default function RelatoriosPage() {
       </div>
 
       {/* 2. PAINEL DE FILTROS */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-5">
+      <div className="ek-card p-4 mt-5">
         <div className="flex flex-col gap-3">
           {/* Linha de Atalhos Rápidos de Período */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-3">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-gray-400" />
-              Período Rápido:
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ek-rule pb-3">
+            <span className="text-xs font-semibold text-ek-muted flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-brand" />
+              Período rápido
             </span>
             <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => aplicarPresetData("esteMes")}
-                className="px-2.5 py-1 text-xs font-medium rounded-md bg-stone-100 hover:bg-amber-100 text-gray-700 hover:text-amber-900 transition"
+                className="px-2.5 py-1 text-xs font-medium rounded-[6px] bg-ek-raised border border-ek-border hover:border-brand-border hover:bg-brand-soft text-ek-text hover:text-brand transition-colors"
               >
-                Este Mês
+                Este mês
               </button>
               <button
                 type="button"
                 onClick={() => aplicarPresetData("mesAnterior")}
-                className="px-2.5 py-1 text-xs font-medium rounded-md bg-stone-100 hover:bg-amber-100 text-gray-700 hover:text-amber-900 transition"
+                className="px-2.5 py-1 text-xs font-medium rounded-[6px] bg-ek-raised border border-ek-border hover:border-brand-border hover:bg-brand-soft text-ek-text hover:text-brand transition-colors"
               >
-                Mês Anterior
+                Mês anterior
               </button>
               <button
                 type="button"
                 onClick={() => aplicarPresetData("ultimos30")}
-                className="px-2.5 py-1 text-xs font-medium rounded-md bg-stone-100 hover:bg-amber-100 text-gray-700 hover:text-amber-900 transition"
+                className="px-2.5 py-1 text-xs font-medium rounded-[6px] bg-ek-raised border border-ek-border hover:border-brand-border hover:bg-brand-soft text-ek-text hover:text-brand transition-colors"
               >
-                Últimos 30 Dias
+                Últimos 30 dias
               </button>
               <button
                 type="button"
                 onClick={() => aplicarPresetData("anoAtual")}
-                className="px-2.5 py-1 text-xs font-medium rounded-md bg-stone-100 hover:bg-amber-100 text-gray-700 hover:text-amber-900 transition"
+                className="px-2.5 py-1 text-xs font-medium rounded-[6px] bg-ek-raised border border-ek-border hover:border-brand-border hover:bg-brand-soft text-ek-text hover:text-brand transition-colors"
               >
-                Ano Atual
+                Ano atual
               </button>
               <button
                 type="button"
                 onClick={() => aplicarPresetData("todos")}
-                className="px-2.5 py-1 text-xs font-medium rounded-md bg-stone-100 hover:bg-gray-200 text-gray-500 transition"
+                className="px-2.5 py-1 text-xs font-medium rounded-[6px] bg-ek-raised border border-ek-border hover:bg-ek-active text-ek-muted transition-colors"
               >
-                Todo Histórico
+                Todo histórico
               </button>
             </div>
           </div>
@@ -363,40 +363,36 @@ export default function RelatoriosPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
             {/* Data Início */}
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1">
-                Data Início
-              </label>
+              <label className="ek-label">Data início</label>
               <input
                 type="date"
                 value={dataInicio}
                 onChange={(e) => setDataInicio(e.target.value)}
-                className="w-full text-xs font-medium px-3 py-2 bg-stone-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                className="ek-input text-xs tabular-nums"
               />
             </div>
 
             {/* Data Fim */}
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1">
-                Data Fim
-              </label>
+              <label className="ek-label">Data fim</label>
               <input
                 type="date"
                 value={dataFim}
                 onChange={(e) => setDataFim(e.target.value)}
-                className="w-full text-xs font-medium px-3 py-2 bg-stone-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                className="ek-input text-xs tabular-nums"
               />
             </div>
 
             {/* Filtro por Cliente */}
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1 flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5 text-gray-400" />
+              <label className="ek-label flex items-center gap-1">
+                <Building2 className="w-3.5 h-3.5 text-ek-faint" />
                 Cliente
               </label>
               <select
                 value={clienteId}
                 onChange={(e) => setClienteId(Number(e.target.value))}
-                className="w-full text-xs font-medium px-3 py-2 bg-stone-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white truncate"
+                className="ek-select text-xs truncate"
               >
                 <option value={0}>Todos os Clientes ({listaClientes.length})</option>
                 {listaClientes.map((cli) => (
@@ -409,14 +405,14 @@ export default function RelatoriosPage() {
 
             {/* Filtro por Coordenador */}
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1 flex items-center gap-1">
-                <UserCheck className="w-3.5 h-3.5 text-gray-400" />
+              <label className="ek-label flex items-center gap-1">
+                <UserCheck className="w-3.5 h-3.5 text-ek-faint" />
                 Coordenador
               </label>
               <select
                 value={coordenador}
                 onChange={(e) => setCoordenador(e.target.value)}
-                className="w-full text-xs font-medium px-3 py-2 bg-stone-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white truncate"
+                className="ek-select text-xs truncate"
               >
                 <option value="">Todos os Coordenadores</option>
                 {listaCoordenadores.map((coord, i) => (
@@ -433,30 +429,30 @@ export default function RelatoriosPage() {
                 type="button"
                 onClick={buscarDados}
                 disabled={carregando}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-stone-800 text-white rounded-lg text-xs font-bold hover:bg-stone-900 active:scale-95 transition shadow-sm disabled:opacity-50"
+                className="ek-btn-primary w-full justify-center text-xs disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${carregando ? "animate-spin" : ""}`} />
-                <span>{carregando ? "Carregando..." : "Atualizar Filtros"}</span>
+                <span>{carregando ? "Carregando..." : "Atualizar filtros"}</span>
               </button>
             </div>
           </div>
 
           {/* Linha de Busca Instantânea */}
-          <div className="pt-2 border-t border-gray-100 flex items-center gap-2">
+          <div className="pt-2.5 border-t border-ek-rule flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-ek-faint absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={filtroTexto}
                 onChange={(e) => setFiltroTexto(e.target.value)}
                 placeholder="Busca rápida por Protocolo, NF, OM, Pedido, Loja, Serviço, Coordenador..."
-                className="w-full pl-9 pr-8 py-1.5 text-xs bg-stone-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                className="ek-input pl-9 pr-8 text-xs"
               />
               {filtroTexto && (
                 <button
                   type="button"
                   onClick={() => setFiltroTexto("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ek-faint hover:text-ek-text"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -464,7 +460,7 @@ export default function RelatoriosPage() {
             </div>
 
             {filtroTexto && (
-              <span className="text-[11px] text-gray-500 shrink-0">
+              <span className="text-xs text-ek-muted shrink-0 tabular-nums">
                 Mostrando <b>{dadosFiltrados.length}</b> de <b>{dados.length}</b>
               </span>
             )}
@@ -472,141 +468,106 @@ export default function RelatoriosPage() {
         </div>
       </div>
 
-      {/* 3. CARDS DE RESUMO (KPIs) */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-4">
-        {/* Total Atendimentos */}
-        <div className="bg-white rounded-xl p-3.5 border border-gray-200 shadow-sm flex items-center justify-between">
+      {/* 3. FAIXA DE RESUMO CONSOLIDADO */}
+      <div className="ek-card mt-4 grid grid-cols-2 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-ek-border">
+        <div className="px-4 py-3.5 flex items-center justify-between gap-2">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-              Atendimentos
-            </span>
-            <span className="text-xl font-extrabold text-gray-900">{totalAtendimentos}</span>
+            <span className="text-xs font-medium text-ek-muted block">Atendimentos</span>
+            <span className="text-xl font-bold text-ek-text tabular-nums">{totalAtendimentos}</span>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Layers className="w-5 h-5" />
-          </div>
+          <Layers className="w-4 h-4 text-brand shrink-0" />
         </div>
 
-        {/* Total Serviços */}
-        <div className="bg-white rounded-xl p-3.5 border border-gray-200 shadow-sm flex items-center justify-between">
+        <div className="px-4 py-3.5 flex items-center justify-between gap-2">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-              Qtd Serviços
-            </span>
-            <span className="text-xl font-extrabold text-gray-900">{totalServicos}</span>
+            <span className="text-xs font-medium text-ek-muted block">Qtd serviços</span>
+            <span className="text-xl font-bold text-ek-text tabular-nums">{totalServicos}</span>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <Filter className="w-5 h-5" />
-          </div>
+          <Filter className="w-4 h-4 text-ek-muted shrink-0" />
         </div>
 
-        {/* Valor Total NF */}
-        <div className="bg-white rounded-xl p-3.5 border border-gray-200 shadow-sm flex items-center justify-between">
+        <div className="px-4 py-3.5 flex items-center justify-between gap-2">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-              Total Faturado (NF)
-            </span>
-            <span className="text-lg font-black text-gray-900 font-mono">
-              {mascaraMoeda(totalValorNf)}
-            </span>
+            <span className="text-xs font-medium text-ek-muted block">Total faturado (NF)</span>
+            <span className="text-lg font-bold text-ek-text tabular-nums">{mascaraMoeda(totalValorNf)}</span>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <DollarSign className="w-5 h-5" />
-          </div>
+          <DollarSign className="w-4 h-4 text-ek-muted shrink-0" />
         </div>
 
-        {/* Total Recebido */}
-        <div className="bg-white rounded-xl p-3.5 border border-gray-200 shadow-sm flex items-center justify-between">
+        <div className="px-4 py-3.5 flex items-center justify-between gap-2">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-              Total Recebido
-            </span>
-            <span className="text-lg font-black text-emerald-700 font-mono">
-              {mascaraMoeda(totalRecebido)}
-            </span>
+            <span className="text-xs font-medium text-ek-muted block">Total recebido</span>
+            <span className="text-lg font-bold text-emerald-700 tabular-nums">{mascaraMoeda(totalRecebido)}</span>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
         </div>
 
-        {/* Saldo Pendente */}
-        <div className="bg-white rounded-xl p-3.5 border border-gray-200 shadow-sm flex items-center justify-between col-span-2 sm:col-span-1">
+        <div className="px-4 py-3.5 flex items-center justify-between gap-2 col-span-2 lg:col-span-1">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-              Saldo Pendente
-            </span>
-            <span
-              className={`text-lg font-black font-mono ${
-                saldoPendente > 0 ? "text-amber-700" : "text-gray-700"
-              }`}
-            >
+            <span className="text-xs font-medium text-ek-muted block">Saldo pendente</span>
+            <span className={`text-lg font-bold tabular-nums ${saldoPendente > 0 ? "text-brand-goldInk" : "text-ek-text"}`}>
               {mascaraMoeda(saldoPendente)}
             </span>
           </div>
-          <div className="w-9 h-9 rounded-lg bg-stone-100 text-stone-600 flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5" />
-          </div>
+          <Clock className="w-4 h-4 text-ek-faint shrink-0" />
         </div>
       </div>
 
       {/* 4. TABELA DE REGISTROS */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-5 flex-1 flex flex-col">
-        {/* Cabeçalho da Tabela */}
-        <div className="px-4 py-3 bg-stone-50 border-b border-gray-200 flex items-center justify-between">
+      <div className="ek-card overflow-hidden mt-4 flex-1 flex flex-col">
+        <div className="px-4 py-3 bg-ek-raised border-b border-ek-border flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">
-              Atendimentos Encontrados
+            <span className="text-xs font-semibold text-ek-text">
+              Atendimentos encontrados
             </span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-[6px] bg-brand-soft text-brand border border-brand-border tabular-nums">
               {dadosFiltrados.length}
             </span>
           </div>
 
-          <span className="text-xs text-gray-500 font-medium hidden sm:inline">
-            Período: <b className="text-gray-800">{periodoStr}</b>
+          <span className="text-xs text-ek-muted font-medium hidden sm:inline tabular-nums">
+            Período: <b className="text-ek-text">{periodoStr}</b>
           </span>
         </div>
 
-        {/* Tabela Responsiva com Scroll */}
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-stone-100/80 text-gray-600 font-bold uppercase text-[10px] tracking-wider border-b border-gray-200">
+              <tr className="bg-ek-raised text-ek-muted font-semibold text-xs border-b border-ek-border">
                 <th className="py-2.5 px-3 text-center">#</th>
                 <th className="py-2.5 px-3">Protocolo</th>
-                <th className="py-2.5 px-3">Nota Fiscal</th>
+                <th className="py-2.5 px-3">Nota fiscal</th>
                 <th className="py-2.5 px-3 text-center">Loja</th>
                 <th className="py-2.5 px-3">OM</th>
-                <th className="py-2.5 px-3">Pedido Compras</th>
+                <th className="py-2.5 px-3">Pedido compras</th>
                 <th className="py-2.5 px-3 min-w-[240px]">Serviço(s)</th>
                 <th className="py-2.5 px-3 text-right">Valor NF</th>
-                <th className="py-2.5 px-3 text-center">Data Emissão</th>
+                <th className="py-2.5 px-3 text-center">Data emissão</th>
                 <th className="py-2.5 px-3 text-right">Recebido</th>
                 <th className="py-2.5 px-3">Coordenador</th>
                 <th className="py-2.5 px-3">Cliente</th>
                 <th className="py-2.5 px-3 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-ek-rule">
               {carregando ? (
                 <tr>
-                  <td colSpan={13} className="py-12 text-center text-gray-500">
+                  <td colSpan={13} className="py-12 text-center text-ek-muted">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-amber-500"></div>
+                      <div className="animate-spin rounded-full h-7 w-7 border-2 border-ek-border border-t-brand" />
                       <span className="text-xs font-medium">Buscando dados no servidor...</span>
                     </div>
                   </td>
                 </tr>
               ) : dadosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="py-12 text-center text-gray-500">
+                  <td colSpan={13} className="py-12 text-center text-ek-muted">
                     <div className="flex flex-col items-center justify-center gap-1">
-                      <FileSpreadsheet className="w-10 h-10 text-gray-300 mb-1" />
-                      <span className="text-sm font-bold text-gray-700">
+                      <FileSpreadsheet className="w-9 h-9 text-ek-faint mb-1" />
+                      <span className="text-sm font-semibold text-ek-text">
                         Nenhum atendimento encontrado
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-ek-muted">
                         Tente ajustar os filtros de data, cliente ou termos de busca.
                       </span>
                     </div>
@@ -622,55 +583,48 @@ export default function RelatoriosPage() {
                   return (
                     <tr
                       key={`${item.EMP_CODIGO}_${index}`}
-                      className="hover:bg-amber-50/40 transition-colors"
+                      className="hover:bg-ek-raised/70 transition-colors"
                     >
-                      {/* # Índice */}
-                      <td className="py-2.5 px-3 text-center text-gray-400 font-mono text-[11px]">
+                      <td className="py-2.5 px-3 text-center text-ek-faint font-mono text-xs tabular-nums">
                         {index + 1}
                       </td>
 
-                      {/* Protocolo */}
                       <td className="py-2.5 px-3">
                         {item.EMP_PROTOCOLO ? (
-                          <span className="font-mono font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          <span className="font-mono font-semibold text-brand bg-brand-soft px-2 py-0.5 rounded-[6px] border border-brand-border tabular-nums">
                             {item.EMP_PROTOCOLO}
                           </span>
                         ) : (
-                          <span className="text-gray-400 italic text-[11px]">Não informado</span>
+                          <span className="text-ek-faint text-xs">Não informado</span>
                         )}
                       </td>
 
-                      {/* NF */}
-                      <td className="py-2.5 px-3 font-mono font-bold text-gray-900">
+                      <td className="py-2.5 px-3 font-mono font-semibold text-ek-text tabular-nums">
                         {item.EMP_NFS || "-"}
                       </td>
 
-                      {/* Loja */}
-                      <td className="py-2.5 px-3 text-center font-mono font-semibold text-gray-700">
+                      <td className="py-2.5 px-3 text-center font-mono font-medium text-ek-text tabular-nums">
                         {item.EMP_LOJA || "-"}
                       </td>
 
-                      {/* OM */}
-                      <td className="py-2.5 px-3 font-mono text-gray-700">
+                      <td className="py-2.5 px-3 font-mono text-ek-muted tabular-nums">
                         {item.ORD_OM || "-"}
                       </td>
 
-                      {/* Pedido de Compras */}
-                      <td className="py-2.5 px-3 font-mono text-gray-700">
+                      <td className="py-2.5 px-3 font-mono text-ek-muted tabular-nums">
                         {item.EMP_PEDIDO || "-"}
                       </td>
 
-                      {/* Serviços */}
                       <td className="py-2.5 px-3">
                         {!item.ITENS || item.ITENS.length === 0 ? (
-                          <span className="text-gray-400 italic">Sem serviços discriminados</span>
+                          <span className="text-ek-faint">Sem serviços discriminados</span>
                         ) : item.ITENS.length === 1 ? (
                           <div className="flex items-start gap-1">
-                            <span className="font-medium text-gray-800">
+                            <span className="font-medium text-ek-text">
                               {item.ITENS[0].DESCRICAO}
                             </span>
                             {item.ITENS[0].ES_QUANTIDADE ? (
-                              <span className="text-[10px] text-gray-500 font-semibold shrink-0">
+                              <span className="text-[11px] text-ek-muted font-medium shrink-0 tabular-nums">
                                 ({item.ITENS[0].ES_QUANTIDADE} {item.ITENS[0].ES_UNIDADE || "UN"})
                               </span>
                             ) : null}
@@ -679,10 +633,10 @@ export default function RelatoriosPage() {
                           <ul className="space-y-1">
                             {item.ITENS.map((s, sIdx) => (
                               <li key={sIdx} className="flex items-start gap-1.5 leading-snug">
-                                <span className="text-amber-500 font-bold">•</span>
-                                <span className="font-medium text-gray-800">{s.DESCRICAO}</span>
+                                <span className="text-brand font-bold">•</span>
+                                <span className="font-medium text-ek-text">{s.DESCRICAO}</span>
                                 {s.ES_QUANTIDADE ? (
-                                  <span className="text-[10px] text-gray-500 font-semibold shrink-0">
+                                  <span className="text-[11px] text-ek-muted font-medium shrink-0 tabular-nums">
                                     ({s.ES_QUANTIDADE} {s.ES_UNIDADE || "UN"})
                                   </span>
                                 ) : null}
@@ -692,68 +646,62 @@ export default function RelatoriosPage() {
                         )}
                       </td>
 
-                      {/* Valor NF */}
-                      <td className="py-2.5 px-3 text-right font-mono font-bold text-gray-900">
+                      <td className="py-2.5 px-3 text-right font-semibold text-ek-text tabular-nums">
                         {mascaraMoeda(valorNf)}
                       </td>
 
-                      {/* Data Emissão */}
-                      <td className="py-2.5 px-3 text-center font-mono text-gray-700">
+                      <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">
                         {formatarDataBr(item.EMP_DATA_EMISSAO)}
                       </td>
 
-                      {/* Recebido */}
                       <td className="py-2.5 px-3 text-right">
                         <div className="flex flex-col items-end">
                           <span
-                            className={`font-mono font-bold ${
+                            className={`font-semibold tabular-nums ${
                               estaPago
                                 ? "text-emerald-700"
                                 : pagoParcial
-                                ? "text-amber-700"
-                                : "text-gray-500"
+                                ? "text-brand-goldInk"
+                                : "text-ek-muted"
                             }`}
                           >
                             {mascaraMoeda(valorRec)}
                           </span>
                           {estaPago ? (
-                            <span className="text-[9px] font-bold text-emerald-700 uppercase">
+                            <span className="text-[11px] font-medium text-emerald-700">
                               Pago
                             </span>
                           ) : pagoParcial ? (
-                            <span className="text-[9px] font-bold text-amber-700 uppercase">
+                            <span className="text-[11px] font-medium text-brand-goldInk">
                               Parcial
                             </span>
                           ) : null}
                         </div>
                       </td>
 
-                      {/* Coordenador */}
                       <td className="py-2.5 px-3">
                         {item.EMP_COORDENADOR ? (
-                          <span className="px-2 py-0.5 rounded bg-stone-100 text-gray-700 font-medium text-[11px] uppercase">
+                          <span className="px-2 py-0.5 rounded-[6px] bg-ek-raised border border-ek-border text-ek-text font-medium text-[11px] uppercase">
                             {item.EMP_COORDENADOR}
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-ek-faint">-</span>
                         )}
                       </td>
 
-                      {/* Cliente */}
-                      <td className="py-2.5 px-3 text-gray-700 font-medium max-w-[180px] truncate" title={item.CLI_NOME || ""}>
+                      <td className="py-2.5 px-3 text-ek-text font-medium max-w-[180px] truncate" title={item.CLI_NOME || ""}>
                         {item.CLI_NOME || "-"}
                       </td>
 
-                      {/* Ações (Link para OS) */}
                       <td className="py-2.5 px-3 text-center">
                         <Link
                           href={`/home/orcamentos?ordem=${item.EMP_ORD}`}
                           target="_blank"
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded bg-stone-100 hover:bg-amber-100 text-gray-700 hover:text-amber-900 font-bold text-[11px] transition"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-ek-raised border border-ek-border hover:border-brand-border hover:bg-brand-soft text-ek-text hover:text-brand font-medium text-xs transition-colors tabular-nums"
                           title={`Abrir OS Nº ${item.EMP_ORD} em nova aba`}
                         >
                           <span>OS #{item.EMP_ORD}</span>
-                          <ExternalLink className="w-3 h-3 text-gray-400" />
+                          <ExternalLink className="w-3 h-3" />
                         </Link>
                       </td>
                     </tr>
@@ -762,25 +710,24 @@ export default function RelatoriosPage() {
               )}
             </tbody>
 
-            {/* Rodapé com Totais Consolidados */}
             {dadosFiltrados.length > 0 && (
               <tfoot>
-                <tr className="bg-stone-100 font-bold border-t-2 border-gray-300 text-gray-900">
-                  <td colSpan={6} className="py-3 px-3 uppercase text-xs text-gray-700">
-                    Totais Consolidados ({dadosFiltrados.length} Atendimentos)
+                <tr className="bg-ek-raised font-semibold border-t border-ek-border text-ek-text">
+                  <td colSpan={6} className="py-3 px-3 text-xs text-ek-muted">
+                    Totais consolidados ({dadosFiltrados.length} atendimentos)
                   </td>
-                  <td className="py-3 px-3 text-gray-700 font-semibold text-xs">
-                    {totalServicos} Serviços
+                  <td className="py-3 px-3 text-ek-muted font-medium text-xs tabular-nums">
+                    {totalServicos} serviços
                   </td>
-                  <td className="py-3 px-3 text-right font-mono text-sm">
+                  <td className="py-3 px-3 text-right text-sm font-bold tabular-nums">
                     {mascaraMoeda(totalValorNf)}
                   </td>
                   <td className="py-3 px-3"></td>
-                  <td className="py-3 px-3 text-right font-mono text-sm text-emerald-800">
+                  <td className="py-3 px-3 text-right text-sm font-bold text-emerald-700 tabular-nums">
                     {mascaraMoeda(totalRecebido)}
                   </td>
-                  <td colSpan={3} className="py-3 px-3 text-right text-xs text-gray-600 font-normal">
-                    Pendente: <b className="font-mono font-bold text-amber-800">{mascaraMoeda(saldoPendente)}</b>
+                  <td colSpan={3} className="py-3 px-3 text-right text-xs text-ek-muted font-normal">
+                    Pendente: <b className="font-bold text-brand-goldInk tabular-nums">{mascaraMoeda(saldoPendente)}</b>
                   </td>
                 </tr>
               </tfoot>

@@ -19,38 +19,38 @@ export default function FormObservacoes({
   const [activeTab, setActiveTab] = useState<"obs" | "obsAdm">("obs");
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="ek-card overflow-hidden">
       {/* Abas Superiores de Condições & Notas */}
-      <div className="flex border-b border-gray-200 bg-stone-50 overflow-x-auto">
+      <div className="flex border-b border-ek-rule bg-white px-2 overflow-x-auto gap-2">
         <button
           type="button"
           onClick={() => setActiveTab("obs")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-bold transition border-b-2 whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3 py-2.5 text-sm transition-colors border-b-2 whitespace-nowrap ${
             activeTab === "obs"
-              ? "border-amber-500 text-amber-800 bg-white"
-              : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              ? "border-brand text-ek-text font-semibold"
+              : "border-transparent text-ek-muted font-medium hover:text-ek-text"
           }`}
         >
-          <FileText className="w-4 h-4" />
+          <FileText className={`w-4 h-4 ${activeTab === "obs" ? "text-brand" : "text-ek-faint"}`} />
           <span>Condições & Observações Gerais (Impressão)</span>
           {obs.trim() && (
-            <span className="w-2 h-2 rounded-full bg-amber-500" title="Possui observações preenchidas" />
+            <span className="w-1.5 h-1.5 rounded-full bg-brand" title="Possui observações preenchidas" />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("obsAdm")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-bold transition border-b-2 whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3 py-2.5 text-sm transition-colors border-b-2 whitespace-nowrap ${
             activeTab === "obsAdm"
-              ? "border-amber-500 text-amber-800 bg-white"
-              : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              ? "border-brand text-ek-text font-semibold"
+              : "border-transparent text-ek-muted font-medium hover:text-ek-text"
           }`}
         >
-          <Lock className="w-4 h-4" />
+          <Lock className={`w-4 h-4 ${activeTab === "obsAdm" ? "text-brand" : "text-ek-faint"}`} />
           <span>Anotações Internas (ADM / Equipe)</span>
           {obsAdm.trim() && (
-            <span className="w-2 h-2 rounded-full bg-amber-500" title="Possui anotações internas" />
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-gold" title="Possui anotações internas" />
           )}
         </button>
       </div>
@@ -59,9 +59,9 @@ export default function FormObservacoes({
       <div className="p-4">
         {activeTab === "obs" && (
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center justify-between text-xs text-ek-muted">
               <span>Este texto é impresso no orçamento do cliente.</span>
-              <span>{obs.length} caracteres</span>
+              <span className="tabular-nums">{obs.length} caracteres</span>
             </div>
             <textarea
               id="obs_impressao_id"
@@ -69,16 +69,16 @@ export default function FormObservacoes({
               value={obs}
               onChange={(e) => setObs(e.target.value.toUpperCase())}
               placeholder="Ex: Validade da proposta: 15 dias. Pagamento em 3x no boleto. Garantia de 90 dias nos serviços prestados..."
-              className="w-full p-3 text-sm font-medium uppercase border border-gray-300 rounded-md focus:border-amber-500 outline-none resize-y"
+              className="ek-textarea uppercase resize-y"
             />
           </div>
         )}
 
         {activeTab === "obsAdm" && (
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span className="text-amber-700 font-semibold">Uso restrito da empresa. Não sai na impressão da OS.</span>
-              <span>{obsAdm.length} caracteres</span>
+            <div className="flex items-center justify-between text-xs text-ek-muted">
+              <span className="text-brand-goldInk font-medium">Uso restrito da empresa. Não sai na impressão da OS.</span>
+              <span className="tabular-nums">{obsAdm.length} caracteres</span>
             </div>
             <textarea
               id="obs_adm_id"
@@ -86,7 +86,7 @@ export default function FormObservacoes({
               value={obsAdm}
               onChange={(e) => setObsAdm(e.target.value.toUpperCase())}
               placeholder="Anotações internas, custos operacionais, instruções para os técnicos em campo..."
-              className="w-full p-3 text-sm font-medium uppercase border border-gray-300 rounded-md focus:border-amber-500 outline-none resize-y"
+              className="ek-textarea uppercase resize-y"
             />
           </div>
         )}

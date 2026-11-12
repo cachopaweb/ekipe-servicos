@@ -94,20 +94,18 @@ export default function ModalCadastroSolicitante({
     <div
       tabIndex={-1}
       onKeyDown={handleKeyDown}
-      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
     >
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+      <div className="relative w-full max-w-md bg-white rounded-[8px] shadow-xl border border-ek-border overflow-hidden font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-200 bg-stone-50/90 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-rule bg-white shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-              <UserCheck className="w-5 h-5" />
-            </div>
+            <UserCheck className="w-4 h-4 text-brand shrink-0" />
             <div>
-              <h3 className="text-sm font-bold text-stone-800 tracking-tight">
+              <h3 className="text-sm font-semibold text-ek-text tracking-tight">
                 Novo Solicitante (Coordenador)
               </h3>
-              <p className="text-[11px] text-stone-500 font-normal">
+              <p className="text-xs text-ek-muted">
                 Cadastro rápido para vincular às ordens de serviço
               </p>
             </div>
@@ -115,7 +113,7 @@ export default function ModalCadastroSolicitante({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-raised transition-colors"
             title="Fechar (Esc)"
           >
             <X className="w-4 h-4" />
@@ -126,8 +124,8 @@ export default function ModalCadastroSolicitante({
         <form onSubmit={handleSalvar} className="p-5 space-y-4">
           {/* Nome */}
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-              Nome do Solicitante <span className="text-amber-500 font-bold ml-0.5">*</span>
+            <label className="ek-label">
+              Nome do Solicitante <span className="text-red-600">*</span>
             </label>
             <input
               ref={inputNomeRef}
@@ -136,14 +134,14 @@ export default function ModalCadastroSolicitante({
               value={nome}
               onChange={(e) => setNome(e.target.value.toUpperCase())}
               placeholder="Ex: LEONARDO SILVA"
-              className="w-full h-10 px-3 text-sm font-semibold uppercase bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              className="ek-input font-medium uppercase"
             />
           </div>
 
           {/* Telefone */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-bold text-stone-700 uppercase mb-1">
-              <Phone className="w-3.5 h-3.5 text-stone-400" />
+            <label className="ek-label flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-ek-faint" />
               <span>Telefone / WhatsApp</span>
             </label>
             <input
@@ -151,14 +149,14 @@ export default function ModalCadastroSolicitante({
               value={telefone}
               onChange={(e) => setTelefone(formatTelefone(e.target.value))}
               placeholder="(00) 00000-0000"
-              className="w-full h-10 px-3 text-sm font-mono bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              className="ek-input tabular-nums"
             />
           </div>
 
           {/* Região / Observação */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-bold text-stone-700 uppercase mb-1">
-              <MapPin className="w-3.5 h-3.5 text-stone-400" />
+            <label className="ek-label flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-ek-faint" />
               <span>Região / Observação</span>
             </label>
             <input
@@ -166,24 +164,24 @@ export default function ModalCadastroSolicitante({
               value={regiao}
               onChange={(e) => setRegiao(e.target.value.toUpperCase())}
               placeholder="Ex: REGIONAL SP / COORDENAÇÃO CIVIL"
-              className="w-full h-10 px-3 text-sm font-medium uppercase bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              className="ek-input uppercase"
             />
           </div>
 
           {/* Ações */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-200">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-ek-rule">
             <button
               type="button"
               onClick={onClose}
               disabled={salvando}
-              className="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg transition"
+              className="ek-btn-secondary h-8 px-3.5 text-xs"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={salvando}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+              className="ek-btn-primary h-8 px-4 text-xs"
             >
               {salvando ? (
                 <>

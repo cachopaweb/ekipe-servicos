@@ -102,18 +102,19 @@ export default function PesquisaProduto({
     <div
       tabIndex={-1}
       onKeyDown={handleKeyDown}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
     >
-      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-ek-raised shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-              <Package className="w-5 h-5" />
-            </div>
+            <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
             <div>
-              <h2 className="text-base font-bold text-stone-800 tracking-tight">Pesquisa de Produtos</h2>
-              <p className="text-xs text-stone-500 font-normal">
+              <h2 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                <Package className="w-4 h-4 text-brand" />
+                <span>Pesquisa de produtos</span>
+              </h2>
+              <p className="text-xs text-ek-muted">
                 Navegue com as setas ↑ ↓ e pressione Enter para escolher
               </p>
             </div>
@@ -121,54 +122,54 @@ export default function PesquisaProduto({
           <button
             type="button"
             onClick={handleClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
             title="Fechar (Esc)"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Barra de Pesquisa */}
-        <div className="p-4 border-b border-stone-200 bg-white shrink-0">
+        <div className="p-4 border-b border-ek-border bg-ek-surface shrink-0">
           <div className="relative">
-            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-ek-faint absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               ref={inputBuscaRef}
               type="text"
               value={textoPesquisado}
               onChange={(e) => setTextoPesquisado(e.target.value)}
               placeholder="Digite o código ou nome do produto para pesquisar..."
-              className="w-full pl-9 pr-4 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 uppercase transition"
+              className="ek-input pl-9 uppercase"
             />
           </div>
         </div>
 
         {/* Tabela de Produtos */}
-        <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
+        <div className="flex-1 overflow-y-auto min-h-[300px]">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-stone-500 gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+            <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-brand" />
               <span className="text-xs font-medium">Buscando produtos...</span>
             </div>
           ) : produtos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-2">
-              <Package className="w-8 h-8 text-stone-300" />
-              <span className="text-sm font-medium">Nenhum produto encontrado.</span>
-              <span className="text-xs text-stone-400">Tente buscar por outro termo ou código.</span>
+            <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
+              <Package className="w-8 h-8 text-ek-faint" />
+              <span className="text-sm font-medium text-ek-text">Nenhum produto encontrado.</span>
+              <span className="text-xs text-ek-muted">Tente buscar por outro termo ou código.</span>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-stone-100/90 text-stone-600 text-xs font-bold uppercase tracking-wider border-b border-stone-200">
-                  <th className="p-3 w-20">Cód.</th>
-                  <th className="p-3">Nome / Descrição</th>
-                  <th className="p-3 text-center">Quant.</th>
-                  <th className="p-3 text-right">Custo</th>
-                  <th className="p-3 text-right">Valor Venda</th>
-                  <th className="p-3 text-right">Ação</th>
+                <tr className="bg-ek-raised text-ek-muted text-xs font-semibold border-b border-ek-border sticky top-0 z-10">
+                  <th className="py-2.5 px-4 w-20">Cód.</th>
+                  <th className="py-2.5 px-4">Nome / Descrição</th>
+                  <th className="py-2.5 px-4 text-center">Quant.</th>
+                  <th className="py-2.5 px-4 text-right">Custo</th>
+                  <th className="py-2.5 px-4 text-right">Valor venda</th>
+                  <th className="py-2.5 px-4 text-right">Ação</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-ek-rule">
                 {produtos.map((item, idx) => {
                   const isSelected = idx === selectedIndex;
                   return (
@@ -176,20 +177,20 @@ export default function PesquisaProduto({
                       key={item.PRO_CODIGO}
                       onClick={() => selecionarProduto(item)}
                       className={`cursor-pointer transition-colors text-xs ${
-                        isSelected ? "bg-amber-100/70 font-semibold" : "hover:bg-amber-50/40 text-stone-700"
+                        isSelected ? "bg-brand-soft font-semibold" : "hover:bg-ek-raised/80 text-ek-text"
                       }`}
                     >
-                      <td className="p-3 font-mono font-medium text-stone-900">{item.PRO_CODIGO}</td>
-                      <td className="p-3 font-medium text-stone-800">{item.PRO_NOME}</td>
-                      <td className="p-3 text-center font-mono">{item.PRO_QUANTIDADE ?? 0}</td>
-                      <td className="p-3 text-right font-mono text-stone-600">
+                      <td className="p-3 px-4 font-mono font-semibold text-ek-muted tabular-nums">{item.PRO_CODIGO}</td>
+                      <td className="p-3 px-4 font-medium text-ek-text">{item.PRO_NOME}</td>
+                      <td className="p-3 px-4 text-center font-mono tabular-nums">{item.PRO_QUANTIDADE ?? 0}</td>
+                      <td className="p-3 px-4 text-right text-ek-muted tabular-nums">
                         {formatCurrency(Number(item.PRO_VALORC) || 0)}
                       </td>
-                      <td className="p-3 text-right font-mono font-medium text-amber-600">
+                      <td className="p-3 px-4 text-right font-semibold text-brand tabular-nums">
                         {formatCurrency(Number(item.PRO_VALORV) || 0)}
                       </td>
-                      <td className="p-3 text-right">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200 hover:bg-amber-100 transition">
+                      <td className="p-3 px-4 text-right">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-brand-soft text-brand text-xs font-medium border border-brand-border hover:bg-brand/10 transition-colors">
                           <Check className="w-3.5 h-3.5" />
                           <span>Escolher</span>
                         </span>
@@ -203,14 +204,14 @@ export default function PesquisaProduto({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-3.5 border-t border-stone-200/80 bg-stone-50/90 shrink-0">
-          <span className="text-xs text-stone-500">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-ek-border bg-ek-raised shrink-0">
+          <span className="text-xs text-ek-muted tabular-nums">
             {produtos.length} {produtos.length === 1 ? "produto encontrado" : "produtos encontrados"}
           </span>
           <button
             type="button"
             onClick={handleClose}
-            className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition active:scale-[0.98]"
+            className="ek-btn-secondary h-8 px-3 text-xs"
           >
             Fechar (Esc)
           </button>

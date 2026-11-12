@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X } from "lucide-react";
+import { Loader2, PackageOpen, Search, X } from "lucide-react";
 import ProdutoRepository from "@/app/repositories/produto_repository";
 import { ProdutoModel } from "@/app/models/produto_model";
 
@@ -206,46 +206,50 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
   const produtoSelecionado = filteredData[selectedIndex] || {};
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
 
-      <div className="bg-white w-full max-w-5xl h-[85vh] md:h-[650px] flex flex-col rounded-xl shadow-2xl overflow-hidden font-sans border border-gray-200">
+      <div className="bg-ek-surface w-full max-w-5xl h-[85vh] md:h-[650px] flex flex-col rounded-[8px] border border-ek-border overflow-hidden font-sans">
 
         {/* HEADER */}
-        <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-black text-gray-800 tracking-tight">LOCALIZADOR DE PRODUTOS</h2>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">Selecione o produto para adicionar à venda</p>
+        <div className="bg-ek-raised px-5 py-3.5 border-b border-ek-border flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
+            <div>
+              <h2 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                <Search className="w-4 h-4 text-brand" />
+                <span>Localizador de produtos</span>
+              </h2>
+              <p className="text-xs text-ek-muted">Selecione o produto para adicionar à venda</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-[6px] text-ek-muted hover:bg-ek-active hover:text-ek-text transition-colors"
+            title="Fechar (ESC)"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* ÁREA DE BUSCA */}
-        <div className="px-6 py-4 bg-stone-50 border-b border-gray-100 flex flex-col gap-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1 group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-gray-400 group-focus-within:text-amber-500 transition-colors`}></i>
-              </div>
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder={`Pesquisar produto por ${filterType}...`}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all uppercase text-sm font-semibold text-gray-700 bg-white shadow-sm"
-                autoComplete="off"
-              />
+        <div className="px-5 py-3.5 bg-ek-surface border-b border-ek-border flex flex-col gap-2.5 shrink-0">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-ek-faint">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin text-brand" /> : <Search className="w-4 h-4" />}
             </div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder={`Pesquisar produto por ${filterType}...`}
+              className="ek-input pl-9 uppercase font-medium"
+              autoComplete="off"
+            />
           </div>
 
-          {/* Filtros */}
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-xs font-bold text-gray-400 uppercase mr-1">Filtro (F2):</span>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-medium text-ek-muted mr-1">Filtro (F2):</span>
             {[
               { id: 'nome', label: 'Nome' },
               { id: 'codigo', label: 'Código' },
@@ -256,9 +260,9 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
                   setFilterType(filter.id as any);
                   inputRef.current?.focus();
                 }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${filterType === filter.id
-                  ? 'bg-amber-400 border-amber-400 text-white shadow-sm'
-                  : 'bg-white border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-500'
+                className={`px-3 py-1 rounded-[6px] text-xs font-medium border transition-colors ${filterType === filter.id
+                  ? 'bg-brand border-brand text-white'
+                  : 'bg-ek-surface border-ek-border text-ek-muted hover:text-ek-text hover:bg-ek-raised'
                   }`}
               >
                 {filter.label}
@@ -270,21 +274,19 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
         {/* LISTAGEM (GRID) */}
         <div
           ref={listRef}
-          className="flex-1 overflow-y-auto bg-white p-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+          className="flex-1 overflow-y-auto bg-ek-surface min-h-0"
           onScroll={handleScroll}
         >
-          {/* Cabeçalho */}
-          <div className="grid grid-cols-12 px-4 py-2 text-xs font-bold text-gray-400 uppercase border-b border-gray-100 gap-2 sticky top-0 bg-white z-10 shadow-sm">
+          <div className="grid grid-cols-12 px-5 py-2 text-xs font-semibold text-ek-muted border-b border-ek-border bg-ek-raised gap-2 sticky top-0 z-10">
             <div className="col-span-1">Cód.</div>
-            <div className="col-span-5">Nome do Produto</div>
+            <div className="col-span-5">Nome do produto</div>
             <div className="col-span-2">NCM</div>
             <div className="col-span-1 text-center">Est.</div>
             <div className="col-span-1 text-right">Custo</div>
             <div className="col-span-2 text-right">Venda</div>
           </div>
 
-          {/* Linhas */}
-          <div className="mt-1 pb-2">
+          <div className="divide-y divide-ek-rule">
             {filteredData.length > 0 ? filteredData.map((prod, index) => (
               <div
                 key={`${prod.codigo}-${index}`}
@@ -294,78 +296,78 @@ export default function ModalProdutos({ isOpen, onClose, onSelect }: ModalProdut
                   inputRef.current?.focus();
                 }}
                 onDoubleClick={() => { onSelect(prod); onClose(); }}
-                className={`
-                  grid grid-cols-12 px-4 py-2.5 my-1 rounded-md cursor-pointer transition-colors text-sm items-center gap-2
-                  ${selectedIndex === index
-                    ? "bg-amber-50 border border-amber-200 shadow-sm"
-                    : "hover:bg-stone-50 border border-transparent"}
-                `}
+                className={`grid grid-cols-12 px-5 py-2.5 cursor-pointer transition-colors text-[13px] items-center gap-2 ${
+                  selectedIndex === index
+                    ? "bg-brand-soft border-l-2 border-l-brand"
+                    : "hover:bg-ek-raised/80"
+                }`}
               >
-                <div className={`col-span-1 font-bold ${selectedIndex === index ? "text-amber-600" : "text-gray-500"}`}>
+                <div className={`col-span-1 font-semibold tabular-nums ${selectedIndex === index ? "text-brand" : "text-ek-muted"}`}>
                   {prod.codigo}
                 </div>
-                <div className={`col-span-5 font-semibold truncate pr-2 ${selectedIndex === index ? "text-gray-900" : "text-gray-700"}`}>
+                <div className="col-span-5 font-medium text-ek-text truncate pr-2">
                   {prod.nome}
                 </div>
-                <div className="col-span-2 text-gray-500 text-xs truncate">
+                <div className="col-span-2 text-ek-muted text-xs truncate font-mono tabular-nums">
                   {prod.ncm}
                 </div>
-                <div className={`col-span-1 text-center text-xs font-bold ${prod.estoque <= 0 ? 'text-red-500' : 'text-gray-600'}`}>
+                <div className={`col-span-1 text-center text-xs font-semibold tabular-nums ${prod.estoque <= 0 ? 'text-rose-600' : 'text-ek-text'}`}>
                   {prod.estoque}
                 </div>
-                <div className="col-span-1 text-right text-gray-400 text-xs">
+                <div className="col-span-1 text-right text-ek-muted text-xs tabular-nums">
                   {formatCurrency(prod.custo)}
                 </div>
-                <div className={`col-span-2 text-right font-bold ${selectedIndex === index ? "text-gray-900" : "text-gray-800"}`}>
+                <div className="col-span-2 text-right font-semibold text-ek-text tabular-nums">
                   {formatCurrency(prod.precoVenda)}
                 </div>
               </div>
             )) : (
               !loading && (
-                <div className="h-40 flex flex-col items-center justify-center text-gray-300">
-                  <i className="fas fa-box-open text-3xl mb-2 opacity-50"></i>
-                  <span>Nenhum produto encontrado</span>
+                <div className="h-44 flex flex-col items-center justify-center text-ek-muted gap-2">
+                  <PackageOpen className="w-7 h-7 text-ek-faint" />
+                  <span className="text-sm font-medium">Nenhum produto encontrado</span>
                 </div>
               )
             )}
 
-            {/* Loading Indicator no fim da lista */}
             {loading && (
-              <div className="py-4 text-center text-gray-400 text-xs flex justify-center items-center gap-2">
-                <i className="fas fa-circle-notch fa-spin"></i>
-                <span>Carregando mais...</span>
+              <div className="py-4 text-center text-ek-muted text-xs flex justify-center items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-brand" />
+                <span>Carregando produtos...</span>
               </div>
             )}
           </div>
         </div>
 
         {/* FOOTER INFORMATIVO */}
-        <div className="bg-stone-50 border-t border-gray-200 px-6 py-3 shrink-0">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mb-3">
-            <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
-              <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Fabricante</span>
-              <span className="font-semibold text-gray-700 block truncate">{produtoSelecionado.fabricante || "-"}</span>
+        <div className="bg-ek-raised border-t border-ek-border px-5 py-3 shrink-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-2.5">
+            <div className="bg-ek-surface px-3 py-2 rounded-[6px] border border-ek-border">
+              <span className="text-[11px] font-medium text-ek-muted block mb-0.5">Fabricante</span>
+              <span className="font-medium text-ek-text block truncate">{produtoSelecionado.fabricante || "-"}</span>
             </div>
-            <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
-              <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Grupo</span>
-              <span className="font-semibold text-gray-700 block truncate">{produtoSelecionado.grupo || "-"}</span>
+            <div className="bg-ek-surface px-3 py-2 rounded-[6px] border border-ek-border">
+              <span className="text-[11px] font-medium text-ek-muted block mb-0.5">Grupo</span>
+              <span className="font-medium text-ek-text block truncate">{produtoSelecionado.grupo || "-"}</span>
             </div>
-            <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
-              <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Local</span>
-              <span className="font-semibold text-gray-700 block truncate">{produtoSelecionado.local || "LOJA 1"}</span>
+            <div className="bg-ek-surface px-3 py-2 rounded-[6px] border border-ek-border">
+              <span className="text-[11px] font-medium text-ek-muted block mb-0.5">Local</span>
+              <span className="font-medium text-ek-text block truncate">{produtoSelecionado.local || "LOJA 1"}</span>
             </div>
-            <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
-              <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Preço Atacado</span>
-              <span className="font-semibold text-brand block truncate">{formatCurrency(produtoSelecionado.precoAtacado)}</span>
+            <div className="bg-ek-surface px-3 py-2 rounded-[6px] border border-ek-border">
+              <span className="text-[11px] font-medium text-ek-muted block mb-0.5">Preço atacado</span>
+              <span className="font-semibold text-brand block truncate tabular-nums">{formatCurrency(produtoSelecionado.precoAtacado)}</span>
             </div>
           </div>
 
-          <div className="flex justify-between items-center pt-2 border-t border-gray-200 text-[10px] font-bold text-gray-400 uppercase">
+          <div className="flex justify-between items-center pt-2 border-t border-ek-rule text-xs text-ek-muted">
             <div className="flex gap-4">
-              <span className="flex items-center gap-1"><span className="bg-gray-200 px-1.5 rounded text-gray-600">ENTER</span> Selecionar</span>
-              <span className="flex items-center gap-1"><span className="bg-gray-200 px-1.5 rounded text-gray-600">F2</span> Filtrar</span>
+              <span className="flex items-center gap-1.5"><kbd className="ek-kbd">ENTER</kbd> Selecionar</span>
+              <span className="flex items-center gap-1.5"><kbd className="ek-kbd">F2</kbd> Filtrar</span>
             </div>
-            <span className="flex items-center gap-1"><span className="bg-red-100 px-1.5 rounded text-red-500">ESC</span> Cancelar</span>
+            <button onClick={onClose} className="flex items-center gap-1.5 hover:text-ek-text">
+              <kbd className="ek-kbd">ESC</kbd> Cancelar
+            </button>
           </div>
         </div>
 

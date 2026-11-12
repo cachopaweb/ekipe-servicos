@@ -502,20 +502,20 @@ export const ModalListarArquivos = ({
             setShowModal(true);
           }
         }}
-        title={`Arquivos e Anexos — Ordem de Serviço #${codigoOrdem || "..."}`}
+        title={`Arquivos e Anexos - Ordem de Serviço #${codigoOrdem || "..."}`}
         showButtonExit={false}
         body={
           <div className="font-sans flex flex-col gap-3 min-w-[320px] max-w-4xl w-full">
             {/* Cabeçalho com Abas: Lista de Anexos vs. Enviar Novos */}
-            <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-ek-border pb-2">
+              <div className="flex items-center gap-1 bg-ek-raised border border-ek-border p-1 rounded-[6px]">
                 <button
                   type="button"
                   onClick={() => setAbaAtiva("LISTA")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-semibold transition-colors ${
                     abaAtiva === "LISTA"
-                      ? "bg-amber-500 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-brand text-white"
+                      : "text-ek-muted hover:text-ek-text"
                   }`}
                 >
                   <FolderOpen className="w-4 h-4" />
@@ -525,16 +525,16 @@ export const ModalListarArquivos = ({
                 <button
                   type="button"
                   onClick={() => setAbaAtiva("UPLOAD")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-semibold transition-colors ${
                     abaAtiva === "UPLOAD"
-                      ? "bg-amber-500 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-brand text-white"
+                      : "text-ek-muted hover:text-ek-text"
                   }`}
                 >
                   <Plus className="w-4 h-4" />
-                  <span>+ Adicionar Anexos</span>
+                  <span>Adicionar Anexos</span>
                   {selectedFiles.length > 0 && (
-                    <span className="ml-1 bg-white text-amber-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                    <span className="ml-1 bg-ek-surface text-brand border border-brand-border text-[11px] font-semibold px-1.5 py-0.5 rounded-[4px] tabular-nums">
                       {selectedFiles.length}
                     </span>
                   )}
@@ -546,10 +546,10 @@ export const ModalListarArquivos = ({
                 onClick={carregaArquivos}
                 disabled={carregandoLista}
                 title="Atualizar lista"
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition disabled:opacity-40"
+                className="p-2 text-ek-muted hover:text-ek-text hover:bg-ek-raised rounded-[6px] transition-colors disabled:opacity-40"
               >
                 <RefreshCw
-                  className={`w-4 h-4 ${carregandoLista ? "animate-spin text-amber-500" : ""}`}
+                  className={`w-4 h-4 ${carregandoLista ? "animate-spin text-brand" : ""}`}
                 />
               </button>
             </div>
@@ -558,32 +558,30 @@ export const ModalListarArquivos = ({
             {abaAtiva === "LISTA" && (
               <div className="flex flex-col gap-3">
                 {carregandoLista ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-gray-500 gap-2">
-                    <Loader2 className="w-7 h-7 animate-spin text-amber-500" />
-                    <span className="text-xs font-semibold">Carregando anexos...</span>
+                  <div className="flex flex-col items-center justify-center py-12 text-ek-muted gap-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-brand" />
+                    <span className="text-xs font-medium">Carregando anexos...</span>
                   </div>
                 ) : listaArquivos.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-                    <div className="p-3 bg-amber-50 text-amber-500 rounded-full mb-2">
-                      <FolderOpen className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-sm font-bold text-gray-800">Nenhum anexo encontrado</h3>
-                    <p className="text-xs text-gray-500 max-w-sm mt-1 mb-4">
+                  <div className="flex flex-col items-center justify-center py-10 px-4 text-center border border-dashed border-ek-border rounded-[8px] bg-ek-raised">
+                    <FolderOpen className="w-7 h-7 text-brand mb-2" />
+                    <h3 className="text-sm font-semibold text-ek-text">Nenhum anexo encontrado</h3>
+                    <p className="text-xs text-ek-muted max-w-sm mt-1 mb-4">
                       Esta ordem de serviço ainda não possui fotografias, orçamentos ou relatórios vinculados.
                     </p>
                     <button
                       type="button"
                       onClick={() => setAbaAtiva("UPLOAD")}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition shadow-sm"
+                      className="ek-btn-primary h-8 px-3.5 text-xs"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Anexar Primeiro Arquivo</span>
                     </button>
                   </div>
                 ) : (
-                  <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm max-h-[440px] overflow-y-auto">
+                  <div className="border border-ek-border rounded-[8px] overflow-hidden bg-ek-surface max-h-[440px] overflow-y-auto">
                     <table className="w-full text-left border-collapse text-xs">
-                      <thead className="bg-gray-50 text-gray-700 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-200">
+                      <thead className="bg-ek-raised text-ek-muted font-semibold sticky top-0 z-10 border-b border-ek-border">
                         <tr>
                           <th className="py-2.5 px-3 w-12 text-center">#</th>
                           <th className="py-2.5 px-3">Arquivo</th>
@@ -591,7 +589,7 @@ export const ModalListarArquivos = ({
                           <th className="py-2.5 px-3 text-right">Ações</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-ek-rule">
                         {listaArquivos.map((item) => {
                           const originalName = getFileName(item.AO_CAMINHO);
                           const isLegacyLocal =
@@ -605,34 +603,34 @@ export const ModalListarArquivos = ({
                           return (
                             <tr
                               key={item.AO_CODIGO}
-                              className="hover:bg-amber-50/30 transition-colors"
+                              className="hover:bg-ek-raised transition-colors"
                             >
-                              <td className="py-2.5 px-3 text-center text-gray-400 font-mono text-[11px]">
+                              <td className="py-2.5 px-3 text-center text-ek-muted font-mono text-[11px] tabular-nums">
                                 {item.AO_CODIGO}
                               </td>
                               <td className="py-2.5 px-3">
                                 <div className="flex items-start gap-2">
-                                  <div className="p-1.5 bg-gray-100 rounded-md shrink-0 mt-0.5">
+                                  <div className="p-1.5 bg-ek-raised border border-ek-border rounded-[6px] shrink-0 mt-0.5">
                                     {getIconeArquivo(item.AO_CAMINHO)}
                                   </div>
                                   <div className="flex flex-col min-w-0">
                                     <span
-                                      className="font-bold text-gray-900 truncate max-w-xs md:max-w-md"
+                                      className="font-semibold text-ek-text truncate max-w-xs md:max-w-md"
                                       title={originalName}
                                     >
                                       {originalName}
                                     </span>
                                     {isLegacyLocal && (
-                                      <span className="inline-flex items-center text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded w-fit mt-0.5">
+                                      <span className="inline-flex items-center text-[11px] font-medium text-brand-gold-ink bg-brand-gold-soft px-1.5 py-0.5 rounded-[4px] w-fit mt-0.5">
                                         Legado de Rede Local
                                       </span>
                                     )}
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-2.5 px-3 text-gray-600 max-w-xs truncate">
+                              <td className="py-2.5 px-3 text-ek-muted max-w-xs truncate">
                                 {item.AO_OBS || (
-                                  <span className="text-gray-400 italic">Sem observação</span>
+                                  <span className="text-ek-faint italic">Sem observação</span>
                                 )}
                               </td>
                               <td className="py-2.5 px-3 text-right">
@@ -643,7 +641,7 @@ export const ModalListarArquivos = ({
                                       type="button"
                                       onClick={() => handleVisualizar(item)}
                                       disabled={isBusy}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold text-brand bg-brand/10 hover:bg-brand/20 rounded-md transition disabled:opacity-40"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-brand bg-brand-soft hover:bg-brand-soft border border-brand-border rounded-[6px] transition-colors disabled:opacity-40"
                                       title="Visualizar anexo"
                                     >
                                       {isBusy ? (
@@ -660,7 +658,7 @@ export const ModalListarArquivos = ({
                                     type="button"
                                     onClick={() => handleDownload(item)}
                                     disabled={isBusy}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md transition disabled:opacity-40"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-[6px] transition-colors disabled:opacity-40"
                                     title="Baixar arquivo original"
                                   >
                                     <Download className="w-3.5 h-3.5" />
@@ -672,7 +670,7 @@ export const ModalListarArquivos = ({
                                     type="button"
                                     onClick={() => setAnexoParaExcluir(item)}
                                     disabled={isBusy}
-                                    className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-md transition disabled:opacity-40"
+                                    className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-[6px] transition-colors disabled:opacity-40"
                                     title="Excluir anexo"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -687,11 +685,11 @@ export const ModalListarArquivos = ({
                   </div>
                 )}
 
-                <div className="flex justify-end pt-2 border-t border-gray-100">
+                <div className="flex justify-end pt-2 border-t border-ek-rule">
                   <button
                     type="button"
                     onClick={handleTentarFecharModal}
-                    className="px-4 py-2 text-xs font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg transition"
+                    className="ek-btn-secondary h-8 px-3.5 text-xs"
                   >
                     Fechar
                   </button>
@@ -705,17 +703,17 @@ export const ModalListarArquivos = ({
                 {/* Zona de Drop / Seleção de Arquivos */}
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-xl p-5 bg-amber-50/20 hover:bg-amber-50/40 transition-colors flex flex-col items-center justify-center cursor-pointer text-center gap-2"
+                  className="border border-dashed border-brand-border hover:border-brand rounded-[8px] p-5 bg-brand-soft/40 hover:bg-brand-soft/70 transition-colors flex flex-col items-center justify-center cursor-pointer text-center gap-2"
                 >
-                  <div className="p-3 bg-white text-amber-500 rounded-full shadow-sm border border-amber-100">
+                  <div className="p-2.5 bg-ek-surface text-brand rounded-[6px] border border-brand-border">
                     <Upload className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-gray-800">
+                    <span className="text-xs font-semibold text-ek-text">
                       Clique para selecionar ou arraste arquivos aqui
                     </span>
-                    <p className="text-[11px] text-gray-500 mt-0.5">
-                      Suporta múltiplos arquivos • Imagens (JPG, PNG, WEBP), PDFs e Documentos (até 25 MB cada)
+                    <p className="text-[11px] text-ek-muted mt-0.5">
+                      Suporta múltiplos arquivos - Imagens (JPG, PNG, WEBP), PDFs e Documentos (até 25 MB cada)
                     </p>
                   </div>
                   <input
@@ -731,29 +729,29 @@ export const ModalListarArquivos = ({
                 {/* Lista de Arquivos Selecionados na Fila de Upload */}
                 {selectedFiles.length > 0 && (
                   <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between text-xs font-bold text-gray-700 px-0.5">
+                    <div className="flex items-center justify-between text-xs font-semibold text-ek-text px-0.5">
                       <span>Arquivos Selecionados ({selectedFiles.length})</span>
                       <button
                         type="button"
                         onClick={() => setSelectedFiles([])}
-                        className="text-[11px] text-rose-600 hover:underline font-semibold"
+                        className="text-[11px] text-red-600 hover:underline font-semibold"
                       >
                         Limpar Todos
                       </button>
                     </div>
 
-                    <div className="border border-gray-200 rounded-lg bg-gray-50/60 p-2 max-h-36 overflow-y-auto flex flex-col gap-1.5">
+                    <div className="border border-ek-border rounded-[6px] bg-ek-raised p-2 max-h-36 overflow-y-auto flex flex-col gap-1.5">
                       {selectedFiles.map((f, idx) => (
                         <div
                           key={`${f.name}_${idx}`}
-                          className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-md border border-gray-200 text-xs shadow-xs"
+                          className="flex items-center justify-between bg-ek-surface px-2.5 py-1.5 rounded-[6px] border border-ek-border text-xs"
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             {getIconeArquivo(f.name)}
-                            <span className="font-medium text-gray-800 truncate max-w-sm">
+                            <span className="font-medium text-ek-text truncate max-w-sm">
                               {f.name}
                             </span>
-                            <span className="text-[10px] text-gray-400 font-mono">
+                            <span className="text-[11px] text-ek-muted font-mono tabular-nums">
                               ({formatBytes(f.size)})
                             </span>
                           </div>
@@ -763,7 +761,7 @@ export const ModalListarArquivos = ({
                               e.stopPropagation();
                               handleRemoverArquivoSelecionado(idx);
                             }}
-                            className="p-1 text-gray-400 hover:text-rose-600 rounded transition"
+                            className="p-1 text-ek-muted hover:text-red-600 rounded-[4px] transition-colors"
                             title="Remover da seleção"
                           >
                             <X className="w-3.5 h-3.5" />
@@ -778,7 +776,7 @@ export const ModalListarArquivos = ({
                 <div className="flex flex-col gap-1">
                   <label
                     htmlFor="arquivoObs"
-                    className="text-xs font-bold text-gray-700 uppercase tracking-wider"
+                    className="ek-label"
                   >
                     Observação do(s) Anexo(s) (Opcional)
                   </label>
@@ -788,19 +786,19 @@ export const ModalListarArquivos = ({
                     onChange={(e) => setObservacaoArquivos(e.target.value.toUpperCase())}
                     placeholder="Ex: FOTOS DO LOCAL ANTES DA EXECUÇÃO, NOTA FISCAL DE COMPRA, LAUDO TÉCNICO..."
                     rows={2}
-                    className="w-full text-xs uppercase bg-white border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500/30 text-gray-800 resize-none font-sans"
+                    className="ek-textarea text-xs uppercase resize-none"
                   />
                 </div>
 
                 {/* Progresso de Envio */}
                 {isUploading && uploadProgress && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3">
-                    <Loader2 className="w-5 h-5 text-amber-500 animate-spin shrink-0" />
+                  <div className="p-3 bg-brand-soft border border-brand-border rounded-[6px] flex items-center gap-3">
+                    <Loader2 className="w-5 h-5 text-brand animate-spin shrink-0" />
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-bold text-amber-900">
+                      <span className="text-xs font-semibold text-ek-text tabular-nums">
                         Enviando {uploadProgress.current} de {uploadProgress.total}...
                       </span>
-                      <span className="text-[11px] text-amber-700 truncate">
+                      <span className="text-[11px] text-ek-muted truncate">
                         {uploadProgress.fileName}
                       </span>
                     </div>
@@ -808,12 +806,12 @@ export const ModalListarArquivos = ({
                 )}
 
                 {/* Rodapé de Ações */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-3 border-t border-ek-rule">
                   <button
                     type="button"
                     onClick={handleTentarFecharModal}
                     disabled={isUploading}
-                    className="px-4 py-2 text-xs font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg transition disabled:opacity-40"
+                    className="ek-btn-secondary h-8 px-3.5 text-xs disabled:opacity-40"
                   >
                     Cancelar
                   </button>
@@ -822,7 +820,7 @@ export const ModalListarArquivos = ({
                     type="button"
                     onClick={handleUpload}
                     disabled={isUploading || selectedFiles.length === 0}
-                    className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="ek-btn-primary h-8 px-4 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {isUploading ? (
                       <>
@@ -853,21 +851,19 @@ export const ModalListarArquivos = ({
           body={
             <div className="font-sans flex flex-col gap-3">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-amber-100 text-amber-600 rounded-full shrink-0">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
+                <AlertTriangle className="w-5 h-5 text-brand-gold-ink shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">
-                  <h4 className="text-sm font-bold text-gray-900">Descartar seleção de arquivos?</h4>
-                  <p className="text-xs text-gray-600 leading-relaxed">
+                  <h4 className="text-sm font-semibold text-ek-text">Descartar seleção de arquivos?</h4>
+                  <p className="text-xs text-ek-muted leading-relaxed">
                     Existem alterações que ainda não foram salvas. Se você sair desta tela, todas as alterações realizadas serão perdidas. Deseja realmente sair sem salvar?
                   </p>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-ek-rule">
                 <button
                   type="button"
                   onClick={() => setShowConfirmDescarte(false)}
-                  className="px-4 py-2 text-xs font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg transition"
+                  className="ek-btn-secondary h-8 px-3.5 text-xs"
                 >
                   Continuar editando
                 </button>
@@ -879,7 +875,7 @@ export const ModalListarArquivos = ({
                     setObservacaoArquivos("");
                     setShowModal(false);
                   }}
-                  className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition shadow-sm"
+                  className="ek-btn-danger h-8 px-3.5 text-xs"
                 >
                   Sair sem salvar
                 </button>
@@ -899,23 +895,21 @@ export const ModalListarArquivos = ({
           body={
             <div className="font-sans flex flex-col gap-3">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-rose-100 text-rose-600 rounded-full shrink-0">
-                  <Trash2 className="w-5 h-5" />
-                </div>
+                <Trash2 className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">
-                  <h4 className="text-sm font-bold text-gray-900">Remover este arquivo da ordem?</h4>
-                  <p className="text-xs text-gray-600 leading-relaxed">
+                  <h4 className="text-sm font-semibold text-ek-text">Remover este arquivo da ordem?</h4>
+                  <p className="text-xs text-ek-muted leading-relaxed">
                     Tem certeza de que deseja excluir permanentemente o anexo{" "}
-                    <strong>&quot;{getFileName(anexoParaExcluir.AO_CAMINHO)}&quot;</strong>?
+                    <strong className="text-ek-text">&quot;{getFileName(anexoParaExcluir.AO_CAMINHO)}&quot;</strong>?
                   </p>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-ek-rule">
                 <button
                   type="button"
                   onClick={() => setAnexoParaExcluir(null)}
                   disabled={isDeleting}
-                  className="px-4 py-2 text-xs font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg transition disabled:opacity-40"
+                  className="ek-btn-secondary h-8 px-3.5 text-xs disabled:opacity-40"
                 >
                   Cancelar
                 </button>
@@ -923,7 +917,7 @@ export const ModalListarArquivos = ({
                   type="button"
                   onClick={handleConfirmarExclusao}
                   disabled={isDeleting}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition shadow-sm disabled:opacity-40"
+                  className="ek-btn-danger h-8 px-3.5 text-xs disabled:opacity-40"
                 >
                   {isDeleting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -947,15 +941,15 @@ export const ModalListarArquivos = ({
           showButtonExit={false}
           body={
             <div className="font-sans flex flex-col items-center gap-3 max-w-3xl">
-              <div className="w-full max-h-[75vh] flex items-center justify-center bg-stone-900/5 rounded-xl overflow-hidden border border-gray-200 p-2">
+              <div className="w-full max-h-[75vh] flex items-center justify-center bg-ek-raised rounded-[8px] overflow-hidden border border-ek-border p-2">
                 <img
                   src={previewImagemUrl.url}
                   alt={previewImagemUrl.nome}
-                  className="max-h-[70vh] max-w-full object-contain rounded-lg shadow-sm"
+                  className="max-h-[70vh] max-w-full object-contain rounded-[6px]"
                 />
               </div>
-              <div className="flex items-center justify-between w-full pt-2 border-t border-gray-100">
-                <span className="text-xs text-gray-500 truncate max-w-md">
+              <div className="flex items-center justify-between w-full pt-2 border-t border-ek-rule">
+                <span className="text-xs text-ek-muted truncate max-w-md">
                   {previewImagemUrl.nome}
                 </span>
                 <div className="flex items-center gap-2">
@@ -963,14 +957,14 @@ export const ModalListarArquivos = ({
                     href={previewImagemUrl.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-3 py-1.5 text-xs font-bold text-brand bg-brand/10 hover:bg-brand/20 rounded-lg transition"
+                    className="ek-btn-secondary h-8 px-3 text-xs text-brand border-brand-border bg-brand-soft"
                   >
                     Abrir em nova guia
                   </a>
                   <button
                     type="button"
                     onClick={() => setPreviewImagemUrl(null)}
-                    className="px-4 py-1.5 text-xs font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg transition"
+                    className="ek-btn-secondary h-8 px-3.5 text-xs"
                   >
                     Fechar
                   </button>

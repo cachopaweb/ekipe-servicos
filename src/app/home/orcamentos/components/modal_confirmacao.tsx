@@ -45,10 +45,10 @@ export default function ModalConfirmacao({
     },
     warning: {
       Icon: AlertCircle,
-      iconColor: "text-amber-600",
-      bgIcon: "bg-amber-50",
-      btnConfirm: "bg-amber-500 hover:bg-amber-600 text-white",
-      borderColor: "border-amber-200",
+      iconColor: "text-brand-goldInk",
+      bgIcon: "bg-brand-goldSoft",
+      btnConfirm: "bg-brand hover:bg-brand-hover text-white",
+      borderColor: "border-ek-border",
     },
     info: {
       Icon: Info,
@@ -88,28 +88,31 @@ export default function ModalConfirmacao({
   return (
     <div
       tabIndex={-1}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 outline-none"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 p-4 outline-none"
       onKeyDown={handleKeyDown}
     >
       <div
-        className={`bg-white w-full max-w-sm rounded-xl border ${current.borderColor} overflow-hidden`}
+        className="bg-white w-full max-w-sm rounded-[8px] border border-ek-border shadow-xl overflow-hidden font-sans"
       >
-        <div className="p-6 flex flex-col items-center text-center">
-          <div
-            className={`h-14 w-14 rounded-full flex items-center justify-center ${current.bgIcon} mb-3`}
-          >
-            <Icon className={`w-7 h-7 ${current.iconColor}`} />
+        <div className="p-5 flex flex-col items-start text-left">
+          <div className="flex items-start gap-3.5 w-full mb-5">
+            <div
+              className={`h-10 w-10 rounded-[6px] shrink-0 flex items-center justify-center ${current.bgIcon}`}
+            >
+              <Icon className={`w-5 h-5 ${current.iconColor}`} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-semibold text-ek-text leading-snug">{title}</h3>
+              <p className="text-sm text-ek-muted mt-1 leading-relaxed">{message}</p>
+            </div>
           </div>
 
-          <h3 className="text-lg font-bold text-gray-900 mb-1">{title}</h3>
-          <p className="text-sm text-gray-600 mb-6">{message}</p>
-
-          <div className="grid grid-cols-2 gap-3 w-full">
+          <div className="flex items-center justify-end gap-2.5 w-full pt-3.5 border-t border-ek-rule">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="w-full py-2.5 px-4 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ek-btn-secondary flex-1 sm:flex-none"
             >
               {cancelText}
             </button>
@@ -118,7 +121,7 @@ export default function ModalConfirmacao({
               type="button"
               onClick={onConfirm}
               disabled={isLoading}
-              className={`w-full py-2.5 px-4 text-sm font-semibold rounded-md transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${current.btnConfirm}`}
+              className={`inline-flex items-center justify-center gap-2 h-9 px-4 rounded-[6px] text-sm font-medium transition-colors flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed ${current.btnConfirm}`}
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               {confirmText}

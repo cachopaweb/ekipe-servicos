@@ -8,7 +8,7 @@ import ModalAtalhos from "./components/modal_atalhos";
 import ModalImprimirOrcamento from "./components/modal_orcamento";
 import ModalReimprimirVenda from "./components/modal_reimprimir_venda";
 import ModalImprimirVenda from "./components/modal_imprimir_venda";
-import ModalConfirmacao from "./components/modal_confirmar";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 import Faturamentos from "@/app/faturamentos/page";
 
 import UsuarioRepository from "@/app/repositories/usuario_repository";
@@ -632,125 +632,122 @@ export default function Vendas() {
             ref={containerRef}
             onKeyDown={handleKeyDown}
             tabIndex={-1}
-            className="flex flex-col w-full gap-3 p-2 sm:p-4 bg-stone-100 font-sans outline-none focus:outline-none min-h-[calc(100vh-64px)] lg:h-[calc(100vh-64px)] pb-24 lg:pb-3"
+            className="flex flex-col w-full gap-4 p-4 sm:p-6 bg-ek-surface outline-none focus:outline-none min-h-full pb-24 lg:pb-6"
         >
-            {/* 1. Header do PDV com Identificação, Ações Rápidas e Relógio */}
-            <header className="bg-white rounded-lg border border-gray-200 px-4 py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0">
-                {/* Esquerda: Identificação do Terminal e Número da Venda */}
+            {/* 1. Header do PDV com Identificação e Ações Rápidas */}
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-4 border-b border-ek-border shrink-0">
                 <div className="flex items-center gap-3 flex-wrap">
-                    <div className="p-2.5 bg-amber-500 text-white rounded-lg">
-                        <ShoppingBag className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <h1 className="text-lg font-black text-gray-900 tracking-tight leading-none">
+                    <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                            <span className="inline-block w-1 h-5 rounded-full bg-brand-gold" aria-hidden="true" />
+                            <h1 className="text-[22px] font-bold text-ek-text tracking-[-0.02em] leading-tight">
                                 Frente de Caixa (PDV)
                             </h1>
-                            <span className="text-gray-400 font-bold">•</span>
-                            <span className="text-sm font-black tracking-wider uppercase text-amber-500 tabular-nums">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-xs font-semibold bg-brand-soft text-brand border border-brand-border tabular-nums">
                                 Venda #{codUltimaVenda + 1}
                             </span>
                         </div>
-                        <p className="text-xs text-gray-500 font-medium mt-0.5">
+                        <p className="text-xs text-ek-muted pl-3.5">
                             Terminal comercial de vendas e emissão rápida
                         </p>
                     </div>
                 </div>
 
-                {/* Centro/Direita: Barra de Ações Rápidas do PDV */}
+                {/* Barra de Ações Rápidas do PDV */}
                 <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
                     <button
                         type="button"
                         onClick={() => setShowModalBuscarVenda(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+                        className="ek-btn-secondary"
                         title="Buscar Venda Salva ou Pedido [B]"
                     >
-                        <Search className="w-3.5 h-3.5 text-gray-600" />
-                        <span>Buscar [B]</span>
+                        <Search className="w-3.5 h-3.5 text-ek-muted" />
+                        <span>Buscar</span>
+                        <kbd className="ek-kbd">B</kbd>
                     </button>
 
                     <button
                         type="button"
                         onClick={handleSalvarVenda}
                         disabled={items.length === 0}
-                        className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-md transition ${
-                            items.length === 0
-                                ? "text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed"
-                                : "text-gray-700 bg-gray-100 hover:bg-gray-200"
-                        }`}
+                        className="ek-btn-secondary disabled:opacity-45 disabled:cursor-not-allowed"
                         title="Salvar Venda em Formato de Pedido [S]"
                     >
-                        <Save className="w-3.5 h-3.5 text-gray-600" />
-                        <span>Salvar [S]</span>
+                        <Save className="w-3.5 h-3.5 text-ek-muted" />
+                        <span>Salvar</span>
+                        <kbd className="ek-kbd">S</kbd>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setshowModalImprimirOrcamento(true)}
                         disabled={items.length === 0}
-                        className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-md transition ${
+                        className={`h-9 px-3 rounded-[6px] text-[13px] font-medium inline-flex items-center gap-1.5 border transition-colors ${
                             items.length === 0
-                                ? "text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed"
-                                : "text-brand bg-brand-soft hover:bg-brand/15 border border-brand-border"
+                                ? "text-ek-faint bg-ek-raised border-ek-border cursor-not-allowed opacity-60"
+                                : "text-brand bg-brand-soft hover:bg-brand/10 border-brand-border"
                         }`}
                         title="Imprimir Orçamento da Venda Atual [I]"
                     >
                         <Printer className="w-3.5 h-3.5" />
-                        <span>Orçamento [I]</span>
+                        <span>Orçamento</span>
+                        <kbd className="ek-kbd border-brand-border text-brand bg-white">I</kbd>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setShowModalReimprimirVenda(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+                        className="ek-btn-secondary"
                         title="Reimprimir Comprovante de Venda Anterior [R]"
                     >
-                        <RotateCcw className="w-3.5 h-3.5 text-gray-600" />
-                        <span>Reimprimir [R]</span>
+                        <RotateCcw className="w-3.5 h-3.5 text-ek-muted" />
+                        <span>Reimprimir</span>
+                        <kbd className="ek-kbd">R</kbd>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setShowModalAtalhos(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+                        className="ek-btn-secondary"
                         title="Ver Atalhos de Teclado [A]"
                     >
-                        <Keyboard className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Atalhos [A]</span>
+                        <Keyboard className="w-3.5 h-3.5 text-brand" />
+                        <span>Atalhos</span>
+                        <kbd className="ek-kbd">A</kbd>
                     </button>
                 </div>
             </header>
 
             {/* 2. Grid Principal: Área Operacional (Esquerda) e Fechamento (Direita) */}
-            <div className="flex flex-col lg:flex-row gap-3 flex-1 lg:min-h-0 lg:overflow-hidden">
+            <div className="flex flex-col lg:flex-row gap-4 flex-1 lg:min-h-0">
 
                 {/* COLUNA ESQUERDA: Operação da Venda */}
-                <div className="flex flex-col gap-3 flex-1 min-w-0 h-auto lg:h-full lg:overflow-hidden">
+                <div className="flex flex-col gap-3 flex-1 min-w-0">
 
                     {/* Card 1: Identificação (Cliente & Operador) */}
-                    <div className="bg-white p-3 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-3 shrink-0 items-center">
+                    <div className="ek-card p-3.5 grid grid-cols-1 sm:grid-cols-12 gap-3 shrink-0 items-end">
                         {/* Atendente / Operador */}
                         <div className="sm:col-span-5 flex flex-col">
-                            <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 uppercase mb-1">
-                                <UserCheck className="w-3.5 h-3.5 text-gray-500" />
-                                <span>Operador do Caixa</span>
+                            <label className="ek-label flex items-center gap-1.5">
+                                <UserCheck className="w-3.5 h-3.5 text-ek-muted" />
+                                <span>Operador do caixa</span>
                             </label>
                             <input
                                 type="text"
                                 readOnly
                                 value={funcionario ? funcionario.FUN_NOME : "ADMINISTRADOR"}
-                                className="w-full h-10 px-3 text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-md outline-none uppercase truncate"
+                                className="ek-input bg-ek-raised text-ek-muted font-medium uppercase truncate cursor-default"
                             />
                         </div>
 
                         {/* Cliente da Venda */}
                         <div className="sm:col-span-7 flex flex-col">
-                            <label className="flex items-center justify-between text-xs font-bold text-gray-700 uppercase mb-1">
+                            <label className="ek-label flex items-center justify-between">
                                 <span className="flex items-center gap-1.5">
-                                    <User className="w-3.5 h-3.5 text-amber-500" />
+                                    <User className="w-3.5 h-3.5 text-brand" />
                                     <span>Cliente</span>
                                 </span>
-                                <span className="text-gray-400 font-semibold lowercase">tecla [C]</span>
+                                <span className="text-[11px] font-medium text-ek-faint">Tecla [C]</span>
                             </label>
                             <div className="flex gap-1.5">
                                 <input
@@ -758,28 +755,29 @@ export default function Vendas() {
                                     readOnly
                                     value={cliente ? `${cliente.CODIGO} - ${cliente.NOME}` : "1 - CONSUMIDOR"}
                                     onClick={() => setShowModalCliente(true)}
-                                    className="w-full h-10 px-3 text-sm font-bold text-gray-800 bg-gray-50 border border-gray-300 rounded-md outline-none uppercase cursor-pointer hover:border-amber-500 transition"
+                                    className="ek-input bg-ek-raised font-semibold uppercase cursor-pointer hover:border-brand/50 transition-colors"
                                     title="Clique para pesquisar cliente (ou tecle C)"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowModalCliente(true)}
-                                    className="h-10 px-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center transition shrink-0"
+                                    className="ek-btn-secondary px-3 shrink-0"
                                     tabIndex={-1}
                                     title="Pesquisar Cliente [C]"
                                 >
-                                    <Search className="w-4 h-4" />
+                                    <Search className="w-4 h-4 text-brand" />
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     {/* Card 2: Barra de Leitura e Inclusão de Produtos */}
-                    <form onSubmit={handleAddItem} className="bg-white p-3 rounded-lg border border-gray-200 grid grid-cols-12 gap-2.5 items-end shrink-0">
+                    <form onSubmit={handleAddItem} className="ek-card p-3.5 grid grid-cols-12 gap-2.5 items-end shrink-0">
                         {/* Código com Atalho F7 */}
                         <div className="col-span-5 sm:col-span-3 lg:col-span-2">
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                                Código <span className="text-amber-600 font-semibold">(F7)</span>
+                            <label className="ek-label flex items-center justify-between">
+                                <span>Código</span>
+                                <span className="text-[11px] font-semibold text-brand">(F7)</span>
                             </label>
                             <div className="flex gap-1">
                                 <input
@@ -787,50 +785,46 @@ export default function Vendas() {
                                     autoFocus
                                     value={codProduto}
                                     onChange={e => setCodProduto(e.target.value)}
-                                    className="w-full h-10 px-2 text-sm font-bold border border-gray-300 rounded-md focus:border-amber-500 outline-none text-center bg-white tabular-nums"
+                                    className="ek-input px-2 font-semibold text-center tabular-nums"
                                     placeholder="Cód."
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowModalProduto(true)}
-                                    className="h-10 px-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center transition shrink-0"
+                                    className="ek-btn-secondary px-2.5 shrink-0"
                                     tabIndex={-1}
                                     title="Buscar Produto no Catálogo [P]"
                                 >
-                                    <Search className="w-4 h-4" />
+                                    <Search className="w-4 h-4 text-brand" />
                                 </button>
                             </div>
                         </div>
 
                         {/* Quantidade */}
                         <div className="col-span-3 sm:col-span-2 lg:col-span-1">
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                                Qtd
-                            </label>
+                            <label className="ek-label">Qtd</label>
                             <input
                                 ref={qtdProdutoInputRef}
                                 type="number"
                                 min="1"
                                 value={qtdProduto}
                                 onChange={e => setQtdProduto(e.target.value)}
-                                className="w-full h-10 px-1 text-sm text-center font-bold border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
+                                className="ek-input px-1.5 text-center font-semibold tabular-nums"
                             />
                         </div>
 
                         {/* Preview / Leitura da Descrição */}
                         <div className="col-span-12 sm:col-span-7 lg:col-span-7">
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                                Descrição do Produto
-                            </label>
+                            <label className="ek-label">Descrição do produto</label>
                             <input
                                 disabled
                                 value={produtoPreview}
-                                className={`w-full h-10 px-3 text-sm font-semibold uppercase border rounded-md outline-none truncate transition ${
+                                className={`ek-input font-medium uppercase truncate ${
                                     (produtoPreview || "").includes("NÃO ENCONTRADO")
-                                        ? "bg-rose-50 border-rose-200 text-rose-600"
+                                        ? "bg-rose-50 border-rose-200 text-rose-700"
                                         : produtoPreview
-                                        ? "bg-gray-50 border-gray-300 text-gray-900"
-                                        : "bg-gray-50 border-gray-200 text-gray-400 italic"
+                                        ? "bg-ek-raised border-ek-border text-ek-text font-semibold"
+                                        : "bg-ek-raised border-ek-border text-ek-faint"
                                 }`}
                                 placeholder="Aguardando leitura do código de barras..."
                             />
@@ -840,7 +834,7 @@ export default function Vendas() {
                         <div className="col-span-4 sm:col-span-12 lg:col-span-2">
                             <button
                                 type="submit"
-                                className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-md transition flex items-center justify-center gap-1.5 text-sm uppercase"
+                                className="ek-btn-primary w-full justify-center"
                                 title="Incluir Produto na Venda (Enter)"
                             >
                                 <Plus className="w-4 h-4" />
@@ -850,32 +844,32 @@ export default function Vendas() {
                     </form>
 
                     {/* Card 3: Grade / Tabela de Produtos da Venda */}
-                    <div className="bg-white rounded-lg border border-gray-200 flex-1 flex flex-col overflow-hidden min-h-[260px]">
+                    <div className="ek-card flex-1 flex flex-col overflow-hidden min-h-[280px]">
                         {/* Cabeçalho da Grade */}
-                        <div className="bg-stone-50 border-b border-gray-200 px-3 py-2.5 grid grid-cols-12 gap-2 text-xs font-bold text-gray-700 uppercase text-center shrink-0">
+                        <div className="bg-ek-raised border-b border-ek-border px-3.5 py-2.5 grid grid-cols-12 gap-2 text-xs font-semibold text-ek-muted text-center shrink-0">
                             <div className="col-span-1">#</div>
                             <div className="col-span-1">Cód</div>
-                            <div className="col-span-4 text-left">Descrição do Produto</div>
+                            <div className="col-span-4 text-left">Descrição do produto</div>
                             <div className="col-span-2">Tabela</div>
                             <div className="col-span-2">Qtd / Ajuste</div>
                             <div className="col-span-2 text-right">Subtotal</div>
                         </div>
 
-                        {/* Linhas da Grade com rolagem suave */}
-                        <div className="overflow-y-auto flex-1 p-0 divide-y divide-gray-100">
+                        {/* Linhas da Grade */}
+                        <div className="overflow-y-auto flex-1 divide-y divide-ek-rule">
                             {items.length > 0 ? (
                                 items.map((item, index) => (
                                     <div
                                         key={index}
-                                        className="grid grid-cols-12 gap-2 text-sm py-2 px-3 hover:bg-amber-50/50 transition-colors items-center text-center even:bg-stone-50/60"
+                                        className="grid grid-cols-12 gap-2 text-[13px] py-2.5 px-3.5 hover:bg-ek-raised/80 transition-colors items-center text-center"
                                     >
-                                        <div className="col-span-1 text-gray-400 font-semibold text-xs tabular-nums">
+                                        <div className="col-span-1 text-ek-faint font-medium text-xs tabular-nums">
                                             {index + 1}
                                         </div>
-                                        <div className="col-span-1 text-gray-600 font-medium text-xs tabular-nums">
+                                        <div className="col-span-1 text-ek-muted font-mono text-xs tabular-nums">
                                             {item.VE_PRO}
                                         </div>
-                                        <div className="col-span-4 text-left font-semibold text-gray-900 truncate" title={item.VE_NOME}>
+                                        <div className="col-span-4 text-left font-medium text-ek-text truncate" title={item.VE_NOME}>
                                             {item.VE_NOME}
                                         </div>
 
@@ -884,7 +878,7 @@ export default function Vendas() {
                                             <select
                                                 value={item.tipoPreco}
                                                 onChange={(e) => handleTrocarTipoPreco(index, e.target.value as 'VAREJO' | 'ATACADO')}
-                                                className="w-full text-xs border border-gray-300 rounded px-1.5 py-1 bg-white text-gray-800 font-semibold focus:border-amber-500 outline-none cursor-pointer"
+                                                className="ek-select h-8 text-xs px-2 tabular-nums"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 <option value="VAREJO">Var. {formatCurrency(item.precoVarejo)}</option>
@@ -893,22 +887,22 @@ export default function Vendas() {
                                         </div>
 
                                         {/* Controle de Quantidade */}
-                                        <div className="col-span-2 flex items-center justify-center gap-1.5">
+                                        <div className="col-span-2 flex items-center justify-center gap-1">
                                             <button
                                                 type="button"
                                                 onClick={() => handleUpdateQuantity(index, -1)}
-                                                className="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-bold transition"
+                                                className="w-7 h-7 flex items-center justify-center bg-ek-raised border border-ek-border hover:bg-ek-active text-ek-text rounded-[6px] transition-colors"
                                                 title="Diminuir quantidade"
                                             >
                                                 <Minus className="w-3.5 h-3.5" />
                                             </button>
-                                            <span className="font-bold text-gray-900 w-8 tabular-nums">
+                                            <span className="font-semibold text-ek-text w-8 tabular-nums">
                                                 {item.VE_QUANTIDADE}
                                             </span>
                                             <button
                                                 type="button"
                                                 onClick={() => handleUpdateQuantity(index, 1)}
-                                                className="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-bold transition"
+                                                className="w-7 h-7 flex items-center justify-center bg-ek-raised border border-ek-border hover:bg-ek-active text-ek-text rounded-[6px] transition-colors"
                                                 title="Aumentar quantidade"
                                             >
                                                 <Plus className="w-3.5 h-3.5" />
@@ -916,81 +910,88 @@ export default function Vendas() {
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveItem(index)}
-                                                className="p-1 text-gray-400 hover:text-rose-600 transition ml-1"
+                                                className="p-1.5 text-ek-faint hover:text-rose-600 rounded-[6px] hover:bg-rose-50 transition-colors ml-1"
                                                 title="Remover item da venda"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <Trash2 className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
 
-                                        <div className="col-span-2 text-right font-bold text-gray-900 tabular-nums">
+                                        <div className="col-span-2 text-right font-semibold text-ek-text tabular-nums">
                                             {formatCurrency(item.VE_VALOR)}
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="h-64 flex flex-col items-center justify-center text-gray-400 gap-2">
-                                    <div className="p-3 bg-gray-100 rounded-full text-gray-400">
-                                        <ShoppingCart className="w-8 h-8" />
+                                <div className="h-64 flex flex-col items-center justify-center text-ek-muted gap-2 px-4 text-center">
+                                    <div className="w-11 h-11 rounded-[8px] bg-ek-raised border border-ek-border flex items-center justify-center text-ek-faint">
+                                        <ShoppingCart className="w-5 h-5" />
                                     </div>
-                                    <p className="text-sm font-bold text-gray-600">Caixa Livre • Nenhum item na venda</p>
-                                    <p className="text-xs text-gray-400">Digite o código ou passe o leitor de código de barras para iniciar.</p>
+                                    <p className="text-sm font-semibold text-ek-text">Caixa livre — nenhum item na venda</p>
+                                    <p className="text-xs text-ek-muted max-w-xs">
+                                        Digite o código ou utilize o leitor de código de barras para iniciar.
+                                    </p>
                                 </div>
                             )}
                         </div>
 
                         {/* Rodapé da Grade */}
-                        <div className="bg-stone-50 px-4 py-2.5 border-t border-gray-200 flex justify-between items-center text-xs font-semibold text-gray-700 shrink-0">
-                            <span>Itens registrados: {items.length}</span>
-                            <span className="text-sm font-bold text-gray-900 tabular-nums">
-                                Subtotal da Grade: {formatCurrency(subTotal)}
+                        <div className="bg-ek-raised px-4 py-2.5 border-t border-ek-border flex justify-between items-center text-xs font-medium text-ek-muted shrink-0">
+                            <span className="tabular-nums">Itens registrados: {items.length}</span>
+                            <span className="text-sm font-bold text-ek-text tabular-nums">
+                                Subtotal da grade: {formatCurrency(subTotal)}
                             </span>
                         </div>
                     </div>
                 </div>
 
                 {/* COLUNA DIREITA: Resumo Financeiro & Fechamento */}
-                <div className="w-full lg:w-[340px] flex flex-col gap-3 shrink-0 h-auto lg:h-full lg:sticky lg:top-20">
-                    {/* Card de Valor Total a Pagar */}
-                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                        <div className="bg-amber-500 px-4 py-2.5 text-white flex items-center justify-between">
-                            <div className="flex items-center gap-1.5">
-                                <Receipt className="w-4 h-4" />
-                                <h3 className="text-sm font-semibold text-white">
-                                    Total da Venda
+                <div className="w-full lg:w-[340px] flex flex-col gap-3 shrink-0 lg:sticky lg:top-4 self-start">
+                    <div className="ek-card overflow-hidden">
+                        {/* Assinatura geométrica Ekipe */}
+                        <div className="h-[3px] w-full flex">
+                            <div className="flex-1 bg-brand" />
+                            <div className="w-16 bg-brand-gold" />
+                        </div>
+
+                        <div className="px-4 py-3 border-b border-ek-border flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Receipt className="w-4 h-4 text-brand" />
+                                <h3 className="text-sm font-semibold text-ek-text">
+                                    Total da venda
                                 </h3>
                             </div>
-                            <span className="text-xs bg-amber-600 text-white font-medium px-2 py-0.5 rounded tabular-nums">
+                            <span className="text-xs bg-ek-raised border border-ek-border text-ek-muted font-medium px-2 py-0.5 rounded-[6px] tabular-nums">
                                 {items.length} {items.length === 1 ? 'item' : 'itens'}
                             </span>
                         </div>
 
-                        <div className="p-5 bg-amber-50/50 border-b border-gray-200 flex flex-col items-center justify-center text-center">
-                            <span className="text-xs font-medium text-gray-600 mb-1">
-                                Total a Pagar
+                        <div className="p-5 bg-ek-raised/60 border-b border-ek-border flex flex-col items-center justify-center text-center">
+                            <span className="text-xs font-medium text-ek-muted mb-1">
+                                Total a pagar
                             </span>
-                            <div className="text-4xl font-black text-gray-900 tracking-tight tabular-nums">
+                            <div className="text-3xl font-bold text-brand tracking-[-0.02em] tabular-nums">
                                 {formatCurrency(totalFinal)}
                             </div>
                         </div>
 
                         {/* Detalhamento Financeiro */}
-                        <div className="p-4 space-y-3 text-sm">
-                            <div className="flex justify-between items-center text-gray-700">
-                                <span>Subtotal Bruto:</span>
-                                <span className="font-bold text-gray-900 tabular-nums">
+                        <div className="p-4 space-y-3.5 text-sm">
+                            <div className="flex justify-between items-center text-ek-muted">
+                                <span>Subtotal bruto</span>
+                                <span className="font-semibold text-ek-text tabular-nums">
                                     {formatCurrency(subTotal)}
                                 </span>
                             </div>
 
                             {/* Descontos Sincronizados (% e R$) */}
-                            <div className="pt-2 border-t border-gray-200 space-y-1.5">
-                                <label className="block text-xs font-bold text-gray-700 uppercase">
-                                    Desconto Concedido
+                            <div className="pt-3 border-t border-ek-rule space-y-1.5">
+                                <label className="ek-label mb-1">
+                                    Desconto concedido
                                 </label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <span className="block text-xs text-gray-500 font-semibold mb-1">
+                                        <span className="block text-xs text-ek-muted mb-1">
                                             Valor (R$)
                                         </span>
                                         <input
@@ -998,11 +999,11 @@ export default function Vendas() {
                                             placeholder="0,00"
                                             value={descontoReais}
                                             onChange={handleDescontoReais}
-                                            className="w-full h-9 px-2.5 text-sm font-bold text-right text-rose-600 border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
+                                            className="ek-input font-semibold text-right text-rose-700 tabular-nums"
                                         />
                                     </div>
                                     <div>
-                                        <span className="block text-xs text-gray-500 font-semibold mb-1">
+                                        <span className="block text-xs text-ek-muted mb-1">
                                             Percentual (%)
                                         </span>
                                         <div className="relative">
@@ -1011,54 +1012,50 @@ export default function Vendas() {
                                                 placeholder="0.00"
                                                 value={descontoPorcentagem}
                                                 onChange={handleDescontoPorcentagem}
-                                                className="w-full h-9 px-2.5 pr-7 text-sm font-bold text-right text-rose-600 border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
+                                                className="ek-input pr-7 font-semibold text-right text-rose-700 tabular-nums"
                                             />
-                                            <Percent className="w-3.5 h-3.5 text-gray-400 absolute right-2 top-3 pointer-events-none" />
+                                            <Percent className="w-3.5 h-3.5 text-ek-faint absolute right-2.5 top-2.5 pointer-events-none" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Valor Pago pelo Cliente */}
-                            <div className="pt-2 border-t border-gray-200">
-                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                                    Valor Recebido (Dinheiro / Cartão)
+                            <div className="pt-3 border-t border-ek-rule">
+                                <label className="ek-label">
+                                    Valor recebido (dinheiro / cartão)
                                 </label>
                                 <input
                                     type="text"
                                     placeholder="0,00"
                                     value={valorPago}
                                     onChange={e => setValorPago(e.target.value.replaceAll(',', '.'))}
-                                    className="w-full h-10 px-3 text-base font-bold text-right text-emerald-800 bg-emerald-50/50 border border-emerald-300 rounded-md focus:border-emerald-600 outline-none tabular-nums"
+                                    className="ek-input h-10 text-base font-bold text-right text-emerald-700 bg-emerald-50/40 border-emerald-300 focus:border-emerald-600 tabular-nums"
                                 />
                             </div>
 
                             {/* Troco Calculado */}
-                            <div className={`p-2.5 rounded-md border flex justify-between items-center transition ${
-                                troco > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'
+                            <div className={`px-3 py-2.5 rounded-[6px] border flex justify-between items-center transition-colors ${
+                                troco > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-ek-raised border-ek-border'
                             }`}>
-                                <span className="text-xs font-bold text-gray-700 uppercase">Troco</span>
-                                <span className={`text-lg font-black tabular-nums ${
-                                    troco > 0 ? 'text-emerald-700' : 'text-gray-400'
+                                <span className="text-xs font-semibold text-ek-muted">Troco</span>
+                                <span className={`text-lg font-bold tabular-nums ${
+                                    troco > 0 ? 'text-emerald-700' : 'text-ek-faint'
                                 }`}>
                                     {formatCurrency(troco)}
                                 </span>
                             </div>
 
                             {/* Botão Primário: Finalizar Venda */}
-                            <div className="pt-2">
+                            <div className="pt-1">
                                 <button
                                     type="button"
                                     onClick={handleFinalizarVenda}
                                     disabled={items.length === 0}
-                                    className={`w-full py-3.5 px-4 rounded-md font-bold text-sm uppercase flex items-center justify-center gap-2 transition ${
-                                        items.length > 0
-                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                            : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                                    }`}
+                                    className="ek-btn-primary w-full h-11 text-sm font-semibold justify-center disabled:opacity-45 disabled:cursor-not-allowed"
                                     title="Finalizar e Faturar Venda [F]"
                                 >
-                                    <CheckCircle2 className="w-5 h-5" />
+                                    <CheckCircle2 className="w-4 h-4" />
                                     <span>Finalizar Venda [F]</span>
                                 </button>
                             </div>
@@ -1068,12 +1065,12 @@ export default function Vendas() {
             </div>
 
             {/* Barra Inferior Fixa no Mobile */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-300 px-4 py-2.5 flex items-center justify-between shadow-lg">
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-ek-surface border-t border-ek-border px-4 py-2.5 flex items-center justify-between">
                 <div>
-                    <span className="block text-[10px] font-bold text-gray-500 uppercase">
-                        Total da Venda
+                    <span className="block text-xs font-medium text-ek-muted">
+                        Total da venda
                     </span>
-                    <span className="text-lg font-black text-gray-900 tabular-nums">
+                    <span className="text-lg font-bold text-brand tabular-nums">
                         {formatCurrency(totalFinal)}
                     </span>
                 </div>
@@ -1081,11 +1078,7 @@ export default function Vendas() {
                     type="button"
                     onClick={handleFinalizarVenda}
                     disabled={items.length === 0}
-                    className={`px-5 py-2.5 rounded-md text-sm font-bold flex items-center gap-2 transition ${
-                        items.length > 0
-                            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    }`}
+                    className="ek-btn-primary px-4 disabled:opacity-45 disabled:cursor-not-allowed"
                 >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Finalizar [F]</span>

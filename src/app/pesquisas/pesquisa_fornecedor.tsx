@@ -223,20 +223,18 @@ export default function PesquisaFornecedor({
       <div
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
       >
-        <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+        <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-                <Building2 className="w-5 h-5" />
-              </div>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-ek-border bg-ek-raised shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-4 bg-brand shrink-0" />
               <div>
-                <h2 className="text-base font-bold text-stone-800 tracking-tight">
+                <h2 className="text-base font-semibold text-ek-text tracking-tight">
                   Pesquisa de Fornecedores / Parceiros
                 </h2>
-                <p className="text-xs text-stone-500 font-normal">
+                <p className="text-xs text-ek-muted font-normal">
                   Navegue com as setas ↑ ↓ e pressione Enter para escolher
                 </p>
               </div>
@@ -246,15 +244,15 @@ export default function PesquisaFornecedor({
               <button
                 type="button"
                 onClick={() => setVisualizarMapa(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition active:scale-[0.98]"
+                className="ek-btn-secondary h-8 px-3 text-xs"
               >
-                <MapPin className="w-3.5 h-3.5 text-stone-500" />
+                <MapPin className="w-3.5 h-3.5 text-ek-muted" />
                 <span>Mapa</span>
               </button>
               <button
                 type="button"
                 onClick={cadastrarNovoFornecedor}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition active:scale-[0.98]"
+                className="ek-btn-primary h-8 px-3 text-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>Novo Fornecedor</span>
@@ -262,7 +260,7 @@ export default function PesquisaFornecedor({
               <button
                 type="button"
                 onClick={handleClose}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-rule transition-colors"
                 title="Fechar (Esc)"
               >
                 <X className="w-5 h-5" />
@@ -271,16 +269,16 @@ export default function PesquisaFornecedor({
           </div>
 
           {/* Filtros e Barra de Pesquisa */}
-          <div className="p-4 border-b border-stone-200 bg-stone-50/50 flex flex-col gap-3 shrink-0">
+          <div className="p-4 border-b border-ek-border bg-ek-surface flex flex-col gap-3 shrink-0">
             {/* Seletor de Tipo de Filtro (Segmented Control) */}
-            <div className="flex flex-wrap items-center gap-1.5 bg-stone-200/70 p-1 rounded-lg w-fit text-xs font-medium text-stone-600">
+            <div className="flex flex-wrap items-center gap-1 bg-ek-raised border border-ek-border p-1 rounded-[6px] w-fit text-xs font-medium text-ek-muted">
               <button
                 type="button"
                 onClick={() => setFiltro("nome")}
-                className={`px-3 py-1 rounded-md transition ${
+                className={`px-3 py-1 rounded-[4px] transition-colors ${
                   filtro === "nome"
-                    ? "bg-white text-stone-900 shadow-sm font-semibold"
-                    : "hover:text-stone-900"
+                    ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                    : "hover:text-ek-text"
                 }`}
               >
                 Nome
@@ -288,10 +286,10 @@ export default function PesquisaFornecedor({
               <button
                 type="button"
                 onClick={() => setFiltro("fantasia")}
-                className={`px-3 py-1 rounded-md transition ${
+                className={`px-3 py-1 rounded-[4px] transition-colors ${
                   filtro === "fantasia"
-                    ? "bg-white text-stone-900 shadow-sm font-semibold"
-                    : "hover:text-stone-900"
+                    ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                    : "hover:text-ek-text"
                 }`}
               >
                 Nome Fantasia
@@ -299,10 +297,10 @@ export default function PesquisaFornecedor({
               <button
                 type="button"
                 onClick={() => setFiltro("cidade")}
-                className={`px-3 py-1 rounded-md transition ${
+                className={`px-3 py-1 rounded-[4px] transition-colors ${
                   filtro === "cidade"
-                    ? "bg-white text-stone-900 shadow-sm font-semibold"
-                    : "hover:text-stone-900"
+                    ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                    : "hover:text-ek-text"
                 }`}
               >
                 Cidade
@@ -310,10 +308,10 @@ export default function PesquisaFornecedor({
               <button
                 type="button"
                 onClick={() => setFiltro("observacoes")}
-                className={`px-3 py-1 rounded-md transition ${
+                className={`px-3 py-1 rounded-[4px] transition-colors ${
                   filtro === "observacoes"
-                    ? "bg-white text-stone-900 shadow-sm font-semibold"
-                    : "hover:text-stone-900"
+                    ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                    : "hover:text-ek-text"
                 }`}
               >
                 Observações
@@ -322,7 +320,7 @@ export default function PesquisaFornecedor({
 
             {/* Input de Busca */}
             <div className="relative">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 z-10" />
+              <Search className="w-4 h-4 text-ek-faint absolute left-3 top-1/2 -translate-y-1/2 z-10" />
               {filtro === "cidade" ? (
                 <div className="relative w-full">
                   <input
@@ -331,21 +329,21 @@ export default function PesquisaFornecedor({
                     value={queryCity}
                     onChange={(e) => setQueryCity(e.target.value)}
                     placeholder="Digite pelo menos 3 letras da cidade..."
-                    className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 uppercase transition"
+                    className="ek-input pl-9 pr-4 uppercase"
                   />
                   {loadingCity && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+                      <Loader2 className="w-4 h-4 animate-spin text-brand" />
                     </div>
                   )}
 
                   {showCityDropdown && optionsCity.length > 0 && (
-                    <ul className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-stone-200 rounded-lg shadow-lg z-30 divide-y divide-stone-100 text-xs">
+                    <ul className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-ek-surface border border-ek-border rounded-[6px] z-30 divide-y divide-ek-rule text-xs">
                       {optionsCity.map((cidade) => (
                         <li
                           key={cidade.CID_CODIGO}
                           onClick={() => escolheCidade(cidade)}
-                          className="px-4 py-2 hover:bg-amber-50/70 cursor-pointer font-medium text-stone-800 transition"
+                          className="px-4 py-2 hover:bg-brand-soft cursor-pointer font-medium text-ek-text transition-colors"
                         >
                           {cidade.DESCRICAO}
                         </li>
@@ -366,7 +364,7 @@ export default function PesquisaFornecedor({
                       ? "observações"
                       : "nome ou código"
                   }...`}
-                  className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 uppercase transition"
+                  className="ek-input pl-9 pr-4 uppercase"
                 />
               )}
             </div>
@@ -375,20 +373,20 @@ export default function PesquisaFornecedor({
           {/* Tabela de Resultados */}
           <div className="flex-1 overflow-auto p-4 min-h-[300px]">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-stone-500 gap-2">
-                <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+              <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-brand" />
                 <span className="text-xs font-medium">Buscando fornecedores...</span>
               </div>
             ) : fornecedores.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-2">
-                <Building2 className="w-8 h-8 text-stone-300" />
-                <span className="text-sm font-medium">Nenhum fornecedor encontrado.</span>
-                <span className="text-xs text-stone-400">Verifique os filtros ou cadastre um novo fornecedor.</span>
+              <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
+                <Building2 className="w-8 h-8 text-ek-faint" />
+                <span className="text-sm font-medium text-ek-text">Nenhum fornecedor encontrado.</span>
+                <span className="text-xs text-ek-muted">Verifique os filtros ou cadastre um novo fornecedor.</span>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-stone-100/90 text-stone-600 text-xs font-bold uppercase tracking-wider border-b border-stone-200">
+                  <tr className="bg-ek-raised text-ek-muted text-xs font-semibold border-b border-ek-border">
                     <th className="p-3 w-16 text-center whitespace-nowrap">Cód.</th>
                     <th className="p-3">Nome / Razão Social</th>
                     <th className="p-3 whitespace-nowrap w-48">CNPJ / CPF</th>
@@ -396,7 +394,7 @@ export default function PesquisaFornecedor({
                     <th className="p-3 text-center w-24 whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody className="divide-y divide-ek-rule">
                   {fornecedores.map((item, idx) => {
                     const isSelected = idx === selectedIndex;
                     return (
@@ -404,13 +402,13 @@ export default function PesquisaFornecedor({
                         key={item.CODIGO}
                         onClick={() => selecionarFornecedor(item)}
                         className={`cursor-pointer transition-colors text-sm ${
-                          isSelected ? "bg-amber-100/70 font-semibold" : "hover:bg-amber-50/40 text-stone-700"
+                          isSelected ? "bg-brand-soft font-semibold text-ek-text" : "hover:bg-ek-raised text-ek-text"
                         }`}
                       >
-                        <td className="p-3 font-mono font-medium text-stone-900 text-center whitespace-nowrap">{item.CODIGO}</td>
-                        <td className="p-3 font-medium text-stone-800">{item.NOME}</td>
-                        <td className="p-3 font-mono text-stone-600 whitespace-nowrap">{item.CPF_CNPJ || "—"}</td>
-                        <td className="p-3 text-stone-600 whitespace-nowrap">{item.FONE || "—"}</td>
+                        <td className="p-3 font-mono font-medium text-ek-text text-center whitespace-nowrap tabular-nums">{item.CODIGO}</td>
+                        <td className="p-3 font-medium text-ek-text">{item.NOME}</td>
+                        <td className="p-3 font-mono text-ek-muted whitespace-nowrap tabular-nums">{item.CPF_CNPJ || "—"}</td>
+                        <td className="p-3 text-ek-muted whitespace-nowrap tabular-nums">{item.FONE || "—"}</td>
                         <td className="p-3 text-center whitespace-nowrap">
                           <div
                             className="inline-flex items-center justify-center gap-1.5"
@@ -421,7 +419,7 @@ export default function PesquisaFornecedor({
                               onClick={() => visualizarFornecedor(item)}
                               title="Visualizar ou editar cadastro"
                               aria-label="Visualizar ou editar cadastro"
-                              className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-md transition"
+                              className="p-1.5 text-ek-muted hover:text-ek-text bg-ek-raised hover:bg-ek-rule border border-ek-border rounded-[6px] transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -430,7 +428,7 @@ export default function PesquisaFornecedor({
                               onClick={() => selecionarFornecedor(item)}
                               title="Selecionar este fornecedor"
                               aria-label="Selecionar este fornecedor"
-                              className="p-1.5 text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition"
+                              className="p-1.5 text-brand hover:text-brand-hover bg-brand-soft hover:bg-brand-soft border border-brand-border rounded-[6px] transition-colors"
                             >
                               <Check className="w-4 h-4" />
                             </button>
@@ -445,15 +443,15 @@ export default function PesquisaFornecedor({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-3.5 border-t border-stone-200/80 bg-stone-50/90 shrink-0">
-            <span className="text-xs text-stone-500">
+          <div className="flex items-center justify-between px-6 py-3.5 border-t border-ek-border bg-ek-raised shrink-0">
+            <span className="text-xs text-ek-muted tabular-nums">
               {fornecedores.length}{" "}
               {fornecedores.length === 1 ? "fornecedor encontrado" : "fornecedores encontrados"}
             </span>
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition active:scale-[0.98]"
+              className="ek-btn-secondary"
             >
               Fechar (Esc)
             </button>
@@ -465,29 +463,27 @@ export default function PesquisaFornecedor({
       {visualizarMapa && (
         <div
           tabIndex={-1}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
         >
-          <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-                  <MapPin className="w-5 h-5" />
-                </div>
+          <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-ek-border bg-ek-raised shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-1 h-4 bg-brand shrink-0" />
                 <div>
-                  <h2 className="text-base font-bold text-stone-800 tracking-tight">Mapa de Fornecedores</h2>
-                  <p className="text-xs text-stone-500 font-normal">Localização geográfica dos parceiros</p>
+                  <h2 className="text-base font-semibold text-ek-text tracking-tight">Mapa de Fornecedores</h2>
+                  <p className="text-xs text-ek-muted font-normal">Localização geográfica dos parceiros</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setVisualizarMapa(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-rule transition-colors"
                 title="Fechar"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-hidden p-2 min-h-[500px]">
+            <div className="flex-1 overflow-y-auto p-3 min-h-[500px]">
               <Mapa />
             </div>
           </div>
@@ -498,25 +494,23 @@ export default function PesquisaFornecedor({
       {cadastrarFornecedor && (
         <div
           tabIndex={-1}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
         >
-          <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-                  <Building2 className="w-5 h-5" />
-                </div>
+          <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-ek-border bg-ek-raised shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-1 h-4 bg-brand shrink-0" />
                 <div>
-                  <h2 className="text-base font-bold text-stone-800 tracking-tight">
+                  <h2 className="text-base font-semibold text-ek-text tracking-tight">
                     {idCadastraFornecedor === 0 ? "Novo Fornecedor" : "Visualizar / Editar Fornecedor"}
                   </h2>
-                  <p className="text-xs text-stone-500 font-normal">Preencha os dados do fornecedor</p>
+                  <p className="text-xs text-ek-muted font-normal">Preencha os dados do fornecedor</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setCadastrarFornecedor(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-rule transition-colors"
                 title="Fechar"
               >
                 <X className="w-5 h-5" />

@@ -2,19 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --ek-ground: #f5f6fa;
+  --ek-surface: #ffffff;
+  --ek-raised: #f7f8fb;
+  --ek-active: #eceef6;
+  --ek-border: #e5e7ef;
+  --ek-rule: #eef0f5;
+  --ek-control: #cfd4e0;
+  --ek-text: #13151d;
+  --ek-muted: #5c6070;
+  --ek-faint: #6b7080;
+  --ek-brand: #312783;
+  --ek-brand-hover: #241c64;
+  --ek-brand-soft: #f2f1fb;
+  --ek-brand-border: #dad7ef;
+  --ek-gold: #facc00;
+  --ek-gold-ink: #7c5e00;
+  --ek-positive: #166534;
+  --ek-negative: #b91c1c;
+  --ek-warning: #92400e;
+}
+
 @layer base {
   html {
+    background-color: var(--ek-ground);
+    color: var(--ek-text);
+  }
+
+  body {
+    background-color: var(--ek-ground);
+    color: var(--ek-text);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Dígitos Tabulares para Alinhamento Financeiro / PDV */
-  .tabular-nums,
   table,
   input[type="number"],
-  .font-mono {
+  .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: #dad7ef;
+    color: #13151d;
+  }
+}
+
+@layer components {
+  .ek-label {
+    @apply block text-xs font-medium text-ek-muted mb-1;
+  }
+
+  .ek-input {
+    @apply w-full h-9 px-3 rounded-[6px] border border-ek-control bg-white text-sm text-ek-text placeholder:text-ek-faint focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand-border transition-colors disabled:bg-ek-raised disabled:text-ek-faint disabled:cursor-not-allowed;
+  }
+
+  .ek-select {
+    @apply w-full h-9 px-2.5 rounded-[6px] border border-ek-control bg-white text-sm text-ek-text focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand-border transition-colors disabled:bg-ek-raised disabled:text-ek-faint disabled:cursor-not-allowed;
+  }
+
+  .ek-textarea {
+    @apply w-full px-3 py-2 rounded-[6px] border border-ek-control bg-white text-sm text-ek-text placeholder:text-ek-faint focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand-border transition-colors;
+  }
+
+  .ek-card {
+    @apply bg-white border border-ek-border rounded-[8px];
+  }
+
+  .ek-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 h-9 px-4 rounded-[6px] bg-brand text-white text-sm font-medium hover:bg-brand-hover active:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-border transition-colors disabled:opacity-40 disabled:pointer-events-none;
+  }
+
+  .ek-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-[6px] bg-white border border-ek-control text-ek-text text-sm font-medium hover:bg-ek-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-border transition-colors disabled:opacity-40 disabled:pointer-events-none;
+  }
+
+  .ek-btn-danger {
+    @apply inline-flex items-center justify-center gap-2 h-9 px-4 rounded-[6px] bg-red-600 text-white text-sm font-medium hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 transition-colors disabled:opacity-40 disabled:pointer-events-none;
+  }
+
+  .ek-kbd {
+    @apply inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-mono font-medium rounded bg-ek-raised text-ek-muted border border-ek-border leading-none;
+  }
+}
+
+/* Subtle custom scrollbars matching the calm frame */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cfd4e0;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aeb6c7;
+}
+
+@media print {
+  html,
+  body {
+    background-color: #ffffff !important;
   }
 }

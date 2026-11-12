@@ -187,49 +187,46 @@ function ModalEdtEmpreitada({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none">
-      <div className="relative w-full max-w-lg flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none">
+      <div className="relative w-full max-w-lg flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-ek-raised shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-              <Wrench className="w-5 h-5" />
-            </div>
+            <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
             <div>
-              <h3 className="text-base font-bold text-stone-800 tracking-tight">Editar Serviço</h3>
-              <p className="text-xs text-stone-500 font-normal">Código: #{servico.ES_CODIGO}</p>
+              <h3 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-brand" />
+                <span>Editar serviço</span>
+              </h3>
+              <p className="text-xs text-ek-muted tabular-nums">Código: #{servico.ES_CODIGO}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSalvar} className="p-6 space-y-4">
+        <form onSubmit={handleSalvar} className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-              Descrição do Serviço
-            </label>
+            <label className="ek-label">Descrição do serviço</label>
             <input
               type="text"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               required
               placeholder="Informe a descrição do serviço"
-              className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              className="ek-input uppercase"
             />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                Quantidade
-              </label>
+              <label className="ek-label">Quantidade</label>
               <input
                 type="number"
                 step="any"
@@ -237,18 +234,16 @@ function ModalEdtEmpreitada({
                 value={osQuantidadeStr}
                 onChange={(e) => setOsQuantidadeStr(e.target.value)}
                 required
-                className="w-full px-3 py-2 text-sm font-semibold text-stone-900 bg-stone-50 border border-stone-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="ek-input font-semibold text-center tabular-nums"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                Unidade
-              </label>
+              <label className="ek-label">Unidade</label>
               <select
                 value={osUnidadeMedida}
                 onChange={(e) => setOsUnidadeMedida(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="ek-select uppercase"
               >
                 {opcoesUnidades.map((um) => (
                   <option key={um} value={um}>
@@ -259,9 +254,7 @@ function ModalEdtEmpreitada({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                Valor Unit. (R$)
-              </label>
+              <label className="ek-label">Valor unit. (R$)</label>
               <input
                 type="text"
                 value={osValorStr}
@@ -270,15 +263,13 @@ function ModalEdtEmpreitada({
                   setOsValorStr(e.target.value);
                 }}
                 required
-                className="w-full px-3 py-2 text-sm font-semibold text-stone-900 bg-stone-50 border border-stone-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="ek-input font-semibold text-right tabular-nums"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-              Prazo de Conclusão
-            </label>
+            <label className="ek-label">Prazo de conclusão</label>
             <input
               type="text"
               inputMode="numeric"
@@ -286,14 +277,14 @@ function ModalEdtEmpreitada({
               placeholder="DD/MM/AAAA"
               value={prazo}
               onChange={(e) => setPrazo(aplicarMascaraData(e.target.value))}
-              className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              className="ek-input font-mono tabular-nums"
             />
           </div>
 
           {/* Subtotal Display */}
-          <div className="p-3.5 bg-amber-50/80 rounded-xl flex justify-between items-center border border-amber-200/80">
-            <span className="text-xs font-bold text-amber-900 uppercase">Subtotal do Serviço</span>
-            <span className="text-lg font-black text-amber-900">
+          <div className="px-4 py-3 bg-brand-soft rounded-[6px] flex justify-between items-center border border-brand-border">
+            <span className="text-xs font-semibold text-brand">Subtotal do serviço</span>
+            <span className="text-lg font-bold text-brand tabular-nums">
               {Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -302,20 +293,20 @@ function ModalEdtEmpreitada({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-200">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-ek-rule">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition"
+              className="ek-btn-secondary"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition active:scale-[0.98]"
+              className="ek-btn-primary"
             >
               <Save className="w-4 h-4" />
-              Salvar Alterações
+              Salvar alterações
             </button>
           </div>
         </form>
@@ -455,39 +446,40 @@ function ModalServicos({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none">
-      <div className="relative w-full max-w-lg flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none">
+      <div className="relative w-full max-w-lg flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-ek-raised shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-              <Plus className="w-5 h-5" />
-            </div>
+            <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
             <div>
-              <h3 className="text-base font-bold text-stone-800 tracking-tight">Adicionar Serviço</h3>
-              <p className="text-xs text-stone-500 font-normal">Novo item para esta empreitada</p>
+              <h3 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                <Plus className="w-4 h-4 text-brand" />
+                <span>Adicionar serviço</span>
+              </h3>
+              <p className="text-xs text-ek-muted">Novo item para esta empreitada</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSalvar} className="p-6 space-y-4">
+        <form onSubmit={handleSalvar} className="p-5 space-y-4">
           {servicosDisponiveis.length > 0 && (
             <div>
-              <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                Selecionar Serviço Cadastrado na OS (opcional)
+              <label className="ek-label">
+                Selecionar serviço cadastrado na OS (opcional)
               </label>
               <select
                 value={servicoSelecionadoCod}
                 onChange={handleSelecionarServicoOS}
-                className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="ek-select"
               >
                 <option value="">-- Selecione um serviço cadastrado ou digite abaixo --</option>
                 {servicosDisponiveis.map((s, idx) => {
@@ -503,9 +495,7 @@ function ModalServicos({
           )}
 
           <div>
-            <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-              Descrição do Serviço (Texto / Cadastro)
-            </label>
+            <label className="ek-label">Descrição do serviço (texto / cadastro)</label>
             <input
               type="text"
               value={descricao}
@@ -513,15 +503,13 @@ function ModalServicos({
               required
               placeholder="Informe a descrição do serviço"
               autoFocus
-              className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              className="ek-input uppercase"
             />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                Quantidade
-              </label>
+              <label className="ek-label">Quantidade</label>
               <input
                 type="number"
                 step="any"
@@ -529,18 +517,16 @@ function ModalServicos({
                 value={quantidadeStr}
                 onChange={(e) => setQuantidadeStr(e.target.value)}
                 required
-                className="w-full px-3 py-2 text-sm font-semibold text-stone-900 bg-stone-50 border border-stone-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="ek-input font-semibold text-center tabular-nums"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                Unidade
-              </label>
+              <label className="ek-label">Unidade</label>
               <select
                 value={unidadeMedida}
                 onChange={(e) => setUnidadeMedida(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="ek-select uppercase"
               >
                 {opcoesUnidades.map((um) => (
                   <option key={um} value={um}>
@@ -551,9 +537,7 @@ function ModalServicos({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                Valor Unit. (R$)
-              </label>
+              <label className="ek-label">Valor unit. (R$)</label>
               <input
                 type="text"
                 value={valorUnitarioStr}
@@ -562,15 +546,13 @@ function ModalServicos({
                   setValorUnitarioStr(e.target.value);
                 }}
                 required
-                className="w-full px-3 py-2 text-sm font-semibold text-stone-900 bg-stone-50 border border-stone-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+                className="ek-input font-semibold text-right tabular-nums"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-              Prazo de Conclusão
-            </label>
+            <label className="ek-label">Prazo de conclusão</label>
             <input
               type="text"
               inputMode="numeric"
@@ -578,14 +560,14 @@ function ModalServicos({
               placeholder="DD/MM/AAAA"
               value={prazo}
               onChange={(e) => setPrazo(aplicarMascaraData(e.target.value))}
-              className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+              className="ek-input font-mono tabular-nums"
             />
           </div>
 
           {/* Subtotal Display */}
-          <div className="p-3.5 bg-amber-50/80 rounded-xl flex justify-between items-center border border-amber-200/80">
-            <span className="text-xs font-bold text-amber-900 uppercase">Subtotal do Serviço</span>
-            <span className="text-lg font-black text-amber-900">
+          <div className="px-4 py-3 bg-brand-soft rounded-[6px] flex justify-between items-center border border-brand-border">
+            <span className="text-xs font-semibold text-brand">Subtotal do serviço</span>
+            <span className="text-lg font-bold text-brand tabular-nums">
               {Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -594,20 +576,20 @@ function ModalServicos({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-200">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-ek-rule">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition"
+              className="ek-btn-secondary"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition active:scale-[0.98]"
+              className="ek-btn-primary"
             >
               <Save className="w-4 h-4" />
-              Salvar Serviço
+              Salvar serviço
             </button>
           </div>
         </form>
@@ -685,36 +667,37 @@ function ModalRegistrarPagamento({
   return (
     <div
       tabIndex={-1}
-      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
     >
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden font-sans">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-stone-50">
-          <div className="flex items-center gap-2">
-            <Coins className="w-5 h-5 text-emerald-600" />
-            <h3 className="text-base font-bold text-stone-800">Registrar Pagamento / Baixa</h3>
+      <div className="relative w-full max-w-lg bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-ek-raised">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1 h-4 bg-emerald-600 rounded-full" aria-hidden="true" />
+            <h3 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+              <Coins className="w-4 h-4 text-emerald-600" />
+              <span>Registrar pagamento / baixa</span>
+            </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-200/60 transition"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-800 uppercase">Saldo Restante da Empreitada:</span>
-            <span className="text-base font-bold text-amber-900 font-mono">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div className="px-4 py-3 bg-brand-soft rounded-[6px] border border-brand-border flex items-center justify-between">
+            <span className="text-xs font-semibold text-brand">Saldo restante da empreitada</span>
+            <span className="text-base font-bold text-brand tabular-nums">
               {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(saldoRestante)}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                Valor da Parcela (R$) *
-              </label>
+              <label className="ek-label">Valor da parcela (R$) *</label>
               <input
                 type="text"
                 value={valorStr}
@@ -723,13 +706,13 @@ function ModalRegistrarPagamento({
                   mascaraMoedaEvent(e);
                   setValorStr(e.target.value);
                 }}
-                className="w-full px-3 py-2 text-sm font-semibold bg-stone-50 border border-stone-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+                className="ek-input font-semibold text-right tabular-nums"
               />
               {saldoRestante > 0 && valorNum !== saldoRestante && (
                 <button
                   type="button"
                   onClick={() => setValorStr(mascaraMoeda(saldoRestante))}
-                  className="mt-1 text-[11px] text-emerald-700 hover:text-emerald-800 font-medium flex items-center gap-1"
+                  className="mt-1 text-xs text-brand hover:underline font-medium flex items-center gap-1 tabular-nums"
                 >
                   Usar saldo total ({mascaraMoeda(saldoRestante)})
                 </button>
@@ -737,9 +720,7 @@ function ModalRegistrarPagamento({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                Data do Pagamento *
-              </label>
+              <label className="ek-label">Data do pagamento *</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -747,20 +728,18 @@ function ModalRegistrarPagamento({
                 value={dataPgm}
                 onChange={(e) => setDataPgm(aplicarMascaraData(e.target.value))}
                 placeholder="DD/MM/AAAA"
-                className="w-full px-3 py-2 text-sm text-stone-900 bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+                className="ek-input font-mono tabular-nums"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                Forma de Pagamento
-              </label>
+              <label className="ek-label">Forma de pagamento</label>
               <select
                 value={formaPgm}
                 onChange={(e) => setFormaPgm(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+                className="ek-select"
               >
                 <option value="PIX">PIX</option>
                 <option value="DINHEIRO">DINHEIRO</option>
@@ -773,54 +752,50 @@ function ModalRegistrarPagamento({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                Identificação / Parcela
-              </label>
+              <label className="ek-label">Identificação / parcela</label>
               <input
                 type="text"
                 value={duplicata}
                 onChange={(e) => setDuplicata(e.target.value)}
                 placeholder="Ex: Entrada, 1ª Parcela"
-                className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+                className="ek-input"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-              Observações do Pagamento
-            </label>
+            <label className="ek-label">Observações do pagamento</label>
             <input
               type="text"
               value={obs}
               onChange={(e) => setObs(e.target.value)}
               placeholder="Opcional: comprovante, banco, detalhes da baixa"
-              className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+              className="ek-input"
             />
           </div>
 
           {valorNum > saldoRestante && saldoRestante > 0 && (
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+            <div className="p-3 bg-brand-goldSoft rounded-[6px] border border-amber-200 text-xs text-brand-goldInk flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
-                Atenção: O valor informado é maior que o saldo restante da empreitada.
+                Atenção: o valor informado é maior que o saldo restante da empreitada.
               </span>
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-200">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-ek-rule">
             <button
               type="button"
               disabled={isLoading}
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition disabled:opacity-50"
+              className="ek-btn-secondary disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition active:scale-[0.98] disabled:opacity-50"
+              className="ek-btn-primary disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -830,7 +805,7 @@ function ModalRegistrarPagamento({
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  Confirmar Pagamento
+                  Confirmar pagamento
                 </>
               )}
             </button>
@@ -882,70 +857,68 @@ function ModalEstornoPagamento({
   return (
     <div
       tabIndex={-1}
-      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
     >
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden font-sans">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-rose-50">
+      <div className="relative w-full max-w-md bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-rose-50/70">
           <div className="flex items-center gap-2">
-            <Ban className="w-5 h-5 text-rose-600" />
-            <h3 className="text-base font-bold text-rose-900">Estornar Pagamento #{pagamento.PAG_CODIGO}</h3>
+            <Ban className="w-4 h-4 text-rose-600" />
+            <h3 className="text-sm font-semibold text-rose-900 tabular-nums">Estornar pagamento #{pagamento.PAG_CODIGO}</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-200/60 transition"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-rose-100/60 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-1 text-xs">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div className="p-3 bg-ek-raised rounded-[6px] border border-ek-border space-y-1.5 text-xs">
             <div className="flex justify-between">
-              <span className="text-stone-500">Valor da baixa:</span>
-              <span className="font-bold font-mono text-stone-800">
+              <span className="text-ek-muted">Valor da baixa:</span>
+              <span className="font-semibold text-ek-text tabular-nums">
                 {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pagamento.PAG_VALOR)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-stone-500">Data registrada:</span>
-              <span className="font-mono text-stone-700">
+              <span className="text-ek-muted">Data registrada:</span>
+              <span className="text-ek-text tabular-nums">
                 {pagamento.PP_DATAPGM ? formatDataInput(pagamento.PP_DATAPGM) : formatDataInput(pagamento.PAG_VENCIMENTO)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-stone-500">Identificação:</span>
-              <span className="text-stone-700">{pagamento.PAG_DUPLICATA || "Baixa avulsa"}</span>
+              <span className="text-ek-muted">Identificação:</span>
+              <span className="text-ek-text">{pagamento.PAG_DUPLICATA || "Baixa avulsa"}</span>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-              Justificativa / Motivo do Estorno *
-            </label>
+            <label className="ek-label">Justificativa / motivo do estorno *</label>
             <textarea
               rows={3}
               required
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
               placeholder="Ex: Pagamento cancelado pelo financeiro, valor incorreto..."
-              className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition resize-none"
+              className="ek-textarea"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-200">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-ek-rule">
             <button
               type="button"
               disabled={isLoading}
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition disabled:opacity-50"
+              className="ek-btn-secondary disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition active:scale-[0.98] disabled:opacity-50"
+              className="ek-btn-danger disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -955,7 +928,7 @@ function ModalEstornoPagamento({
               ) : (
                 <>
                   <Ban className="w-4 h-4" />
-                  Confirmar Estorno
+                  Confirmar estorno
                 </>
               )}
             </button>
@@ -1596,36 +1569,34 @@ export default function EmpreitadaModal({
   return (
     <div
       tabIndex={-1}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
     >
-      <div className="relative w-full max-w-5xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+      <div className="relative w-full max-w-5xl max-h-[92vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-ek-raised shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-              <Building2 className="w-5 h-5" />
-            </div>
+            <span className="w-1 h-5 bg-brand rounded-full shrink-0" aria-hidden="true" />
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-stone-800 tracking-tight">
+                <h2 className="text-sm font-semibold text-ek-text">
                   {empreitada?.FOR_NOME || fornecedor.NOME || "Empreitada"}
                 </h2>
                 {empreitada?.EMP_CODIGO ? (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-stone-200 text-stone-700 font-mono font-bold">
+                  <span className="text-xs px-2 py-0.5 rounded-[6px] bg-ek-surface border border-ek-border text-ek-text font-mono font-semibold tabular-nums">
                     #{empreitada.EMP_CODIGO}
                   </span>
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">
-                    Novo Cadastro
+                  <span className="text-xs px-2 py-0.5 rounded-[6px] bg-brand-soft text-brand border border-brand-border font-semibold">
+                    Novo cadastro
                   </span>
                 )}
               </div>
-              <p className="text-xs text-stone-500 font-normal">
+              <p className="text-xs text-ek-muted tabular-nums">
                 Ordem de Serviço #{ordem.ORD_CODIGO}{" "}
                 {empreitada?.EMP_FAT ? (
-                  <span className="text-emerald-600 font-semibold">| Fatura #{empreitada.EMP_FAT}</span>
+                  <span className="text-emerald-700 font-semibold">· Fatura #{empreitada.EMP_FAT}</span>
                 ) : (
-                  <span className="text-amber-600 font-semibold">| Em Aberto</span>
+                  <span className="text-brand-goldInk font-semibold">· Em aberto</span>
                 )}
               </p>
             </div>
@@ -1633,35 +1604,35 @@ export default function EmpreitadaModal({
           <button
             type="button"
             onClick={handleRequestClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
             title="Fechar"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {carregando ? (
-            <div className="flex flex-col items-center justify-center py-16 text-stone-500 gap-2">
-              <Loader2 className="w-7 h-7 animate-spin text-amber-500" />
+            <div className="flex flex-col items-center justify-center py-16 text-ek-muted gap-2">
+              <Loader2 className="w-7 h-7 animate-spin text-brand" />
               <span className="text-xs font-medium">Carregando dados da empreitada...</span>
             </div>
           ) : (
             <>
               {/* SEÇÃO 1: DADOS FISCAIS E DE COMPRA */}
-              <div className="bg-white rounded-xl border border-stone-200/80 shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-stone-200/80 bg-stone-50/80 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-amber-600" />
-                  <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Dados Fiscais e de Compra
+              <div className="ek-card overflow-hidden">
+                <div className="px-4 py-2.5 border-b border-ek-border bg-ek-raised flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-brand" />
+                  <h3 className="text-xs font-semibold text-ek-text">
+                    Dados fiscais e de compra
                   </h3>
                 </div>
                 <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-amber-500" />
-                      Protocolo Agendamento
+                    <label className="ek-label flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-brand" />
+                      Protocolo agendamento
                     </label>
                     <input
                       type="text"
@@ -1669,14 +1640,14 @@ export default function EmpreitadaModal({
                       disabled={estaFaturada()}
                       onChange={(e) => setProtocolo(e.target.value)}
                       placeholder="Ex: 42661835"
-                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
+                      className="ek-input font-mono tabular-nums disabled:opacity-50"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1 flex items-center gap-1">
-                      <Hash className="w-3.5 h-3.5 text-stone-400" />
-                      Nota Fiscal
+                    <label className="ek-label flex items-center gap-1">
+                      <Hash className="w-3.5 h-3.5 text-ek-faint" />
+                      Nota fiscal
                     </label>
                     <input
                       type="text"
@@ -1685,13 +1656,13 @@ export default function EmpreitadaModal({
                       disabled={estaFaturada()}
                       onChange={(e) => setNfs(e.target.value.replace(/\D/g, ""))}
                       placeholder="Ex: 001234"
-                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
+                      className="ek-input font-mono tabular-nums disabled:opacity-50"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1 flex items-center gap-1">
-                      <Store className="w-3.5 h-3.5 text-stone-400" />
+                    <label className="ek-label flex items-center gap-1">
+                      <Store className="w-3.5 h-3.5 text-ek-faint" />
                       Loja / Filial
                     </label>
                     <input
@@ -1701,14 +1672,14 @@ export default function EmpreitadaModal({
                       disabled={estaFaturada()}
                       onChange={(e) => setLoja(e.target.value.replace(/\D/g, ""))}
                       placeholder="Ex: 01"
-                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
+                      className="ek-input font-mono tabular-nums disabled:opacity-50"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1 flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-stone-400" />
-                      Pedido de Compra
+                    <label className="ek-label flex items-center gap-1">
+                      <FileText className="w-3.5 h-3.5 text-ek-faint" />
+                      Pedido de compra
                     </label>
                     <input
                       type="text"
@@ -1717,71 +1688,65 @@ export default function EmpreitadaModal({
                       disabled={estaFaturada()}
                       onChange={(e) => setPedido(e.target.value.replace(/\D/g, ""))}
                       placeholder="Ex: 8877"
-                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
+                      className="ek-input font-mono tabular-nums disabled:opacity-50"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1 flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-stone-400" />
-                      Data de Emissão
+                    <label className="ek-label flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-ek-faint" />
+                      Data de emissão
                     </label>
                     <input
                       type="date"
                       value={dataEmissao}
                       disabled={estaFaturada()}
                       onChange={(e) => setDataEmissao(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
+                      className="ek-input tabular-nums disabled:opacity-50"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SEÇÃO 2: PRESTADOR E COORDENAÇÃO */}
-              <div className="bg-white rounded-xl border border-stone-200/80 shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-stone-200/80 bg-stone-50/80 flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-amber-600" />
-                  <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Prestador e Coordenação
+              <div className="ek-card overflow-hidden">
+                <div className="px-4 py-2.5 border-b border-ek-border bg-ek-raised flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-brand" />
+                  <h3 className="text-xs font-semibold text-ek-text">
+                    Prestador e coordenação
                   </h3>
                 </div>
                 <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                      Prestador de Serviços
-                    </label>
-                    <div className="flex items-center px-3 py-2 text-sm bg-stone-100 text-stone-800 border border-stone-300 rounded-lg font-medium">
-                      <Building2 className="w-4 h-4 text-stone-500 mr-2 shrink-0" />
+                    <label className="ek-label">Prestador de serviços</label>
+                    <div className="ek-input bg-ek-raised flex items-center text-ek-text font-medium cursor-default">
+                      <Building2 className="w-4 h-4 text-ek-muted mr-2 shrink-0" />
                       <span className="truncate">{empreitada?.FOR_NOME || fornecedor.NOME}</span>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                      Coordenador / Responsável
-                    </label>
-                    <div className="flex flex-col gap-1.5">
-                      <input
-                        type="text"
-                        list="datalist-coordenadores-emp"
-                        value={coordenador}
-                        disabled={estaFaturada()}
-                        onChange={(e) => setCoordenador(e.target.value.toUpperCase())}
-                        placeholder="Selecione ou digite o coordenador"
-                        className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
-                      />
-                      <datalist id="datalist-coordenadores-emp">
-                        {listaCoordenadores.map((nome) => (
-                          <option key={nome} value={nome} />
-                        ))}
-                      </datalist>
-                    </div>
+                    <label className="ek-label">Coordenador / responsável</label>
+                    <input
+                      type="text"
+                      list="datalist-coordenadores-emp"
+                      value={coordenador}
+                      disabled={estaFaturada()}
+                      onChange={(e) => setCoordenador(e.target.value.toUpperCase())}
+                      placeholder="Selecione ou digite o coordenador"
+                      className="ek-input uppercase disabled:opacity-50"
+                    />
+                    <datalist id="datalist-coordenadores-emp">
+                      {listaCoordenadores.map((nome) => (
+                        <option key={nome} value={nome} />
+                      ))}
+                    </datalist>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-stone-400" />
-                      Local de Execução
+                    <label className="ek-label flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-ek-faint" />
+                      Local de execução
                     </label>
                     <input
                       type="text"
@@ -1789,62 +1754,62 @@ export default function EmpreitadaModal({
                       disabled={estaFaturada()}
                       onChange={(e) => setLocalExecucao(e.target.value.toUpperCase())}
                       placeholder="Ex: Pavimento 2, Bessa, João Pessoa-PB"
-                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg uppercase focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
+                      className="ek-input uppercase disabled:opacity-50"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SEÇÃO 3: SERVIÇOS DA EMPREITADA */}
-              <div className="bg-white rounded-xl border border-stone-200/80 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-200/80 bg-stone-50/90">
+              <div className="ek-card overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-ek-border bg-ek-raised">
                   <div className="flex items-center gap-2">
-                    <Wrench className="w-4 h-4 text-amber-600" />
-                    <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                      Serviços da Empreitada
+                    <Wrench className="w-4 h-4 text-brand" />
+                    <h3 className="text-xs font-semibold text-ek-text">
+                      Serviços da empreitada
                     </h3>
                   </div>
                   <button
                     type="button"
                     disabled={estaFaturada()}
                     onClick={() => setShowModalServicos(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="ek-btn-primary h-8 px-3 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <Plus className="w-4 h-4" />
-                    Adicionar Serviço
+                    <Plus className="w-3.5 h-3.5" />
+                    Adicionar serviço
                   </button>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-stone-100/90 text-stone-600 font-bold uppercase text-xs border-b border-stone-200 tracking-wider">
-                        <th className="p-3">Descrição</th>
-                        <th className="p-3 text-center">Quant.</th>
-                        <th className="p-3 text-center">UM</th>
-                        <th className="p-3 text-right">Valor Unit.</th>
-                        <th className="p-3 text-right">Valor Total</th>
-                        <th className="p-3 text-center">Prazo Conclusão</th>
-                        <th className="p-3 text-right">Ações</th>
+                      <tr className="bg-ek-raised/60 text-ek-muted font-semibold text-xs border-b border-ek-border">
+                        <th className="py-2.5 px-3">Descrição</th>
+                        <th className="py-2.5 px-3 text-center">Quant.</th>
+                        <th className="py-2.5 px-3 text-center">UM</th>
+                        <th className="py-2.5 px-3 text-right">Valor unit.</th>
+                        <th className="py-2.5 px-3 text-right">Valor total</th>
+                        <th className="py-2.5 px-3 text-center">Prazo conclusão</th>
+                        <th className="py-2.5 px-3 text-right">Ações</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-100">
+                    <tbody className="divide-y divide-ek-rule">
                       {itens.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="p-8 text-center text-xs text-stone-400">
-                            Nenhum serviço cadastrado para esta empreitada. Clique em &quot;Adicionar Serviço&quot; para incluir.
+                          <td colSpan={7} className="p-8 text-center text-xs text-ek-faint">
+                            Nenhum serviço cadastrado para esta empreitada. Clique em &quot;Adicionar serviço&quot; para incluir.
                           </td>
                         </tr>
                       ) : (
                         itens.map((item, index) => (
                           <tr
                             key={item.ES_CODIGO || index}
-                            className="hover:bg-amber-50/40 transition-colors text-xs text-stone-700"
+                            className="hover:bg-ek-raised/80 transition-colors text-xs text-ek-text"
                           >
-                            <td className="p-3 font-medium text-stone-900">{item.DESCRICAO}</td>
-                            <td className="p-3 text-center font-mono">{item.ES_QUANTIDADE}</td>
+                            <td className="p-3 font-medium text-ek-text">{item.DESCRICAO}</td>
+                            <td className="p-3 text-center font-mono tabular-nums">{item.ES_QUANTIDADE}</td>
                             <td className="p-3 text-center">{item.ES_UNIDADE}</td>
-                            <td className="p-3 text-right font-mono">
+                            <td className="p-3 text-right tabular-nums">
                               {Intl.NumberFormat("pt-BR", {
                                 style: "currency",
                                 currency: "BRL",
@@ -1853,13 +1818,13 @@ export default function EmpreitadaModal({
                                   (item.ES_VALOR ?? 0) / (item.ES_QUANTIDADE || 1)
                               )}
                             </td>
-                            <td className="p-3 text-right font-mono font-semibold text-stone-900">
+                            <td className="p-3 text-right font-semibold text-ek-text tabular-nums">
                               {Intl.NumberFormat("pt-BR", {
                                 style: "currency",
                                 currency: "BRL",
                               }).format(item.ES_VALOR ?? 0)}
                             </td>
-                            <td className="p-3 text-center">
+                            <td className="p-3 text-center tabular-nums">
                               {item.ES_PRAZO_CONCLUSAO
                                 ? imprimePrazoConclusao(item.ES_PRAZO_CONCLUSAO)
                                 : "-"}
@@ -1870,7 +1835,7 @@ export default function EmpreitadaModal({
                                   type="button"
                                   disabled={estaFaturada()}
                                   onClick={() => editaServico(item)}
-                                  className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                  className="p-1.5 text-ek-faint hover:text-brand hover:bg-brand-soft rounded-[6px] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                   title="Editar Serviço"
                                 >
                                   <Edit2 className="w-4 h-4" />
@@ -1886,7 +1851,7 @@ export default function EmpreitadaModal({
                                       descricao: item.DESCRICAO,
                                     })
                                   }
-                                  className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                  className="p-1.5 text-ek-faint hover:text-rose-600 hover:bg-rose-50 rounded-[6px] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                   title="Excluir Serviço"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -1900,14 +1865,13 @@ export default function EmpreitadaModal({
                   </table>
                 </div>
 
-                {/* Subtotal da Empreitada */}
                 {itens.length > 0 && (
-                  <div className="flex items-center justify-between px-5 py-3 border-t border-stone-200 bg-stone-50/60">
-                    <span className="text-xs font-bold text-stone-600 uppercase">
-                      Total dos Serviços ({itens.length}{" "}
-                      {itens.length === 1 ? "item" : "itens"}):
+                  <div className="flex items-center justify-between px-4 py-2.5 border-t border-ek-border bg-ek-raised">
+                    <span className="text-xs font-medium text-ek-muted tabular-nums">
+                      Total dos serviços ({itens.length}{" "}
+                      {itens.length === 1 ? "item" : "itens"})
                     </span>
-                    <span className="text-base font-bold text-stone-900 font-mono">
+                    <span className="text-sm font-bold text-ek-text tabular-nums">
                       {Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -1918,36 +1882,32 @@ export default function EmpreitadaModal({
               </div>
 
               {/* SEÇÃO 4: VALORES E PAGAMENTOS */}
-              <div className="bg-white rounded-xl border border-stone-200/80 shadow-sm p-4">
+              <div className="ek-card p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Coins className="w-4 h-4 text-amber-600" />
-                  <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Valores e Pagamentos da Empreitada
+                  <Coins className="w-4 h-4 text-brand" />
+                  <h3 className="text-xs font-semibold text-ek-text">
+                    Valores e pagamentos da empreitada
                   </h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
                   <div>
-                    <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                      Valor da NF / Total (R$)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={valorNfStr}
-                        disabled={estaFaturada()}
-                        onChange={(e) => {
-                          mascaraMoedaEvent(e);
-                          setValorNfStr(e.target.value);
-                        }}
-                        className="w-full px-3 py-2 text-sm font-semibold bg-stone-50 border border-stone-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
-                      />
-                    </div>
+                    <label className="ek-label">Valor da NF / Total (R$)</label>
+                    <input
+                      type="text"
+                      value={valorNfStr}
+                      disabled={estaFaturada()}
+                      onChange={(e) => {
+                        mascaraMoedaEvent(e);
+                        setValorNfStr(e.target.value);
+                      }}
+                      className="ek-input font-semibold text-right tabular-nums disabled:opacity-50"
+                    />
                     {totalServicosCalculado > 0 && (
                       <button
                         type="button"
                         disabled={estaFaturada()}
                         onClick={() => setValorNfStr(mascaraMoeda(totalServicosCalculado))}
-                        className="mt-1 text-[11px] text-amber-700 hover:text-amber-800 font-medium flex items-center gap-1"
+                        className="mt-1 text-xs text-brand hover:underline font-medium flex items-center gap-1 tabular-nums"
                       >
                         <RefreshCw className="w-3 h-3" />
                         Usar soma dos serviços ({mascaraMoeda(totalServicosCalculado)})
@@ -1955,33 +1915,33 @@ export default function EmpreitadaModal({
                     )}
                   </div>
 
-                  <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
-                    <span className="block text-[11px] font-bold text-stone-500 uppercase">
-                      Total dos Serviços
+                  <div className="p-3 bg-ek-raised rounded-[6px] border border-ek-border">
+                    <span className="block text-xs font-medium text-ek-muted">
+                      Total dos serviços
                     </span>
-                    <span className="text-base font-bold text-stone-800 font-mono">
+                    <span className="text-base font-bold text-ek-text tabular-nums">
                       {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
                         totalServicosCalculado
                       )}
                     </span>
                   </div>
 
-                  <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                    <span className="block text-[11px] font-bold text-emerald-700 uppercase">
-                      Valor Pago / Recebido
+                  <div className="p-3 bg-emerald-50/70 rounded-[6px] border border-emerald-200">
+                    <span className="block text-xs font-medium text-emerald-700">
+                      Valor pago / recebido
                     </span>
-                    <span className="text-base font-bold text-emerald-800 font-mono">
+                    <span className="text-base font-bold text-emerald-800 tabular-nums">
                       {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
                         valorRecebido
                       )}
                     </span>
                   </div>
 
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                    <span className="block text-[11px] font-bold text-amber-800 uppercase">
-                      Saldo a Pagar
+                  <div className="p-3 bg-brand-soft rounded-[6px] border border-brand-border">
+                    <span className="block text-xs font-medium text-brand">
+                      Saldo a pagar
                     </span>
-                    <span className="text-base font-bold text-amber-900 font-mono">
+                    <span className="text-base font-bold text-brand tabular-nums">
                       {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
                         saldoRestante
                       )}
@@ -1989,16 +1949,16 @@ export default function EmpreitadaModal({
                   </div>
                 </div>
 
-                {/* HISTÓRICO DE PAGAMENTOS / PARCELAS (E05 / R02) */}
-                <div className="mt-5 pt-4 border-t border-stone-200">
+                {/* HISTÓRICO DE PAGAMENTOS / PARCELAS */}
+                <div className="mt-5 pt-4 border-t border-ek-rule">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <History className="w-4 h-4 text-stone-600" />
-                      <h4 className="text-xs font-bold text-stone-700 uppercase tracking-wide">
-                        Histórico de Pagamentos e Baixas
+                      <History className="w-4 h-4 text-ek-muted" />
+                      <h4 className="text-xs font-semibold text-ek-text">
+                        Histórico de pagamentos e baixas
                       </h4>
                       {pagamentos.length > 0 && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 font-mono font-semibold">
+                        <span className="text-xs px-2 py-0.5 rounded-[6px] bg-ek-raised border border-ek-border text-ek-muted font-medium tabular-nums">
                           {pagamentos.length} {pagamentos.length === 1 ? "registro" : "registros"}
                         </span>
                       )}
@@ -2008,7 +1968,7 @@ export default function EmpreitadaModal({
                       type="button"
                       disabled={!empreitada || empreitada.EMP_CODIGO === 0}
                       onClick={() => setShowModalRegistrarPagamento(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
+                      className="ek-btn-secondary h-8 px-3 text-xs text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed"
                       title={
                         !empreitada || empreitada.EMP_CODIGO === 0
                           ? "Salve a empreitada antes de registrar pagamentos"
@@ -2016,34 +1976,34 @@ export default function EmpreitadaModal({
                       }
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      Registrar Pagamento
+                      Registrar pagamento
                     </button>
                   </div>
 
                   {carregandoPagamentos ? (
-                    <div className="flex items-center justify-center py-6 text-stone-400 gap-2 text-xs">
-                      <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+                    <div className="flex items-center justify-center py-6 text-ek-muted gap-2 text-xs">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand" />
                       Carregando histórico de pagamentos...
                     </div>
                   ) : pagamentos.length === 0 ? (
-                    <div className="text-center py-5 px-3 bg-stone-50 rounded-xl border border-stone-200/80 text-xs text-stone-500">
+                    <div className="text-center py-5 px-3 bg-ek-raised rounded-[6px] border border-ek-border text-xs text-ek-muted">
                       Nenhum pagamento ou parcela registrado para esta empreitada.
                     </div>
                   ) : (
-                    <div className="overflow-x-auto rounded-xl border border-stone-200">
+                    <div className="overflow-x-auto rounded-[6px] border border-ek-border">
                       <table className="w-full text-xs text-left">
-                        <thead className="bg-stone-50 text-stone-600 font-bold uppercase text-[10px] border-b border-stone-200">
+                        <thead className="bg-ek-raised text-ek-muted font-semibold text-xs border-b border-ek-border">
                           <tr>
                             <th className="px-3 py-2">#</th>
                             <th className="px-3 py-2">Data</th>
-                            <th className="px-3 py-2">Identificação / Parcela</th>
+                            <th className="px-3 py-2">Identificação / parcela</th>
                             <th className="px-3 py-2">Forma</th>
                             <th className="px-3 py-2 text-right">Valor (R$)</th>
                             <th className="px-3 py-2 text-center">Status</th>
                             <th className="px-3 py-2 text-center">Ações</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-stone-200">
+                        <tbody className="divide-y divide-ek-rule">
                           {pagamentos.map((pag) => {
                             const isEstornado = pag.PAG_SITUACAO === -1;
                             const isQuitado = pag.PAG_ESTADO === 3 && !isEstornado;
@@ -2057,33 +2017,33 @@ export default function EmpreitadaModal({
                                 key={pag.PAG_CODIGO}
                                 className={
                                   isEstornado
-                                    ? "bg-rose-50/40 text-stone-400"
-                                    : "hover:bg-stone-50/60"
+                                    ? "bg-rose-50/40 text-ek-faint"
+                                    : "hover:bg-ek-raised/80"
                                 }
                               >
-                                <td className="px-3 py-2 font-mono font-bold text-stone-500">
+                                <td className="px-3 py-2 font-mono font-semibold text-ek-muted tabular-nums">
                                   #{pag.PAG_CODIGO}
                                 </td>
-                                <td className="px-3 py-2 font-mono">{dataExibicao}</td>
-                                <td className="px-3 py-2 font-medium">
+                                <td className="px-3 py-2 tabular-nums">{dataExibicao}</td>
+                                <td className="px-3 py-2 font-medium text-ek-text">
                                   <div>{pag.PAG_DUPLICATA || "Baixa avulsa"}</div>
                                   {pag.PAG_OBS && (
                                     <div
-                                      className="text-[10px] text-stone-400 truncate max-w-xs"
+                                      className="text-[11px] text-ek-muted truncate max-w-xs"
                                       title={pag.PAG_OBS}
                                     >
                                       {pag.PAG_OBS.replace(/\[IDEMP:[^\]]+\]\s*/, "")}
                                     </div>
                                   )}
                                 </td>
-                                <td className="px-3 py-2 font-mono">{pag.PAG_TIPO || "DINHEIRO"}</td>
+                                <td className="px-3 py-2 font-mono text-ek-muted">{pag.PAG_TIPO || "DINHEIRO"}</td>
                                 <td
-                                  className={`px-3 py-2 text-right font-mono font-bold ${
+                                  className={`px-3 py-2 text-right font-semibold tabular-nums ${
                                     isEstornado
-                                      ? "line-through text-stone-400"
+                                      ? "line-through text-ek-faint"
                                       : isQuitado
                                       ? "text-emerald-700"
-                                      : "text-amber-700"
+                                      : "text-brand-goldInk"
                                   }`}
                                 >
                                   {Intl.NumberFormat("pt-BR", {
@@ -2093,16 +2053,16 @@ export default function EmpreitadaModal({
                                 </td>
                                 <td className="px-3 py-2 text-center">
                                   {isEstornado ? (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
-                                      <Ban className="w-2.5 h-2.5" /> Estornado
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                                      <Ban className="w-3 h-3" /> Estornado
                                     </span>
                                   ) : isQuitado ? (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                      <CheckCircle2 className="w-2.5 h-2.5" /> Quitado
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      <CheckCircle2 className="w-3 h-3" /> Quitado
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                                      <Clock className="w-2.5 h-2.5" /> Pendente
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-medium bg-brand-goldSoft text-brand-goldInk border border-amber-200">
+                                      <Clock className="w-3 h-3" /> Pendente
                                     </span>
                                   )}
                                 </td>
@@ -2114,7 +2074,7 @@ export default function EmpreitadaModal({
                                         setPagamentoParaEstornar(pag);
                                         setShowModalEstorno(true);
                                       }}
-                                      className="p-1 text-stone-400 hover:text-rose-600 transition"
+                                      className="p-1 text-ek-faint hover:text-rose-600 transition-colors"
                                       title="Estornar este pagamento"
                                     >
                                       <Ban className="w-3.5 h-3.5" />
@@ -2124,10 +2084,10 @@ export default function EmpreitadaModal({
                                     <button
                                       type="button"
                                       onClick={() => handleDarBaixa(pag)}
-                                      className="px-2 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded transition"
+                                      className="px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded-[6px] transition-colors"
                                       title="Confirmar quitação desta parcela"
                                     >
-                                      Dar Baixa
+                                      Dar baixa
                                     </button>
                                   )}
                                 </td>
@@ -2142,17 +2102,15 @@ export default function EmpreitadaModal({
               </div>
 
               {/* SEÇÃO 5: OBSERVAÇÕES */}
-              <div className="bg-white rounded-xl border border-stone-200/80 shadow-sm p-4">
-                <label className="block text-xs font-bold text-stone-600 uppercase mb-1">
-                  Observações da Empreitada
-                </label>
+              <div className="ek-card p-4">
+                <label className="ek-label">Observações da empreitada</label>
                 <textarea
                   rows={3}
                   value={obsEmpreitadas}
                   disabled={estaFaturada()}
                   onChange={(e) => setObsEmpreitadas(e.target.value)}
                   placeholder="Informações adicionais, condições de pagamento, prazos de entrega..."
-                  className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition disabled:opacity-50"
+                  className="ek-textarea disabled:opacity-50"
                 />
               </div>
             </>
@@ -2160,11 +2118,11 @@ export default function EmpreitadaModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between px-6 py-3.5 border-t border-stone-200/80 bg-stone-50/90 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-t border-ek-border bg-ek-raised shrink-0">
           <button
             type="button"
             onClick={handleRequestClose}
-            className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition"
+            className="ek-btn-secondary"
           >
             Fechar
           </button>
@@ -2174,9 +2132,9 @@ export default function EmpreitadaModal({
               type="button"
               disabled={!empreitada || empreitada.EMP_CODIGO === 0}
               onClick={() => setShowModalImprimirEmpreitadas(true)}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="ek-btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 text-ek-muted" />
               Imprimir
             </button>
 
@@ -2184,14 +2142,14 @@ export default function EmpreitadaModal({
               type="button"
               disabled={isSalvando || estaFaturada()}
               onClick={handleSalvarEmpreitada}
-              className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ek-btn-secondary border-brand-border text-brand bg-brand-soft hover:bg-brand/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSalvando ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Salvar Empreitada
+              Salvar empreitada
             </button>
 
             <button
@@ -2203,10 +2161,10 @@ export default function EmpreitadaModal({
                   ? "Empreitada já possui faturamento/pagamentos vinculados. Utilize 'Registrar Pagamento' para novas baixas."
                   : "Gerar faturamento completo da empreitada"
               }
-              className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="ek-btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <DollarSign className="w-4 h-4" />
-              Faturar Empreitada
+              Faturar empreitada
             </button>
           </div>
         </div>

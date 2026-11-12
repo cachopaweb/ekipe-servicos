@@ -5,9 +5,7 @@ import MovimentacoesModel from "../../models/movimentacoes_model";
 import MovimentacoesRepository from "../../repositories/movimentacoes_repository";
 import Link from "next/link";
 import { useAppData } from "@/app/contexts/app_context";
-import walletIcon from "../../../../assets/wallet.png";
-import Image from "next/image";
-import { Calendar, RefreshCw, ShoppingCart, FileText, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Calendar, RefreshCw, ShoppingCart, FileText, ArrowUpRight, ArrowDownRight, ChevronRight } from "lucide-react";
 
 export default function Dashboard() {
     const [movimentacoes, setMovimentacoes] = useState<MovimentacoesModel[]>([]);
@@ -130,112 +128,132 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="flex flex-col h-full w-full p-4 sm:p-5 gap-4 font-sans animate-fade-in text-stone-800 overflow-hidden">
-            
-            {/* Topo: Cards de Saldo e Ações Rápidas */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch shrink-0">
-                {/* Card de Saldo */}
-                <div className="lg:col-span-5 bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-xs flex items-center justify-between">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="w-2 h-4 bg-amber-500 rounded-full"></span>
-                            <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">
-                                {filtroPreset === 'hoje' ? 'Saldo do Dia' : 'Saldo do Período'}
-                            </span>
-                        </div>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalDia)}
-                        </h2>
-                        <div className="flex items-center gap-4 mt-3 text-sm">
-                            <span className="text-emerald-600 font-bold flex items-center gap-1">
-                                <ArrowUpRight className="w-4 h-4 text-emerald-600" />
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalCreditos)}
-                            </span>
-                            {totalDebitos > 0 && (
-                                <span className="text-rose-600 font-bold flex items-center gap-1">
-                                    <ArrowDownRight className="w-4 h-4 text-rose-600" />
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalDebitos)}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 select-none">
-                        <Image src={walletIcon} alt="Carteira" className="object-contain" fill sizes="112px" priority />
-                    </div>
+        <div className="flex flex-col h-full w-full p-5 sm:p-6 gap-5 font-sans text-ek-text overflow-hidden">
+            {/* Cabeçalho da Folha */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 shrink-0">
+                <div>
+                    <h1 className="text-[22px] font-semibold text-ek-text tracking-tight leading-tight">
+                        Visão Geral
+                    </h1>
+                    <p className="text-sm text-ek-muted mt-0.5">
+                        Acompanhamento de movimentações financeiras e acesso rápido aos módulos.
+                    </p>
                 </div>
+            </div>
 
-                {/* Card de Ações Rápidas */}
-                <div className="lg:col-span-7 bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-xs flex flex-col justify-between">
-                    <div className="flex items-center gap-2 mb-3">
-                        <span className="w-2 h-4 bg-amber-500 rounded-full"></span>
-                        <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">
-                            Acessos Rápidos
+            {/* Topo: Resumo Financeiro + Acessos Rápidos */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch shrink-0">
+                {/* Faixa KPI dividida (Saldo + Entradas + Saídas) */}
+                <div className="lg:col-span-7 ek-card grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-ek-rule overflow-hidden">
+                    <div className="p-4 sm:p-5 flex flex-col justify-between">
+                        <span className="text-xs font-medium text-ek-muted">
+                            {filtroPreset === 'hoje' ? 'Saldo do dia' : 'Saldo do período'}
+                        </span>
+                        <div className="text-2xl font-medium text-ek-text tracking-tight tabular-nums mt-2">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalDia)}
+                        </div>
+                        <span className="text-xs text-ek-faint mt-1">
+                            Resultado consolidado
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
+                    <div className="p-4 sm:p-5 flex flex-col justify-between">
+                        <span className="text-xs font-medium text-ek-muted flex items-center gap-1.5">
+                            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-700" />
+                            Entradas
+                        </span>
+                        <div className="text-2xl font-medium text-emerald-700 tracking-tight tabular-nums mt-2">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalCreditos)}
+                        </div>
+                        <span className="text-xs text-ek-faint mt-1">
+                            Créditos no período
+                        </span>
+                    </div>
+
+                    <div className="p-4 sm:p-5 flex flex-col justify-between">
+                        <span className="text-xs font-medium text-ek-muted flex items-center gap-1.5">
+                            <ArrowDownRight className="w-3.5 h-3.5 text-red-700" />
+                            Saídas
+                        </span>
+                        <div className="text-2xl font-medium text-ek-text tracking-tight tabular-nums mt-2">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalDebitos)}
+                        </div>
+                        <span className="text-xs text-ek-faint mt-1">
+                            Débitos no período
+                        </span>
+                    </div>
+                </div>
+
+                {/* Acessos Rápidos */}
+                <div className="lg:col-span-5 ek-card p-4 sm:p-5 flex flex-col justify-between gap-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-ek-muted">
+                            Acessos rápidos
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 flex-1">
                         <Link
                             href="/home/vendas"
                             onClick={() => setUltRota('vendas')}
-                            className="bg-stone-50 hover:bg-amber-50/60 border border-stone-200/80 hover:border-amber-400/80 rounded-xl p-4 flex items-center gap-4 transition-all group shadow-xs"
+                            className="border border-ek-border hover:border-brand/40 bg-ek-raised hover:bg-brand-soft/40 rounded-[6px] px-3.5 py-3 flex items-center justify-between gap-3 transition-colors group"
                         >
-                            <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                                <ShoppingCart className="w-6 h-6" />
+                            <div className="flex items-center gap-3 min-w-0">
+                                <ShoppingCart className="w-4 h-4 text-brand shrink-0" />
+                                <div className="min-w-0">
+                                    <h3 className="text-sm font-semibold text-ek-text group-hover:text-brand transition-colors truncate">
+                                        Ponto de Venda
+                                    </h3>
+                                    <p className="text-xs text-ek-muted truncate">Abrir frente de caixa</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="font-bold text-stone-900 group-hover:text-amber-800 transition-colors">
-                                    Ponto de Venda
-                                </h3>
-                                <p className="text-xs text-stone-500">Abrir frente de caixa</p>
-                            </div>
+                            <ChevronRight className="w-4 h-4 text-ek-faint group-hover:text-brand shrink-0 transition-colors" />
                         </Link>
 
                         <Link
                             href="/home/orcamentos"
                             onClick={() => setUltRota('orcamentos')}
-                            className="bg-stone-50 hover:bg-amber-50/60 border border-stone-200/80 hover:border-amber-400/80 rounded-xl p-4 flex items-center gap-4 transition-all group shadow-xs"
+                            className="border border-ek-border hover:border-brand/40 bg-ek-raised hover:bg-brand-soft/40 rounded-[6px] px-3.5 py-3 flex items-center justify-between gap-3 transition-colors group"
                         >
-                            <div className="w-12 h-12 rounded-xl bg-[#312783] text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                                <FileText className="w-6 h-6" />
+                            <div className="flex items-center gap-3 min-w-0">
+                                <FileText className="w-4 h-4 text-brand shrink-0" />
+                                <div className="min-w-0">
+                                    <h3 className="text-sm font-semibold text-ek-text group-hover:text-brand transition-colors truncate">
+                                        Orçamentos
+                                    </h3>
+                                    <p className="text-xs text-ek-muted truncate">Propostas e O.S.</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="font-bold text-stone-900 group-hover:text-amber-800 transition-colors">
-                                    Orçamentos
-                                </h3>
-                                <p className="text-xs text-stone-500">Gerenciar propostas e OS</p>
-                            </div>
+                            <ChevronRight className="w-4 h-4 text-ek-faint group-hover:text-brand shrink-0 transition-colors" />
                         </Link>
                     </div>
                 </div>
             </div>
 
             {/* Extrato Financeiro Funcional */}
-            <div className="bg-white rounded-2xl shadow-xs border border-stone-200/80 overflow-hidden flex flex-col flex-1 min-h-0">
+            <div className="ek-card overflow-hidden flex flex-col flex-1 min-h-0">
                 {/* Cabeçalho com Filtros Funcionais */}
-                <div className="p-3.5 sm:p-4 border-b border-stone-200/80 bg-stone-50/60 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
-                    <div>
-                        <div className="flex items-center gap-2.5">
-                            <span className="w-2 h-5 bg-amber-500 rounded-full"></span>
-                            <h2 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">
-                                Extrato Financeiro
-                            </h2>
-                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-stone-200/70 text-stone-700">
-                                {movimentacoes.length} {movimentacoes.length === 1 ? 'registro' : 'registros'}
-                            </span>
-                        </div>
+                <div className="px-4 py-3 border-b border-ek-rule bg-white flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
+                    <div className="flex items-center gap-2.5">
+                        <h2 className="text-base font-semibold text-ek-text tracking-tight">
+                            Extrato Financeiro
+                        </h2>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-ek-raised text-ek-muted border border-ek-border">
+                            {movimentacoes.length} {movimentacoes.length === 1 ? 'registro' : 'registros'}
+                        </span>
                     </div>
 
                     {/* Controles de Filtro */}
                     <div className="flex flex-wrap items-center gap-2">
                         {/* Botões Rápidos (Presets) */}
-                        <div className="inline-flex rounded-lg bg-stone-200/60 p-1 text-xs font-semibold">
+                        <div className="inline-flex rounded-[6px] bg-ek-raised border border-ek-border p-0.5 text-xs font-medium">
                             <button
                                 type="button"
                                 onClick={() => carregarPorPreset('hoje')}
-                                className={`px-3 py-1.5 rounded-md transition-all ${
+                                className={`px-3 py-1 rounded-[4px] transition-colors ${
                                     filtroPreset === 'hoje'
-                                        ? 'bg-white text-stone-900 shadow-xs'
-                                        : 'text-stone-600 hover:text-stone-900'
+                                        ? 'bg-white text-ek-text font-semibold border border-ek-border'
+                                        : 'text-ek-muted hover:text-ek-text border border-transparent'
                                 }`}
                             >
                                 Hoje
@@ -243,10 +261,10 @@ export default function Dashboard() {
                             <button
                                 type="button"
                                 onClick={() => carregarPorPreset('7dias')}
-                                className={`px-3 py-1.5 rounded-md transition-all ${
+                                className={`px-3 py-1 rounded-[4px] transition-colors ${
                                     filtroPreset === '7dias'
-                                        ? 'bg-white text-stone-900 shadow-xs'
-                                        : 'text-stone-600 hover:text-stone-900'
+                                        ? 'bg-white text-ek-text font-semibold border border-ek-border'
+                                        : 'text-ek-muted hover:text-ek-text border border-transparent'
                                 }`}
                             >
                                 7 dias
@@ -254,10 +272,10 @@ export default function Dashboard() {
                             <button
                                 type="button"
                                 onClick={() => carregarPorPreset('30dias')}
-                                className={`px-3 py-1.5 rounded-md transition-all ${
+                                className={`px-3 py-1 rounded-[4px] transition-colors ${
                                     filtroPreset === '30dias'
-                                        ? 'bg-white text-stone-900 shadow-xs'
-                                        : 'text-stone-600 hover:text-stone-900'
+                                        ? 'bg-white text-ek-text font-semibold border border-ek-border'
+                                        : 'text-ek-muted hover:text-ek-text border border-transparent'
                                 }`}
                             >
                                 30 dias
@@ -265,7 +283,7 @@ export default function Dashboard() {
                         </div>
 
                         {/* Inputs de Data e Botão Filtrar */}
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
                             <input
                                 type="date"
                                 value={dataInicio}
@@ -273,9 +291,9 @@ export default function Dashboard() {
                                     setDataInicio(e.target.value);
                                     setFiltroPreset('personalizado');
                                 }}
-                                className="bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs text-stone-700 font-medium focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 outline-none"
+                                className="h-8 min-w-0 flex-1 sm:flex-none bg-white border border-ek-control rounded-[6px] px-2.5 text-xs text-ek-text font-medium focus:border-brand focus:ring-2 focus:ring-brand/15 outline-none transition-colors"
                             />
-                            <span className="text-stone-400 text-xs">até</span>
+                            <span className="text-ek-faint text-xs shrink-0">até</span>
                             <input
                                 type="date"
                                 value={dataFim}
@@ -283,13 +301,13 @@ export default function Dashboard() {
                                     setDataFim(e.target.value);
                                     setFiltroPreset('personalizado');
                                 }}
-                                className="bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs text-stone-700 font-medium focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 outline-none"
+                                className="h-8 min-w-0 flex-1 sm:flex-none bg-white border border-ek-control rounded-[6px] px-2.5 text-xs text-ek-text font-medium focus:border-brand focus:ring-2 focus:ring-brand/15 outline-none transition-colors"
                             />
                             <button
                                 type="button"
                                 onClick={aplicarFiltroPersonalizado}
                                 title="Aplicar Filtro"
-                                className="p-2 bg-[#312783] hover:bg-[#261e69] text-white rounded-lg shadow-xs transition-colors flex items-center justify-center"
+                                className="h-8 w-8 shrink-0 bg-brand hover:bg-brand-hover text-white rounded-[6px] transition-colors flex items-center justify-center"
                             >
                                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                             </button>
@@ -301,21 +319,21 @@ export default function Dashboard() {
                 <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-stone-50/90 border-b border-stone-200 text-stone-600 text-xs font-semibold uppercase tracking-wider sticky top-0 z-10">
-                                <th className="py-3 px-5">Descrição</th>
-                                <th className="py-3 px-4 text-center w-28">Tipo</th>
-                                <th className="py-3 px-4 w-32">Data</th>
-                                <th className="py-3 px-4 w-28">Hora</th>
-                                <th className="py-3 px-5 text-right w-36">Valor</th>
+                            <tr className="bg-ek-raised border-b border-ek-border text-ek-muted text-xs font-medium sticky top-0 z-10">
+                                <th className="py-2.5 px-5 font-medium">Descrição</th>
+                                <th className="py-2.5 px-4 text-center w-28 font-medium">Tipo</th>
+                                <th className="py-2.5 px-4 w-32 font-medium">Data</th>
+                                <th className="py-2.5 px-4 w-28 font-medium">Hora</th>
+                                <th className="py-2.5 px-5 text-right w-40 font-medium">Valor</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-stone-100">
+                        <tbody className="divide-y divide-ek-rule">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={5} className="text-center py-12 text-stone-400">
+                                    <td colSpan={5} className="text-center py-12 text-ek-muted">
                                         <div className="flex flex-col items-center justify-center gap-2">
-                                            <RefreshCw className="w-6 h-6 animate-spin text-amber-500" />
-                                            <span className="text-xs font-medium text-stone-500">
+                                            <RefreshCw className="w-5 h-5 animate-spin text-brand" />
+                                            <span className="text-xs font-medium text-ek-muted">
                                                 Carregando movimentações...
                                             </span>
                                         </div>
@@ -329,48 +347,43 @@ export default function Dashboard() {
                                     return (
                                         <tr
                                             key={mov.MOV_CODIGO}
-                                            className="hover:bg-amber-50/30 transition-colors"
+                                            className="hover:bg-ek-raised/80 transition-colors"
                                         >
-                                            {/* Descrição */}
-                                            <td className="py-3 px-5 font-semibold text-sm text-stone-800">
+                                            <td className="py-3 px-5 font-medium text-sm text-ek-text">
                                                 {mov.MOV_DESCRICAO || 'Movimentação sem descrição'}
                                             </td>
 
-                                            {/* Tipo (Entrada / Saída) */}
                                             <td className="py-3 px-4 text-center">
                                                 <span
-                                                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                                                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                                                         isCredito
-                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                                                            ? 'bg-emerald-50 text-emerald-800'
+                                                            : 'bg-red-50 text-red-800'
                                                     }`}
                                                 >
                                                     <span
                                                         className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                                                            isCredito ? 'bg-emerald-500' : 'bg-rose-500'
+                                                            isCredito ? 'bg-emerald-600' : 'bg-red-600'
                                                         }`}
-                                                    ></span>
+                                                    />
                                                     {isCredito ? 'Entrada' : 'Saída'}
                                                 </span>
                                             </td>
 
-                                            {/* Data */}
-                                            <td className="py-3 px-4 font-mono text-xs text-stone-600">
+                                            <td className="py-3 px-4 tabular-nums text-xs text-ek-muted">
                                                 {formatarData(mov.MOV_DATAHORA)}
                                             </td>
 
-                                            {/* Hora */}
-                                            <td className="py-3 px-4 font-mono text-xs text-stone-600">
+                                            <td className="py-3 px-4 tabular-nums text-xs text-ek-muted">
                                                 {formatarHora(mov.MOV_DATAHORA)}
                                             </td>
 
-                                            {/* Valor */}
-                                            <td className="py-3 px-5 text-right font-mono text-sm font-bold">
+                                            <td className="py-3 px-5 text-right tabular-nums text-sm font-medium">
                                                 <span
                                                     className={
                                                         isCredito
                                                             ? 'text-emerald-700'
-                                                            : 'text-rose-600'
+                                                            : 'text-red-700'
                                                     }
                                                 >
                                                     {isCredito ? '+ ' : '- '}
@@ -385,10 +398,10 @@ export default function Dashboard() {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="text-center py-12 text-stone-400">
+                                    <td colSpan={5} className="text-center py-12 text-ek-muted">
                                         <div className="flex flex-col items-center gap-2">
-                                            <Calendar className="w-8 h-8 text-stone-300" />
-                                            <span className="text-sm font-medium">
+                                            <Calendar className="w-7 h-7 text-ek-control" />
+                                            <span className="text-sm font-medium text-ek-muted">
                                                 Não há movimentações no período selecionado.
                                             </span>
                                         </div>

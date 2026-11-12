@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import PedidoRepository from "@/app/repositories/pedido_repository";
 import { PedidoModel } from "@/app/models/pedido_model";
 import ClientRepository from "@/app/repositories/cliente_repository";
-import { Trash, X } from "lucide-react";
-import ModalConfirmacao from "./modal_confirmar";
+import { FolderOpen, Loader2, Search, Trash2, X } from "lucide-react";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 
 // Estende a interface do modelo para incluir o nome do cliente na visualização
 interface PedidoVisualizacao extends PedidoModel {
@@ -196,86 +196,82 @@ export default function ModalBuscarVenda({ isOpen, onClose, onSelect }: ModalBus
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in outline-none"
-    >
-      <div className="bg-white w-full max-w-4xl h-[85vh] md:h-[600px] flex flex-col rounded-xl shadow-2xl overflow-hidden font-sans border border-gray-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 outline-none">
+      <div className="bg-ek-surface w-full max-w-4xl h-[85vh] md:h-[600px] flex flex-col rounded-[8px] border border-ek-border overflow-hidden font-sans">
 
         {/* HEADER */}
-        <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
-          <div>
-            <h2 className="text-xl font-black text-gray-800 tracking-tight flex items-center gap-2">
-              <i className="fas fa-search text-amber-500"></i> BUSCAR PEDIDO
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">Selecione um pedido salvo para carregar</p>
+        <div className="bg-ek-raised px-5 py-3.5 border-b border-ek-border flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
+            <div>
+              <h2 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                <Search className="w-4 h-4 text-brand" />
+                <span>Buscar pedido salvo</span>
+              </h2>
+              <p className="text-xs text-ek-muted">Selecione um pedido para carregar na venda</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-[6px] text-ek-muted hover:bg-ek-active hover:text-ek-text transition-colors"
+            title="Fechar (ESC)"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* FILTROS E INPUT */}
-        <div className="px-6 py-4 bg-stone-50 border-b border-gray-100 flex flex-col gap-3 shrink-0">
-          <div className="flex gap-2">
-            <div className="relative flex-1 group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-gray-400 group-focus-within:text-amber-500 transition-colors`}></i>
-              </div>
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder={`Pesquisar por ${filterType === 'pedido' ? 'Código do Pedido' : 'Nome do Cliente'}...`}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all uppercase text-sm font-semibold text-gray-700 bg-white shadow-sm"
-                autoComplete="off"
-              />
+        <div className="px-5 py-3.5 bg-ek-surface border-b border-ek-border flex flex-col gap-2.5 shrink-0">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-ek-faint">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin text-brand" /> : <Search className="w-4 h-4" />}
             </div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder={`Pesquisar por ${filterType === 'pedido' ? 'código do pedido' : 'nome do cliente'}...`}
+              className="ek-input pl-9 uppercase font-medium"
+              autoComplete="off"
+            />
           </div>
 
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-xs font-bold text-gray-400 uppercase mr-1">Filtro (F2):</span>
-
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-medium text-ek-muted mr-1">Filtro (F2):</span>
             <button
               onClick={() => { setFilterType('pedido'); inputRef.current?.focus(); }}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${filterType === 'pedido'
-                ? 'bg-amber-400 border-amber-400 text-white shadow-sm'
-                : 'bg-white border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-500'
-                }`}
+              className={`px-3 py-1 rounded-[6px] text-xs font-medium border transition-colors ${filterType === 'pedido'
+                ? 'bg-brand border-brand text-white'
+                : 'bg-ek-surface border-ek-border text-ek-muted hover:text-ek-text hover:bg-ek-raised'
+              }`}
             >
-              Cód. Pedido
+              Cód. pedido
             </button>
-
             <button
               onClick={() => { setFilterType('cliente_nome'); inputRef.current?.focus(); }}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${filterType === 'cliente_nome'
-                ? 'bg-amber-400 border-amber-400 text-white shadow-sm'
-                : 'bg-white border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-500'
-                }`}
+              className={`px-3 py-1 rounded-[6px] text-xs font-medium border transition-colors ${filterType === 'cliente_nome'
+                ? 'bg-brand border-brand text-white'
+                : 'bg-ek-surface border-ek-border text-ek-muted hover:text-ek-text hover:bg-ek-raised'
+              }`}
             >
-              Nome Cliente
+              Nome do cliente
             </button>
           </div>
         </div>
 
         {/* LISTAGEM (GRID) */}
-        <div ref={listRef} className="flex-1 overflow-y-auto bg-white p-2 min-h-0">
-
-          {/* Header da Tabela */}
-          <div className="grid grid-cols-12 px-4 py-2 text-xs font-bold text-gray-400 uppercase border-b border-gray-100 gap-2 sticky top-0 bg-white z-10 shadow-sm">
+        <div ref={listRef} className="flex-1 overflow-y-auto bg-ek-surface min-h-0">
+          <div className="grid grid-cols-12 px-5 py-2 text-xs font-semibold text-ek-muted border-b border-ek-border bg-ek-raised gap-2 sticky top-0 z-10">
             <div className="col-span-2">Pedido</div>
             <div className="col-span-2">Data</div>
-            <div className="col-span-1 text-center">Cód. Cli</div>
-            <div className="col-span-3">Nome Cliente</div>
+            <div className="col-span-1 text-center">Cód. cli</div>
+            <div className="col-span-3">Nome cliente</div>
             <div className="col-span-2 text-right">Valor</div>
             <div className="col-span-2 text-right">Ação</div>
           </div>
 
-          {/* Linhas */}
-          <div className="mt-1 pb-2">
+          <div className="divide-y divide-ek-rule">
             {pedidos.length > 0 ? pedidos.map((pedido, index) => (
               <div
                 key={pedido.PED_CODIGO}
@@ -285,47 +281,52 @@ export default function ModalBuscarVenda({ isOpen, onClose, onSelect }: ModalBus
                   inputRef.current?.focus();
                 }}
                 onDoubleClick={() => { onSelect(pedido); onClose(); }}
-                className={`
-                  grid grid-cols-12 px-4 py-3 my-1 rounded-md cursor-pointer transition-colors text-sm items-center gap-2 border
-                  ${selectedIndex === index
-                    ? "bg-amber-50 border-amber-200 shadow-sm ring-1 ring-amber-200 z-10 relative"
-                    : "hover:bg-stone-50 border-transparent"}
-                `}
+                className={`grid grid-cols-12 px-5 py-2.5 cursor-pointer transition-colors text-[13px] items-center gap-2 ${
+                  selectedIndex === index
+                    ? "bg-brand-soft border-l-2 border-l-brand"
+                    : "hover:bg-ek-raised/80"
+                }`}
               >
-                <div className={`col-span-2 font-black ${selectedIndex === index ? "text-amber-600" : "text-gray-600"}`}>
+                <div className={`col-span-2 font-semibold tabular-nums ${selectedIndex === index ? "text-brand" : "text-ek-text"}`}>
                   #{pedido.PED_CODIGO}
                 </div>
-                <div className="col-span-2 text-gray-500 text-xs font-medium">
+                <div className="col-span-2 text-ek-muted text-xs tabular-nums">
                   {formatDate(pedido.PED_DATA)}
                 </div>
-                <div className="col-span-1 text-center text-gray-400 text-xs bg-stone-100 rounded px-1 py-0.5">
+                <div className="col-span-1 text-center text-ek-muted text-xs font-mono tabular-nums">
                   {pedido.PED_CLI}
                 </div>
-                {/* Nome do Cliente */}
-                <div className={`col-span-3 font-bold truncate ${selectedIndex === index ? "text-gray-800" : "text-gray-600"}`}>
+                <div className="col-span-3 font-medium text-ek-text truncate">
                   {pedido.CLI_NOME || "CONSUMIDOR"}
                 </div>
-                <div className={`col-span-2 text-right font-bold ${selectedIndex === index ? "text-green-700" : "text-gray-700"}`}>
+                <div className={`col-span-2 text-right font-semibold tabular-nums ${selectedIndex === index ? "text-emerald-700" : "text-ek-text"}`}>
                   {formatCurrency(pedido.PED_VALOR)}
                 </div>
-
-                <div className={`col-span-2 flex justify-end font-bold ${selectedIndex === index ? "text-red-700" : "text-gray-700"}`}>
-                  <button onClick={async () => await handleExcluirPedido(pedido)}><Trash size={20} /></button>
+                <div className="col-span-2 flex justify-end">
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await handleExcluirPedido(pedido);
+                    }}
+                    className="p-1.5 rounded-[6px] text-ek-faint hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                    title="Excluir pedido"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-
               </div>
             )) : (
-              <div className="h-40 flex flex-col items-center justify-center text-gray-300">
+              <div className="h-44 flex flex-col items-center justify-center text-ek-muted gap-2">
                 {loading ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <i className="fas fa-circle-notch fa-spin text-2xl text-amber-400"></i>
-                    <span className="text-xs font-medium text-gray-400">Buscando pedidos...</span>
-                  </div>
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin text-brand" />
+                    <span className="text-xs">Buscando pedidos...</span>
+                  </>
                 ) : (
-                  <div className="flex flex-col items-center gap-2">
-                    <i className="fas fa-folder-open text-3xl opacity-50"></i>
+                  <>
+                    <FolderOpen className="w-7 h-7 text-ek-faint" />
                     <span className="text-sm font-medium">Nenhum pedido encontrado</span>
-                  </div>
+                  </>
                 )}
               </div>
             )}
@@ -333,17 +334,18 @@ export default function ModalBuscarVenda({ isOpen, onClose, onSelect }: ModalBus
         </div>
 
         {/* FOOTER */}
-        <div className="bg-stone-50 border-t border-gray-200 px-6 py-3 flex justify-between items-center shrink-0">
-          <div className="flex gap-4 text-[10px] font-bold text-gray-400 uppercase">
-            <span className="flex items-center gap-1"><span className="bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-600 shadow-sm">ENTER</span> Selecionar</span>
-            <span className="flex items-center gap-1"><span className="bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-600 shadow-sm">F2</span> Alternar Filtro</span>
+        <div className="bg-ek-raised border-t border-ek-border px-5 py-3 flex justify-between items-center shrink-0 text-xs text-ek-muted">
+          <div className="flex gap-4 items-center">
+            <span className="flex items-center gap-1.5"><kbd className="ek-kbd">ENTER</kbd> Selecionar</span>
+            <span className="flex items-center gap-1.5"><kbd className="ek-kbd">F2</kbd> Alternar filtro</span>
           </div>
 
           <button
             onClick={onClose}
-            className="flex items-center gap-2 text-gray-500 hover:text-red-600 transition font-bold uppercase text-xs"
+            className="ek-btn-secondary h-8 px-3 text-xs flex items-center gap-1.5"
           >
-            <span className="bg-red-100 border border-red-200 px-2 py-1 rounded text-red-600">ESC</span> Cancelar
+            <kbd className="ek-kbd">ESC</kbd>
+            <span>Cancelar</span>
           </button>
         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X } from "lucide-react";
+import { Loader2, Search, Users, X } from "lucide-react";
 
 import ClientRepository from "@/app/repositories/cliente_repository"; // Ajuste o caminho se necessário
 
@@ -109,46 +109,50 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
   const clienteSelecionado = filteredData[selectedIndex] || {};
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
 
-      <div className="bg-white w-full max-w-4xl h-[85vh] md:h-[650px] flex flex-col rounded-xl shadow-2xl overflow-hidden font-sans border border-gray-200">
+      <div className="bg-ek-surface w-full max-w-4xl h-[85vh] md:h-[650px] flex flex-col rounded-[8px] border border-ek-border overflow-hidden font-sans">
 
         {/* HEADER */}
-        <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-black text-gray-800 tracking-tight">LOCALIZAR CLIENTE</h2>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">Use as setas para navegar e Enter para confirmar</p>
+        <div className="bg-ek-raised px-5 py-3.5 border-b border-ek-border flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
+            <div>
+              <h2 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                <Users className="w-4 h-4 text-brand" />
+                <span>Localizar cliente</span>
+              </h2>
+              <p className="text-xs text-ek-muted">Use as setas para navegar e Enter para confirmar</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-[6px] text-ek-muted hover:bg-ek-active hover:text-ek-text transition-colors"
+            title="Fechar (ESC)"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* ÁREA DE BUSCA */}
-        <div className="px-6 py-4 bg-stone-50 border-b border-gray-100 flex flex-col gap-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1 group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-search'} text-gray-400 group-focus-within:text-amber-500 transition-colors`}></i>
-              </div>
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder={`Pesquisar...`}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all uppercase text-sm font-semibold text-gray-700 bg-white shadow-sm"
-                autoComplete="off"
-              />
+        <div className="px-5 py-3.5 bg-ek-surface border-b border-ek-border flex flex-col gap-2.5 shrink-0">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-ek-faint">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin text-brand" /> : <Search className="w-4 h-4" />}
             </div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Pesquisar cliente..."
+              className="ek-input pl-9 uppercase font-medium"
+              autoComplete="off"
+            />
           </div>
 
-          {/* Filtros (Visual apenas, pois o repo busca por NOME no momento) */}
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-xs font-bold text-gray-400 uppercase mr-1">Filtro (F2):</span>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-medium text-ek-muted mr-1">Filtro (F2):</span>
             {[
               { id: 'nome', label: 'Nome' },
               { id: 'codigo', label: 'Código' },
@@ -160,9 +164,9 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
                   setFilterType(filter.id as any);
                   inputRef.current?.focus();
                 }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${filterType === filter.id
-                  ? 'bg-amber-400 border-amber-400 text-white shadow-sm'
-                  : 'bg-white border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-500'
+                className={`px-3 py-1 rounded-[6px] text-xs font-medium border transition-colors ${filterType === filter.id
+                  ? 'bg-brand border-brand text-white'
+                  : 'bg-ek-surface border-ek-border text-ek-muted hover:text-ek-text hover:bg-ek-raised'
                   }`}
               >
                 {filter.label}
@@ -172,17 +176,15 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
         </div>
 
         {/* LISTAGEM (GRID) */}
-        <div className="flex-1 overflow-y-auto bg-white p-2">
-          {/* Cabeçalho da Tabela */}
-          <div className="grid grid-cols-12 px-4 py-2 text-xs font-bold text-gray-400 uppercase border-b border-gray-100">
+        <div className="flex-1 overflow-y-auto bg-ek-surface min-h-0">
+          <div className="grid grid-cols-12 px-5 py-2 text-xs font-semibold text-ek-muted border-b border-ek-border bg-ek-raised sticky top-0 z-10">
             <div className="col-span-1">Cód.</div>
             <div className="col-span-6">Nome / Razão Social</div>
             <div className="col-span-3">CPF / CNPJ</div>
             <div className="col-span-2 text-right">Telefone</div>
           </div>
 
-          {/* Linhas */}
-          <div className="mt-1">
+          <div className="divide-y divide-ek-rule">
             {filteredData.length > 0 ? filteredData.map((cliente, index) => (
               <div
                 key={cliente.CODIGO}
@@ -192,37 +194,36 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
                   inputRef.current?.focus();
                 }}
                 onDoubleClick={() => { onSelect(cliente); onClose(); }}
-                className={`
-                  grid grid-cols-12 px-4 py-2.5 my-1 rounded-md cursor-pointer transition-colors text-sm items-center
-                  ${selectedIndex === index
-                    ? "bg-amber-50 border border-amber-200 shadow-sm"
-                    : "hover:bg-stone-50 border border-transparent"}
-                `}
+                className={`grid grid-cols-12 px-5 py-2.5 cursor-pointer transition-colors text-[13px] items-center ${
+                  selectedIndex === index
+                    ? "bg-brand-soft border-l-2 border-l-brand"
+                    : "hover:bg-ek-raised/80"
+                }`}
               >
-                <div className={`col-span-1 font-bold ${selectedIndex === index ? "text-amber-600" : "text-gray-500"}`}>
+                <div className={`col-span-1 font-semibold tabular-nums ${selectedIndex === index ? "text-brand" : "text-ek-muted"}`}>
                   {cliente.CODIGO}
                 </div>
-                <div className={`col-span-6 font-semibold truncate pr-2 ${selectedIndex === index ? "text-gray-900" : "text-gray-700"}`}>
+                <div className="col-span-6 font-medium text-ek-text truncate pr-2">
                   {cliente.NOME}
                 </div>
-                <div className="col-span-3 text-gray-500 text-xs">
+                <div className="col-span-3 text-ek-muted text-xs tabular-nums">
                   {cliente.CPF_CNPJ}
                 </div>
-                <div className="col-span-2 text-right text-gray-500 text-xs">
+                <div className="col-span-2 text-right text-ek-muted text-xs tabular-nums">
                   {cliente.FONE || cliente.CELULAR}
                 </div>
               </div>
             )) : (
-              <div className="h-40 flex flex-col items-center justify-center text-gray-300">
+              <div className="h-44 flex flex-col items-center justify-center text-ek-muted gap-2">
                 {loading ? (
                   <>
-                    <i className="fas fa-spinner fa-spin text-3xl mb-2 opacity-50"></i>
-                    <span>Buscando...</span>
+                    <Loader2 className="w-6 h-6 animate-spin text-brand" />
+                    <span className="text-xs">Buscando...</span>
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-search text-3xl mb-2 opacity-50"></i>
-                    <span>Nenhum cliente encontrado</span>
+                    <Search className="w-7 h-7 text-ek-faint" />
+                    <span className="text-sm font-medium">Nenhum cliente encontrado</span>
                   </>
                 )}
               </div>
@@ -231,30 +232,32 @@ export default function ModalClientes({ isOpen, onClose, onSelect }: ModalClient
         </div>
 
         {/* PAINEL DE DETALHES (Footer Informativo) */}
-        <div className="bg-stone-50 border-t border-gray-200 px-6 py-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
-              <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Endereço</span>
-              <span className="font-semibold text-gray-700 block truncate">{clienteSelecionado.ENDERECO || "-"}</span>
+        <div className="bg-ek-raised border-t border-ek-border px-5 py-3 shrink-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div className="bg-ek-surface px-3 py-2 rounded-[6px] border border-ek-border">
+              <span className="text-[11px] font-medium text-ek-muted block mb-0.5">Endereço</span>
+              <span className="font-medium text-ek-text block truncate">{clienteSelecionado.ENDERECO || "-"}</span>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
-                <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">RG</span>
-                <span className="font-semibold text-gray-700 block truncate">{clienteSelecionado.RG || "-"}</span>
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="bg-ek-surface px-3 py-2 rounded-[6px] border border-ek-border">
+                <span className="text-[11px] font-medium text-ek-muted block mb-0.5">RG</span>
+                <span className="font-medium text-ek-text block truncate tabular-nums">{clienteSelecionado.RG || "-"}</span>
               </div>
-              <div className="bg-white p-2 rounded border border-gray-200 shadow-sm">
-                <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Celular</span>
-                <span className="font-semibold text-gray-700 block truncate">{clienteSelecionado.CELULAR || "-"}</span>
+              <div className="bg-ek-surface px-3 py-2 rounded-[6px] border border-ek-border">
+                <span className="text-[11px] font-medium text-ek-muted block mb-0.5">Celular</span>
+                <span className="font-medium text-ek-text block truncate tabular-nums">{clienteSelecionado.CELULAR || "-"}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200 text-[10px] font-bold text-gray-400 uppercase">
+          <div className="flex justify-between items-center mt-2.5 pt-2.5 border-t border-ek-rule text-xs text-ek-muted">
             <div className="flex gap-4">
-              <span className="flex items-center gap-1"><span className="bg-gray-200 px-1.5 rounded text-gray-600">ENTER</span> Selecionar</span>
-              <span className="flex items-center gap-1"><span className="bg-gray-200 px-1.5 rounded text-gray-600">F2</span> Filtrar</span>
+              <span className="flex items-center gap-1.5"><kbd className="ek-kbd">ENTER</kbd> Selecionar</span>
+              <span className="flex items-center gap-1.5"><kbd className="ek-kbd">F2</kbd> Filtrar</span>
             </div>
-            <span className="flex items-center gap-1"><span className="bg-red-100 px-1.5 rounded text-red-500">ESC</span> Cancelar</span>
+            <button onClick={onClose} className="flex items-center gap-1.5 hover:text-ek-text">
+              <kbd className="ek-kbd">ESC</kbd> Cancelar
+            </button>
           </div>
         </div>
 

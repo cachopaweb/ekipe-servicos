@@ -45,20 +45,18 @@ function ModalDetalhesOS({
     <div
       tabIndex={-1}
       onKeyDown={handleKeyDown}
-      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
     >
-      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-              <FileText className="w-5 h-5" />
-            </div>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-ek-border bg-ek-raised shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-4 bg-brand shrink-0" />
             <div>
-              <h2 className="text-base font-bold text-stone-800 tracking-tight">
+              <h2 className="text-base font-semibold text-ek-text tracking-tight">
                 Detalhes da OS #{codigoOrdem}
               </h2>
-              <p className="text-xs text-stone-500 font-normal">
+              <p className="text-xs text-ek-muted font-normal">
                 Produtos e serviços vinculados a esta ordem de serviço
               </p>
             </div>
@@ -66,7 +64,7 @@ function ModalDetalhesOS({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-rule transition-colors"
             title="Fechar (Esc)"
           >
             <X className="w-5 h-5" />
@@ -74,15 +72,15 @@ function ModalDetalhesOS({
         </div>
 
         {/* Barra de Filtro / Resumo */}
-        <div className="px-6 py-3 border-b border-stone-200 bg-stone-50/50 flex flex-wrap items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-1.5 bg-stone-200/70 p-1 rounded-lg text-xs font-medium text-stone-600">
+        <div className="px-6 py-3 border-b border-ek-border bg-ek-surface flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-1 bg-ek-raised border border-ek-border p-1 rounded-[6px] text-xs font-medium text-ek-muted">
             <button
               type="button"
               onClick={() => setTabAtiva("todos")}
-              className={`px-3 py-1 rounded-md transition ${
+              className={`px-3 py-1 rounded-[4px] transition-colors ${
                 tabAtiva === "todos"
-                  ? "bg-white text-stone-900 shadow-sm font-semibold"
-                  : "hover:text-stone-900"
+                  ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                  : "hover:text-ek-text"
               }`}
             >
               Todos ({produtos.length + servicos.length})
@@ -90,10 +88,10 @@ function ModalDetalhesOS({
             <button
               type="button"
               onClick={() => setTabAtiva("produtos")}
-              className={`px-3 py-1 rounded-md transition ${
+              className={`px-3 py-1 rounded-[4px] transition-colors ${
                 tabAtiva === "produtos"
-                  ? "bg-white text-stone-900 shadow-sm font-semibold"
-                  : "hover:text-stone-900"
+                  ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                  : "hover:text-ek-text"
               }`}
             >
               Produtos ({produtos.length})
@@ -101,26 +99,26 @@ function ModalDetalhesOS({
             <button
               type="button"
               onClick={() => setTabAtiva("servicos")}
-              className={`px-3 py-1 rounded-md transition ${
+              className={`px-3 py-1 rounded-[4px] transition-colors ${
                 tabAtiva === "servicos"
-                  ? "bg-white text-stone-900 shadow-sm font-semibold"
-                  : "hover:text-stone-900"
+                  ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                  : "hover:text-ek-text"
               }`}
             >
               Serviços ({servicos.length})
             </button>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-medium text-stone-600">
+          <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-ek-muted">
             <span>
               Total Produtos:{" "}
-              <strong className="text-stone-800 font-mono">{formatCurrency(totalProdutos)}</strong>
+              <strong className="text-ek-text font-mono tabular-nums">{formatCurrency(totalProdutos)}</strong>
             </span>
             <span>
               Total Serviços:{" "}
-              <strong className="text-stone-800 font-mono">{formatCurrency(totalServicos)}</strong>
+              <strong className="text-ek-text font-mono tabular-nums">{formatCurrency(totalServicos)}</strong>
             </span>
-            <span className="text-amber-700 font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+            <span className="text-brand font-semibold bg-brand-soft border border-brand-border px-2.5 py-0.5 rounded-[6px] tabular-nums">
               Total OS: {formatCurrency(totalGeral)}
             </span>
           </div>
@@ -129,22 +127,22 @@ function ModalDetalhesOS({
         {/* Conteúdo com scroll */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {produtos.length === 0 && servicos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-stone-400 gap-2">
-              <Package className="w-8 h-8 text-stone-300" />
-              <span className="text-sm font-medium">Nenhum produto ou serviço cadastrado nesta OS.</span>
+            <div className="flex flex-col items-center justify-center py-16 text-ek-muted gap-2">
+              <Package className="w-8 h-8 text-ek-faint" />
+              <span className="text-sm font-medium text-ek-text">Nenhum produto ou serviço cadastrado nesta OS.</span>
             </div>
           ) : (
             <>
               {/* Tabela de Produtos */}
               {(tabAtiva === "todos" || tabAtiva === "produtos") && produtos.length > 0 && (
-                <div className="border border-stone-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-stone-100/70 border-b border-stone-200 text-stone-700 text-xs font-bold uppercase tracking-wider">
-                    <Package className="w-4 h-4 text-amber-600" />
+                <div className="border border-ek-border rounded-[8px] overflow-hidden bg-ek-surface">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-ek-raised border-b border-ek-border text-ek-text text-xs font-semibold">
+                    <Package className="w-4 h-4 text-brand" />
                     <span>Produtos ({produtos.length})</span>
                   </div>
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="bg-stone-50 text-stone-600 font-semibold border-b border-stone-200 uppercase tracking-wider text-[11px]">
+                      <tr className="bg-ek-raised text-ek-muted font-semibold border-b border-ek-border text-xs">
                         <th className="p-3 w-16">Cód.</th>
                         <th className="p-3">Descrição do Produto</th>
                         <th className="p-3 text-center">Quant.</th>
@@ -153,17 +151,17 @@ function ModalDetalhesOS({
                         <th className="p-3 text-right">Valor Total</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-100">
+                    <tbody className="divide-y divide-ek-rule">
                       {produtos.map((item) => {
                         const unitValue = item.ORE_QUANTIDADE ? item.ORE_VALOR / item.ORE_QUANTIDADE : 0;
                         return (
-                          <tr key={item.ORE_CODIGO} className="hover:bg-amber-50/30 transition-colors">
-                            <td className="p-3 font-mono text-stone-500">{item.ORE_PRO}</td>
-                            <td className="p-3 font-medium text-stone-800">{item.ORE_NOME}</td>
-                            <td className="p-3 text-center font-mono">{item.ORE_QUANTIDADE}</td>
-                            <td className="p-3 text-center text-stone-500 uppercase">{item.ORE_EMBALAGEM || "UN"}</td>
-                            <td className="p-3 text-right font-mono text-stone-600">{formatCurrency(unitValue)}</td>
-                            <td className="p-3 text-right font-mono font-medium text-stone-900">{formatCurrency(item.ORE_VALOR)}</td>
+                          <tr key={item.ORE_CODIGO} className="hover:bg-ek-raised transition-colors">
+                            <td className="p-3 font-mono text-ek-muted tabular-nums">{item.ORE_PRO}</td>
+                            <td className="p-3 font-medium text-ek-text">{item.ORE_NOME}</td>
+                            <td className="p-3 text-center font-mono tabular-nums">{item.ORE_QUANTIDADE}</td>
+                            <td className="p-3 text-center text-ek-muted uppercase">{item.ORE_EMBALAGEM || "UN"}</td>
+                            <td className="p-3 text-right font-mono text-ek-muted tabular-nums">{formatCurrency(unitValue)}</td>
+                            <td className="p-3 text-right font-mono font-medium text-ek-text tabular-nums">{formatCurrency(item.ORE_VALOR)}</td>
                           </tr>
                         );
                       })}
@@ -174,14 +172,14 @@ function ModalDetalhesOS({
 
               {/* Tabela de Serviços */}
               {(tabAtiva === "todos" || tabAtiva === "servicos") && servicos.length > 0 && (
-                <div className="border border-stone-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-stone-100/70 border-b border-stone-200 text-stone-700 text-xs font-bold uppercase tracking-wider">
-                    <Wrench className="w-4 h-4 text-amber-600" />
+                <div className="border border-ek-border rounded-[8px] overflow-hidden bg-ek-surface">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-ek-raised border-b border-ek-border text-ek-text text-xs font-semibold">
+                    <Wrench className="w-4 h-4 text-brand" />
                     <span>Serviços ({servicos.length})</span>
                   </div>
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="bg-stone-50 text-stone-600 font-semibold border-b border-stone-200 uppercase tracking-wider text-[11px]">
+                      <tr className="bg-ek-raised text-ek-muted font-semibold border-b border-ek-border text-xs">
                         <th className="p-3 w-16">Cód.</th>
                         <th className="p-3">Descrição do Serviço</th>
                         <th className="p-3 text-center">Quant.</th>
@@ -190,17 +188,17 @@ function ModalDetalhesOS({
                         <th className="p-3 text-right">Valor Total</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-100">
+                    <tbody className="divide-y divide-ek-rule">
                       {servicos.map((item) => {
                         const unitValue = item.OS_QUANTIDADE ? item.OS_VALOR / item.OS_QUANTIDADE : 0;
                         return (
-                          <tr key={item.OS_CODIGO} className="hover:bg-amber-50/30 transition-colors">
-                            <td className="p-3 font-mono text-stone-500">{item.OS_CODIGO}</td>
-                            <td className="p-3 font-medium text-stone-800">{item.OS_NOME}</td>
-                            <td className="p-3 text-center font-mono">{item.OS_QUANTIDADE}</td>
-                            <td className="p-3 text-center text-stone-500 uppercase">{item.OS_UNIDADE_MED || "UN"}</td>
-                            <td className="p-3 text-right font-mono text-stone-600">{formatCurrency(unitValue)}</td>
-                            <td className="p-3 text-right font-mono font-medium text-stone-900">{formatCurrency(item.OS_VALOR)}</td>
+                          <tr key={item.OS_CODIGO} className="hover:bg-ek-raised transition-colors">
+                            <td className="p-3 font-mono text-ek-muted tabular-nums">{item.OS_CODIGO}</td>
+                            <td className="p-3 font-medium text-ek-text">{item.OS_NOME}</td>
+                            <td className="p-3 text-center font-mono tabular-nums">{item.OS_QUANTIDADE}</td>
+                            <td className="p-3 text-center text-ek-muted uppercase">{item.OS_UNIDADE_MED || "UN"}</td>
+                            <td className="p-3 text-right font-mono text-ek-muted tabular-nums">{formatCurrency(unitValue)}</td>
+                            <td className="p-3 text-right font-mono font-medium text-ek-text tabular-nums">{formatCurrency(item.OS_VALOR)}</td>
                           </tr>
                         );
                       })}
@@ -213,11 +211,11 @@ function ModalDetalhesOS({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-3.5 border-t border-stone-200/80 bg-stone-50/90 shrink-0">
+        <div className="flex items-center justify-between px-6 py-3.5 border-t border-ek-border bg-ek-raised shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition active:scale-[0.98]"
+            className="ek-btn-secondary"
           >
             Fechar
           </button>
@@ -227,7 +225,7 @@ function ModalDetalhesOS({
               onConfirmarSelecao();
               onClose();
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition active:scale-[0.98]"
+            className="ek-btn-primary"
           >
             <Check className="w-4 h-4" />
             <span>Selecionar esta OS</span>
@@ -295,7 +293,7 @@ export default function PesquisaOrdem({
   const listaStatus = useCallback(() => {
     let list = Object.values(Status).filter((v) => isNaN(Number(v)));
     const mapped = list.map((v) => v.toString().toUpperCase());
-    return ["TODOS", "⚠️ ATRASADAS", ...mapped];
+    return ["TODOS", "ATRASADAS", ...mapped];
   }, []);
 
   // Foco inicial
@@ -318,7 +316,7 @@ export default function PesquisaOrdem({
       const repository = new OrdemRepository();
       const d1 = data1Str ? parseDataCalendario(data1Str) : new Date();
       const d2 = data2Str ? parseDataCalendario(data2Str) : new Date();
-      const statusParam = statusOrdem === "⚠️ ATRASADAS" ? "APROVADO" : statusOrdem;
+      const statusParam = statusOrdem === "ATRASADAS" ? "APROVADO" : statusOrdem;
       const listaOrdems = await repository.pesquisaOrdem(
         textoBusca.toUpperCase(),
         tipoBusca,
@@ -327,7 +325,7 @@ export default function PesquisaOrdem({
         d1,
         d2
       );
-      const resultadoFinal = statusOrdem === "⚠️ ATRASADAS"
+      const resultadoFinal = statusOrdem === "ATRASADAS"
         ? (listaOrdems || []).filter(isOrdemAtrasada)
         : (listaOrdems || []);
       setOrdems(resultadoFinal);
@@ -413,20 +411,18 @@ export default function PesquisaOrdem({
       <div
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
       >
-        <div className="relative w-full max-w-6xl xl:max-w-7xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+        <div className="relative w-full max-w-6xl xl:max-w-7xl max-h-[90vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-                <FileText className="w-5 h-5" />
-              </div>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-ek-border bg-ek-raised shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-4 bg-brand shrink-0" />
               <div>
-                <h2 className="text-base font-bold text-stone-800 tracking-tight">
+                <h2 className="text-base font-semibold text-ek-text tracking-tight">
                   Pesquisa de Ordens de Serviço (OS)
                 </h2>
-                <p className="text-xs text-stone-500 font-normal">
+                <p className="text-xs text-ek-muted font-normal">
                   Busque ordens por código, cliente, solicitação ou filtre por período e status
                 </p>
               </div>
@@ -434,7 +430,7 @@ export default function PesquisaOrdem({
             <button
               type="button"
               onClick={handleClose}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+              className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-rule transition-colors"
               title="Fechar (Esc)"
             >
               <X className="w-5 h-5" />
@@ -442,18 +438,18 @@ export default function PesquisaOrdem({
           </div>
 
           {/* Filtros no Topo */}
-          <div className="p-4 border-b border-stone-200 bg-stone-50/60 flex flex-col gap-3 shrink-0">
+          <div className="p-4 border-b border-ek-border bg-ek-surface flex flex-col gap-3 shrink-0">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
               {/* Campo de Busca Principal */}
               <div className="md:col-span-5 relative">
-                <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-ek-faint absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   ref={inputBuscaRef}
                   type="text"
                   value={textoBusca}
                   onChange={(e) => setTextoBusca(e.target.value)}
                   placeholder="Pesquisar OS..."
-                  className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 uppercase transition"
+                  className="ek-input pl-9 pr-4 uppercase"
                 />
               </div>
 
@@ -462,7 +458,7 @@ export default function PesquisaOrdem({
                 <select
                   value={tipoBusca}
                   onChange={(e) => setTipoBusca(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 text-stone-700 font-medium transition"
+                  className="ek-select"
                 >
                   <option value="Nome">Buscar por: Nome Cliente</option>
                   <option value="Codigo">Buscar por: Código OS</option>
@@ -475,7 +471,7 @@ export default function PesquisaOrdem({
                 <select
                   value={statusOrdem}
                   onChange={(e) => setStatusOrdem(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 text-stone-700 font-medium transition"
+                  className="ek-select"
                 >
                   {listaStatus().map((status) => (
                     <option key={status} value={status}>
@@ -487,34 +483,34 @@ export default function PesquisaOrdem({
             </div>
 
             {/* Linha Secundária: Período de Datas */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-200/60">
-              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-stone-700 select-none">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-ek-rule">
+              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-ek-text select-none">
                 <input
                   type="checkbox"
                   checked={porPeriodo}
                   onChange={(e) => setPorPeriodo(e.target.checked)}
-                  className="w-4 h-4 text-amber-500 rounded border-stone-300 focus:ring-amber-500 focus:ring-offset-0"
+                  className="w-4 h-4 accent-[#312783] rounded border-ek-control"
                 />
                 <span>Filtrar por Período de Abertura</span>
               </label>
 
               {porPeriodo && (
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="text-stone-500 flex items-center gap-1">
+                  <span className="text-ek-muted flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" /> De:
                   </span>
                   <input
                     type="date"
                     value={data1Str}
                     onChange={(e) => setData1Str(e.target.value)}
-                    className="px-2.5 py-1 bg-white border border-stone-300 rounded-md text-xs text-stone-700 focus:outline-none focus:border-amber-500"
+                    className="ek-input h-8 w-auto px-2.5 text-xs"
                   />
-                  <span className="text-stone-500">Até:</span>
+                  <span className="text-ek-muted">Até:</span>
                   <input
                     type="date"
                     value={data2Str}
                     onChange={(e) => setData2Str(e.target.value)}
-                    className="px-2.5 py-1 bg-white border border-stone-300 rounded-md text-xs text-stone-700 focus:outline-none focus:border-amber-500"
+                    className="ek-input h-8 w-auto px-2.5 text-xs"
                   />
                 </div>
               )}
@@ -524,15 +520,15 @@ export default function PesquisaOrdem({
           {/* Tabela de Resultados */}
           <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-stone-500 gap-2">
-                <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+              <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-brand" />
                 <span className="text-xs font-medium">Buscando ordens de serviço...</span>
               </div>
             ) : ordems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-2">
-                <FileText className="w-8 h-8 text-stone-300" />
-                <span className="text-sm font-medium">Nenhuma ordem de serviço encontrada.</span>
-                <span className="text-xs text-stone-400">
+              <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
+                <FileText className="w-8 h-8 text-ek-faint" />
+                <span className="text-sm font-medium text-ek-text">Nenhuma ordem de serviço encontrada.</span>
+                <span className="text-xs text-ek-muted">
                   {textoBusca.trim() === "" && !porPeriodo
                     ? "Digite um termo de pesquisa ou selecione um período de busca."
                     : "Verifique os filtros selecionados ou digite outro termo."}
@@ -541,7 +537,7 @@ export default function PesquisaOrdem({
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-stone-100/90 text-stone-600 text-xs font-bold uppercase tracking-wider border-b border-stone-200">
+                  <tr className="bg-ek-raised text-ek-muted text-xs font-semibold border-b border-ek-border">
                     <th className="p-3 w-16 whitespace-nowrap">Cód.</th>
                     <th className="p-3 w-24 whitespace-nowrap">Data</th>
                     <th className="p-3">Cliente</th>
@@ -552,7 +548,7 @@ export default function PesquisaOrdem({
                     <th className="p-3 text-right whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody className="divide-y divide-ek-rule">
                   {ordems.map((item, idx) => {
                     const isSelected = idx === selectedIndex;
                     return (
@@ -560,41 +556,41 @@ export default function PesquisaOrdem({
                         key={item.ORD_CODIGO}
                         onClick={() => selecionarOrdem(item)}
                         className={`cursor-pointer transition-colors text-xs ${
-                          isSelected ? "bg-amber-100/70 font-semibold" : "hover:bg-amber-50/40 text-stone-700"
+                          isSelected ? "bg-brand-soft font-semibold text-ek-text" : "hover:bg-ek-raised text-ek-text"
                         }`}
                       >
-                        <td className="p-3 font-mono font-medium text-stone-900 whitespace-nowrap">{item.ORD_CODIGO}</td>
-                        <td className="p-3 font-mono text-stone-600 whitespace-nowrap">
-                          {item.ORD_DATA ? converterDataFormato(item.ORD_DATA) : "—"}
+                        <td className="p-3 font-mono font-medium text-ek-text whitespace-nowrap tabular-nums">{item.ORD_CODIGO}</td>
+                        <td className="p-3 font-mono text-ek-muted whitespace-nowrap tabular-nums">
+                          {item.ORD_DATA ? converterDataFormato(item.ORD_DATA) : "-"}
                         </td>
-                        <td className="p-3 font-medium text-stone-800">{item.CLI_NOME || "—"}</td>
-                        <td className="p-3 text-stone-600">
-                          <div className="font-medium line-clamp-2">{item.ORD_SOLICITACAO || "—"}</div>
+                        <td className="p-3 font-medium text-ek-text">{item.CLI_NOME || "-"}</td>
+                        <td className="p-3 text-ek-muted">
+                          <div className="font-medium line-clamp-2">{item.ORD_SOLICITACAO || "-"}</div>
                           {(item.ORD_OM || item.ORD_PEDIDO_COMPRA) && (
-                            <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-stone-500 mt-1 font-mono">
+                            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-ek-muted mt-1 font-mono">
                               {item.ORD_OM && (
-                                <span className="bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200 whitespace-nowrap">
-                                  OM: <strong className="text-stone-700">{item.ORD_OM}</strong>
+                                <span className="bg-ek-raised px-1.5 py-0.5 rounded-[4px] border border-ek-border whitespace-nowrap">
+                                  OM: <strong className="text-ek-text">{item.ORD_OM}</strong>
                                 </span>
                               )}
                               {item.ORD_PEDIDO_COMPRA && (
-                                <span className="bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200 whitespace-nowrap">
-                                  Ped: <strong className="text-stone-700">{item.ORD_PEDIDO_COMPRA}</strong>
+                                <span className="bg-ek-raised px-1.5 py-0.5 rounded-[4px] border border-ek-border whitespace-nowrap">
+                                  Ped: <strong className="text-ek-text">{item.ORD_PEDIDO_COMPRA}</strong>
                                 </span>
                               )}
                             </div>
                           )}
                         </td>
-                        <td className="p-3 text-right font-mono font-semibold text-stone-900 whitespace-nowrap">
+                        <td className="p-3 text-right font-mono font-semibold text-ek-text whitespace-nowrap tabular-nums">
                           {formatCurrency(Number(item.ORD_VALOR) || 0)}
                         </td>
                         <td className="p-3 text-center whitespace-nowrap">
                           <div className="flex flex-col items-center justify-center gap-1">
                             <span
-                              className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase whitespace-nowrap ${
+                              className={`inline-block px-2 py-0.5 rounded-[4px] text-[11px] font-semibold uppercase whitespace-nowrap ${
                                 item.ORD_ESTADO === "APROVADO"
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                  : "bg-stone-100 text-stone-700 border border-stone-200"
+                                  : "bg-ek-raised text-ek-muted border border-ek-border"
                               }`}
                             >
                               {item.ORD_ESTADO || "ABERTO"}
@@ -606,7 +602,7 @@ export default function PesquisaOrdem({
                                     ? `Prazo de conclusão expirado (${converterDataFormato(item.ORD_PREVISAO_CONCLUSAO || "")})!\nJustificativa: ${item.ORD_JUSTIFICATIVA_ATRASO}`
                                     : `Prazo de conclusão expirado (${converterDataFormato(item.ORD_PREVISAO_CONCLUSAO || "")})!`
                                 }
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-300 shadow-xs cursor-help whitespace-nowrap"
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200 cursor-help whitespace-nowrap"
                               >
                                 <AlertTriangle className="w-3 h-3 text-red-600 shrink-0" />
                                 <span>Atrasada</span>
@@ -614,7 +610,7 @@ export default function PesquisaOrdem({
                             )}
                           </div>
                         </td>
-                        <td className="p-3 text-stone-600">
+                        <td className="p-3 text-ek-muted">
                           <span className="truncate block max-w-[150px]" title={item.PARCEIRO || "SEM PARC."}>
                             {item.PARCEIRO || "SEM PARC."}
                           </span>
@@ -629,7 +625,7 @@ export default function PesquisaOrdem({
                               onClick={() => visualizarDetalhes(item)}
                               title="Visualizar produtos e serviços da OS"
                               aria-label="Visualizar produtos e serviços da OS"
-                              className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-md transition"
+                              className="p-1.5 text-ek-muted hover:text-ek-text bg-ek-raised hover:bg-ek-rule border border-ek-border rounded-[6px] transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -638,7 +634,7 @@ export default function PesquisaOrdem({
                               onClick={() => selecionarOrdem(item)}
                               title="Selecionar esta OS"
                               aria-label="Selecionar esta OS"
-                              className="p-1.5 text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition"
+                              className="p-1.5 text-brand hover:text-brand-hover bg-brand-soft border border-brand-border rounded-[6px] transition-colors"
                             >
                               <Check className="w-4 h-4" />
                             </button>
@@ -653,14 +649,14 @@ export default function PesquisaOrdem({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-3.5 border-t border-stone-200/80 bg-stone-50/90 shrink-0">
-            <span className="text-xs text-stone-500">
+          <div className="flex items-center justify-between px-6 py-3.5 border-t border-ek-border bg-ek-raised shrink-0">
+            <span className="text-xs text-ek-muted tabular-nums">
               {ordems.length} {ordems.length === 1 ? "ordem encontrada" : "ordens encontradas"}
             </span>
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition active:scale-[0.98]"
+              className="ek-btn-secondary"
             >
               Fechar (Esc)
             </button>

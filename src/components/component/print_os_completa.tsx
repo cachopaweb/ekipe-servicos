@@ -617,7 +617,7 @@ export default function PrintOSCompleta({ codigoOrdem, onClose }: PrintOSComplet
 
           {/* Dados do Cliente e Responsável Técnico */}
           <div className="mt-3 pt-2 border-t border-gray-800">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-wider mb-1.5">
+            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight mb-1.5">
               1. Identificação da Ordem de Serviço e do Cliente
             </h2>
           </div>
@@ -685,7 +685,7 @@ export default function PrintOSCompleta({ codigoOrdem, onClose }: PrintOSComplet
         {/* ============================================================== */}
         <div className="mb-4 print-avoid-break">
           <div className="flex items-center justify-between border-b border-gray-800 pb-1 mb-1.5">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5">
               <span>2. Serviços Executados</span>
             </h2>
             <span className="text-[10px] font-bold text-gray-600">
@@ -825,7 +825,7 @@ export default function PrintOSCompleta({ codigoOrdem, onClose }: PrintOSComplet
         {/* ============================================================== */}
         <div className="mb-4 print-avoid-break">
           <div className="flex items-center justify-between border-b border-gray-800 pb-1 mb-1.5">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5">
               <span>3. Produtos e Peças Utilizadas</span>
             </h2>
             <span className="text-[10px] font-bold text-gray-600">
@@ -884,7 +884,7 @@ export default function PrintOSCompleta({ codigoOrdem, onClose }: PrintOSComplet
         {/* ============================================================== */}
         <div className="mb-4 border border-gray-800 rounded p-2.5 bg-gray-50/50 print:bg-transparent print-avoid-break">
           <div className="border-b border-gray-800 pb-1 mb-2">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-wider">
+            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight">
               4. Informações Financeiras e Faturamento
             </h2>
           </div>
@@ -926,29 +926,6 @@ export default function PrintOSCompleta({ codigoOrdem, onClose }: PrintOSComplet
                   {formatCurrency(saldoPagar)}
                 </span>
               </div>
-
-              {/* Bloco Separado: Controle de Empreitadas / Terceiros */}
-              {subtotalEmpreitadas > 0 && (
-                <div className="mt-2 pt-1.5 border-t border-dashed border-gray-300 bg-amber-50/70 p-2 rounded text-[10px] space-y-0.5">
-                  <span className="font-bold text-amber-900 uppercase block tracking-wider text-[9px]">
-                    Controle de Empreitadas (Custos com Terceiros):
-                  </span>
-                  <div className="flex justify-between text-gray-700">
-                    <span>Total Contratado:</span>
-                    <span className="font-semibold">{formatCurrency(subtotalEmpreitadas)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-700">
-                    <span>Pago aos Prestadores:</span>
-                    <span className="font-semibold text-emerald-700">{formatCurrency(totalPagoEmpreitadas)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-700">
-                    <span>Saldo a Pagar aos Prestadores:</span>
-                    <span className="font-bold text-amber-900">
-                      {saldoEmpreitadas <= 0 ? "QUITADO" : formatCurrency(saldoEmpreitadas)}
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Condições de Pagamento e Faturas */}
@@ -1014,7 +991,7 @@ export default function PrintOSCompleta({ codigoOrdem, onClose }: PrintOSComplet
         {/* ============================================================== */}
         <div className="mb-4 print-avoid-break">
           <div className="border-b border-gray-800 pb-1 mb-2">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-wider">
+            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight">
               5. Lista de Arquivos e Fotografias Anexas ({anexos.length})
             </h2>
           </div>
@@ -1225,7 +1202,7 @@ export default function PrintOSCompleta({ codigoOrdem, onClose }: PrintOSComplet
         {/* ============================================================== */}
         <div className="mt-4 pt-3 border-t-2 border-gray-800 print-avoid-break">
           <div className="border-b border-gray-800 pb-1 mb-2">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-wider">
+            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight">
               6. Encerramento, Observações e Assinaturas
             </h2>
           </div>

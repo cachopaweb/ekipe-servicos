@@ -992,7 +992,7 @@ export default function Orcamentos() {
   };
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-64px)] bg-stone-100 p-2 sm:p-4 pb-20 lg:pb-4 gap-3 font-sans">
+    <div className="flex flex-col w-full min-h-full bg-white p-4 sm:p-6 pb-20 lg:pb-6 gap-4 font-sans text-ek-text">
       {/* 1. Header Superior com Status e Ações */}
       <HeaderOrcamento
         codigoOrdem={codigoOrdem}
@@ -1076,32 +1076,32 @@ export default function Orcamentos() {
             onOpenNovoSolicitante={() => setShowModalNovoSolicitante(true)}
           />
 
-          {/* Abas de Itens: Serviços vs Produtos (Sem sombras, tipografia maior) */}
+          {/* Abas de Itens: Serviços vs Produtos (Underline Framed Sheet) */}
           <div>
-            <div className="flex items-center gap-2.5 mb-2.5">
+            <div className="flex items-center gap-6 border-b border-ek-rule mb-3">
               <button
                 type="button"
                 onClick={() => setAbaAtiva("SERVICOS")}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-bold transition ${
+                className={`relative flex items-center gap-2 py-2.5 text-sm transition-colors border-b-2 -mb-px ${
                   abaAtiva === "SERVICOS"
-                    ? "bg-amber-500 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                    ? "border-brand text-ek-text font-semibold"
+                    : "border-transparent text-ek-muted font-medium hover:text-ek-text"
                 }`}
               >
-                <Wrench className="w-4 h-4" />
+                <Wrench className={`w-4 h-4 ${abaAtiva === "SERVICOS" ? "text-brand" : "text-ek-faint"}`} />
                 <span>Serviços ({listaServicosInseridos.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setAbaAtiva("PRODUTOS")}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-bold transition ${
+                className={`relative flex items-center gap-2 py-2.5 text-sm transition-colors border-b-2 -mb-px ${
                   abaAtiva === "PRODUTOS"
-                    ? "bg-amber-500 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                    ? "border-brand text-ek-text font-semibold"
+                    : "border-transparent text-ek-muted font-medium hover:text-ek-text"
                 }`}
               >
-                <Package className="w-4 h-4" />
+                <Package className={`w-4 h-4 ${abaAtiva === "PRODUTOS" ? "text-brand" : "text-ek-faint"}`} />
                 <span>Produtos ({listaProdutosInseridos.length})</span>
               </button>
             </div>
@@ -1405,24 +1405,24 @@ export default function Orcamentos() {
           showButtonExit={false}
           body={
             <div className="flex flex-col items-center text-center p-4">
-              <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-3 shadow-inner">
-                <CheckCircle2 className="w-8 h-8" />
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full flex items-center justify-center mb-3">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-gray-900">
+              <h3 className="text-base font-semibold text-ek-text">
                 Ordem de Serviço #{codigoOrdem} faturada com sucesso!
               </h3>
-              <p className="text-xs text-gray-500 mt-1 max-w-sm">
+              <p className="text-xs text-ek-muted mt-1 max-w-sm">
                 A fatura foi vinculada e os lançamentos financeiros foram criados. Deseja emitir o relatório completo agora?
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center gap-2.5 mt-6 w-full max-w-md">
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 mt-5 w-full max-w-md">
                 <button
                   type="button"
                   onClick={() => {
                     setShowModalPosFaturamento(false);
                     setShowModalPrintOSCompleta(true);
                   }}
-                  className="w-full sm:flex-1 py-2.5 px-4 bg-brand hover:bg-brand-hover text-white font-bold text-xs rounded-lg shadow-sm flex items-center justify-center gap-2 transition active:scale-95"
+                  className="ek-btn-primary w-full sm:flex-1 h-9 text-xs"
                 >
                   <FileText className="w-4 h-4" />
                   <span>Gerar PDF Completo</span>
@@ -1437,9 +1437,9 @@ export default function Orcamentos() {
                     }
                     setShowModalImprimir(true);
                   }}
-                  className="w-full sm:flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-lg border border-gray-300 flex items-center justify-center gap-2 transition active:scale-95"
+                  className="ek-btn-secondary w-full sm:flex-1 h-9 text-xs"
                 >
-                  <Printer className="w-4 h-4 text-gray-600" />
+                  <Printer className="w-4 h-4 text-ek-muted" />
                   <span>Orçamento Resumido</span>
                 </button>
               </div>
@@ -1447,7 +1447,7 @@ export default function Orcamentos() {
               <button
                 type="button"
                 onClick={() => setShowModalPosFaturamento(false)}
-                className="mt-3.5 text-xs text-gray-400 hover:text-gray-600 underline font-medium"
+                className="mt-3.5 text-xs text-ek-muted hover:text-ek-text underline font-medium transition-colors"
               >
                 Concluir sem imprimir agora
               </button>

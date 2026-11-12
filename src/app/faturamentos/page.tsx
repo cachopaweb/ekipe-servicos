@@ -249,29 +249,29 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     }
 
     return (
-        <div ref={refDivFatura} className="flex flex-col gap-4 font-sans text-stone-800">
+        <div ref={refDivFatura} className="flex flex-col gap-4 font-sans text-ek-text">
             {/* Bloco 1: Resumo e Dados Iniciais */}
-            <div className="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-100 gap-2">
+            <div className="ek-card p-4 sm:p-5 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-ek-rule gap-2">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-amber-100/70 border border-amber-200 flex items-center justify-center text-amber-700">
-                            <CreditCard className="w-5 h-5" />
+                        <div className="w-9 h-9 rounded-[6px] bg-brand-soft border border-brand-border flex items-center justify-center text-brand">
+                            <CreditCard className="w-4 h-4" />
                         </div>
                         <div>
-                            <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">
-                                Cód. Fatura
+                            <span className="text-xs font-medium text-ek-muted block">
+                                Cód. fatura
                             </span>
-                            <span className="font-mono text-lg font-bold text-stone-800">
+                            <span className="font-mono text-base font-bold text-ek-text tabular-nums">
                                 #{codFatura || '---'}
                             </span>
                         </div>
                     </div>
 
                     <div className="text-left sm:text-right">
-                        <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">
-                            Valor Total a Faturar
+                        <span className="text-xs font-medium text-ek-muted block">
+                            Valor total a faturar
                         </span>
-                        <span className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight">
+                        <span className="text-2xl font-bold text-brand tracking-[-0.02em] tabular-nums">
                             {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(valorTotal!)}
                         </span>
                     </div>
@@ -279,7 +279,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
 
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:items-end">
                     <div className="sm:col-span-3">
-                        <label htmlFor="edtEntrada" className="text-xs font-semibold text-stone-600 mb-1 block">
+                        <label htmlFor="edtEntrada" className="ek-label">
                             Entrada (R$)
                         </label>
                         <input
@@ -293,17 +293,17 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                             value={vlrEntrada ?? ''}
                             onChange={e => setVlrEntrada(parseFloat(e.target.value))}
                             onKeyDown={keydownEntrada}
-                            className="w-full bg-white border border-stone-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-lg px-3 py-2 text-sm text-stone-800 font-semibold transition-all outline-none"
+                            className="ek-input font-semibold tabular-nums"
                         />
                     </div>
 
-                    <div className="hidden sm:flex sm:col-span-1 items-center justify-center pb-2 text-stone-400 font-bold text-xl">
+                    <div className="hidden sm:flex sm:col-span-1 items-center justify-center pb-2 text-ek-faint font-semibold text-lg">
                         +
                     </div>
 
                     <div className="sm:col-span-3">
-                        <label htmlFor="edtParcelas" className="text-xs font-semibold text-stone-600 mb-1 block">
-                            N° Parcelas
+                        <label htmlFor="edtParcelas" className="ek-label">
+                            N° parcelas
                         </label>
                         <input
                             id="edtParcelas"
@@ -313,19 +313,19 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                             onKeyDown={keyDownParcelas}
                             type="number"
                             min={0}
-                            className="w-full bg-white border border-stone-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-lg px-3 py-2 text-sm text-stone-800 font-semibold transition-all outline-none"
+                            className="ek-input font-semibold tabular-nums"
                         />
                     </div>
 
                     <div className="sm:col-span-5">
-                        <label className="text-xs font-semibold text-stone-600 mb-1 block">
+                        <label className="ek-label">
                             Cliente / Consumidor
                         </label>
                         <input
                             value={cliFor.NOME ?? ''}
                             readOnly
                             type="text"
-                            className="w-full bg-stone-100 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 font-semibold cursor-not-allowed outline-none truncate"
+                            className="ek-input bg-ek-raised text-ek-muted font-medium cursor-not-allowed truncate"
                         />
                     </div>
                 </div>
@@ -343,16 +343,16 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
             />
 
             {/* Bloco 2: Configuração e Inserção de Parcelas */}
-            <div className="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
-                <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+            <div className="ek-card p-4 sm:p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between pb-3 border-b border-ek-rule">
                     <div className="flex items-center gap-2.5">
-                        <span className="w-1.5 h-4 bg-amber-500 rounded-full"></span>
-                        <h3 className="text-sm font-bold text-stone-800 uppercase tracking-wider">
-                            Dados da Fatura
+                        <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
+                        <h3 className="text-sm font-semibold text-ek-text">
+                            Dados da fatura
                         </h3>
                     </div>
                     {numParcelasRestantes > 0 && (
-                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="text-xs font-medium px-2.5 py-0.5 rounded-[6px] bg-brand-soft text-brand border border-brand-border tabular-nums">
                             {numParcelasRestantes} {numParcelasRestantes === 1 ? 'parcela restante' : 'parcelas restantes'}
                         </span>
                     )}
@@ -360,8 +360,8 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
 
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:items-end">
                     <div className="sm:col-span-4">
-                        <label htmlFor="tipoPgm" className="text-xs font-semibold text-stone-600 mb-1 block">
-                            Tipo Pagamento
+                        <label htmlFor="tipoPgm" className="ek-label">
+                            Tipo de pagamento
                         </label>
                         <select
                             onKeyDown={keydownTipoPgm}
@@ -369,7 +369,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                             onChange={e => setCodTipoPgm(e.target.value ? Number(e.target.value) : 0)}
                             name="tipoPgm"
                             id="tipoPgm"
-                            className="w-full bg-white border border-stone-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-lg px-3 py-2 text-sm text-stone-800 font-medium transition-all outline-none uppercase"
+                            className="ek-select uppercase"
                         >
                             {listaTipopgm && listaTipopgm.map(tp => (
                                 <option key={tp.TP_CODIGO} value={tp.TP_CODIGO}>
@@ -380,7 +380,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                     </div>
 
                     <div className="sm:col-span-3">
-                        <label htmlFor="edtVencimento" className="text-xs font-semibold text-stone-600 mb-1 block">
+                        <label htmlFor="edtVencimento" className="ek-label">
                             Vencimento
                         </label>
                         <input
@@ -389,13 +389,13 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                             onKeyDown={keydownVencimento}
                             value={vencimentoStr}
                             onChange={e => setVencimentoStr(e.target.value)}
-                            className="w-full bg-white border border-stone-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-lg px-3 py-2 text-sm text-stone-800 font-medium transition-all outline-none"
+                            className="ek-input tabular-nums"
                         />
                     </div>
 
                     <div className="sm:col-span-3">
-                        <label htmlFor="edtValorParcela" className="text-xs font-semibold text-stone-600 mb-1 block">
-                            Valor Parcela
+                        <label htmlFor="edtValorParcela" className="ek-label">
+                            Valor da parcela
                         </label>
                         <input
                             id="edtValorParcela"
@@ -406,7 +406,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                             onChange={e => setValorParcela(e.target.value ? parseFloat(e.target.value) : 0)}
                             type="number"
                             min={0}
-                            className="w-full bg-white border border-stone-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-lg px-3 py-2 text-sm text-stone-800 font-bold transition-all outline-none"
+                            className="ek-input font-semibold tabular-nums"
                         />
                     </div>
 
@@ -416,7 +416,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                             id="btnSalvar"
                             type="button"
                             disabled={(numParcelasRestantes === 0)}
-                            className="w-full h-[38px] px-3 rounded-lg text-xs font-bold text-white shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 active:scale-[0.98]"
+                            className="ek-btn-primary w-full justify-center disabled:opacity-45 disabled:cursor-not-allowed"
                         >
                             <PlusCircle className="w-4 h-4" />
                             <span>Adicionar</span>
@@ -425,37 +425,37 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                 </div>
 
                 {/* Tabela de Parcelas */}
-                <div className="w-full rounded-xl border border-stone-200 bg-white overflow-hidden shadow-sm mt-1">
+                <div className="w-full rounded-[6px] border border-ek-border bg-ek-surface overflow-hidden mt-1">
                     <div className="overflow-x-auto max-h-[220px]">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-stone-50/90 border-b border-stone-200 text-stone-600 text-xs font-semibold uppercase tracking-wider sticky top-0 z-10">
+                                <tr className="bg-ek-raised border-b border-ek-border text-ek-muted text-xs font-semibold sticky top-0 z-10">
                                     <th className="py-2.5 px-3">Duplicata</th>
                                     <th className="py-2.5 px-3">Vencimento</th>
-                                    <th className="py-2.5 px-3">Tipo Pgm</th>
+                                    <th className="py-2.5 px-3">Tipo pagto</th>
                                     <th className="py-2.5 px-3 text-center">Juros</th>
                                     <th className="py-2.5 px-3 text-center">Descontos</th>
                                     <th className="py-2.5 px-3 text-right">Valor</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-stone-100 text-xs sm:text-sm">
+                            <tbody className="divide-y divide-ek-rule text-xs sm:text-[13px]">
                                 {listaPFParcela.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="py-6 text-center text-stone-400">
+                                        <td colSpan={6} className="py-6 text-center text-ek-faint">
                                             Nenhuma parcela gerada ainda. Preencha os campos e pressione Enter.
                                         </td>
                                     </tr>
                                 ) : (
                                     listaPFParcela.map((item) => (
-                                        <tr key={item.PP_DUPLICATA} className="hover:bg-amber-50/30 transition-colors">
-                                            <td className="py-2.5 px-3 font-semibold text-stone-800">{item.PP_DUPLICATA}</td>
-                                            <td className="py-2.5 px-3 text-stone-600 font-mono">
+                                        <tr key={item.PP_DUPLICATA} className="hover:bg-ek-raised/80 transition-colors">
+                                            <td className="py-2.5 px-3 font-medium text-ek-text tabular-nums">{item.PP_DUPLICATA}</td>
+                                            <td className="py-2.5 px-3 text-ek-muted tabular-nums">
                                                 {Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', formatMatcher: 'basic' }).format(item.PP_VENCIMENTO)}
                                             </td>
-                                            <td className="py-2.5 px-3 text-stone-700 font-medium">{item.DescricaoTipoPgm}</td>
-                                            <td className="py-2.5 px-3 text-center text-stone-500 font-mono">{item.PP_JUROS}</td>
-                                            <td className="py-2.5 px-3 text-center text-stone-500 font-mono">{item.PP_DESCONTOS}</td>
-                                            <td className="py-2.5 px-3 text-right font-bold text-amber-600 font-mono">
+                                            <td className="py-2.5 px-3 text-ek-text font-medium">{item.DescricaoTipoPgm}</td>
+                                            <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">{item.PP_JUROS}</td>
+                                            <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">{item.PP_DESCONTOS}</td>
+                                            <td className="py-2.5 px-3 text-right font-semibold text-brand tabular-nums">
                                                 {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.PP_VALOR)}
                                             </td>
                                         </tr>
@@ -467,19 +467,19 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                 </div>
 
                 {/* Botão Finalizar */}
-                <div className="pt-2">
+                <div className="pt-1">
                     <button
                         type="button"
                         disabled={(numParcelasRestantes !== 0) || (listaPFParcela.length === 0) || isFinishing}
-                        className="w-full py-3.5 px-6 rounded-xl font-bold text-sm sm:text-base text-white shadow-sm transition-all flex items-center justify-center gap-2 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99]"
+                        className="ek-btn-primary w-full h-11 text-sm font-semibold justify-center disabled:opacity-45 disabled:cursor-not-allowed"
                         onClick={() => setShowModalSalvar(true)}
                     >
                         {isFinishing ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                            <CheckCircle className="w-5 h-5" />
+                            <CheckCircle className="w-4 h-4" />
                         )}
-                        <span>{isFinishing ? "Finalizando..." : "Finalizar Faturamento"}</span>
+                        <span>{isFinishing ? "Finalizando..." : "Finalizar faturamento"}</span>
                     </button>
                 </div>
             </div>

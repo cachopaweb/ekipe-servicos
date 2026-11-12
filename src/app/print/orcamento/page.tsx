@@ -80,7 +80,7 @@ const PrintOrcamentos = () => {
         carregando ?
             <h1>Aguarde, carregando dados...</h1>
             :
-            <div className='p-3 relative' ref={componentRef}>
+            <div className='p-3 relative bg-white text-black min-h-screen print:min-h-0' ref={componentRef}>
                 <div >
                     <Image className='p-10' src={logo} height={80} alt="Logo" />
                     <div className='divide-solid divide-y divide-black print:pl-10'>

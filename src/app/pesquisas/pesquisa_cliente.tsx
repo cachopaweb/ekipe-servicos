@@ -157,18 +157,19 @@ export default function PesquisaCliente({
       <div
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
       >
-        <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
+        <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-ek-raised shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-                <User className="w-5 h-5" />
-              </div>
+              <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
               <div>
-                <h2 className="text-base font-bold text-stone-800 tracking-tight">Pesquisa de Clientes</h2>
-                <p className="text-xs text-stone-500 font-normal">
+                <h2 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                  <User className="w-4 h-4 text-brand" />
+                  <span>Pesquisa de clientes</span>
+                </h2>
+                <p className="text-xs text-ek-muted">
                   Navegue com as setas ↑ ↓ e pressione Enter para selecionar
                 </p>
               </div>
@@ -178,77 +179,77 @@ export default function PesquisaCliente({
               <button
                 type="button"
                 onClick={cadastrarNovoCliente}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition active:scale-[0.98]"
+                className="ek-btn-primary h-8 px-3 text-xs"
               >
-                <UserPlus className="w-4 h-4" />
-                <span>Novo Cliente</span>
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Novo cliente</span>
               </button>
               <button
                 type="button"
                 onClick={handleClose}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
                 title="Fechar (Esc)"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Barra de Pesquisa no Topo */}
-          <div className="p-4 border-b border-stone-200 bg-white shrink-0">
+          <div className="p-4 border-b border-ek-border bg-ek-surface shrink-0">
             <div className="relative">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-ek-faint absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 ref={inputBuscaRef}
                 type="text"
                 value={textoPesquisado}
                 onChange={(e) => setTextoPesquisado(e.target.value)}
                 placeholder="Pesquisar por nome, CPF/CNPJ, código..."
-                className="w-full pl-9 pr-4 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 uppercase transition"
+                className="ek-input pl-9 uppercase"
               />
             </div>
           </div>
 
           {/* Tabela de Resultados */}
-          <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
+          <div className="flex-1 overflow-y-auto min-h-[300px]">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-stone-500 gap-2">
-                <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+              <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-brand" />
                 <span className="text-xs font-medium">Buscando clientes...</span>
               </div>
             ) : clients.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-2">
-                <User className="w-8 h-8 text-stone-300" />
-                <span className="text-sm font-medium">Nenhum cliente encontrado.</span>
-                <span className="text-xs text-stone-400">Verifique os termos da busca ou cadastre um novo cliente.</span>
+              <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
+                <User className="w-8 h-8 text-ek-faint" />
+                <span className="text-sm font-medium text-ek-text">Nenhum cliente encontrado.</span>
+                <span className="text-xs text-ek-muted">Verifique os termos da busca ou cadastre um novo cliente.</span>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-stone-100/90 text-stone-600 text-xs font-bold uppercase tracking-wider border-b border-stone-200">
-                    <th className="p-3 w-16 text-center whitespace-nowrap">Cód.</th>
-                    <th className="p-3">Nome</th>
-                    <th className="p-3 whitespace-nowrap w-48">CPF / CNPJ</th>
-                    <th className="p-3 whitespace-nowrap w-40">Telefone</th>
-                    <th className="p-3 text-center w-28 whitespace-nowrap">Ações</th>
+                  <tr className="bg-ek-raised text-ek-muted text-xs font-semibold border-b border-ek-border sticky top-0 z-10">
+                    <th className="py-2.5 px-4 w-16 text-center whitespace-nowrap">Cód.</th>
+                    <th className="py-2.5 px-4">Nome</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap w-48">CPF / CNPJ</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap w-40">Telefone</th>
+                    <th className="py-2.5 px-4 text-center w-28 whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody className="divide-y divide-ek-rule">
                   {clients.map((item, idx) => {
                     const isSelected = idx === selectedIndex;
                     return (
                       <tr
                         key={item.CODIGO}
                         onClick={() => selecionarCliente(item)}
-                        className={`cursor-pointer transition-colors text-sm ${
-                          isSelected ? "bg-amber-100/70 font-semibold" : "hover:bg-amber-50/40 text-stone-700"
+                        className={`cursor-pointer transition-colors text-[13px] ${
+                          isSelected ? "bg-brand-soft font-semibold" : "hover:bg-ek-raised/80 text-ek-text"
                         }`}
                       >
-                        <td className="p-3 font-mono font-medium text-stone-900 text-center whitespace-nowrap">{item.CODIGO}</td>
-                        <td className="p-3 font-medium text-stone-800">{item.NOME}</td>
-                        <td className="p-3 font-mono text-stone-600 whitespace-nowrap">{item.CPF_CNPJ || "—"}</td>
-                        <td className="p-3 text-stone-600 whitespace-nowrap">{item.FONE || "—"}</td>
-                        <td className="p-3 text-center whitespace-nowrap">
+                        <td className="p-3 px-4 font-mono font-semibold text-ek-muted text-center whitespace-nowrap tabular-nums">{item.CODIGO}</td>
+                        <td className="p-3 px-4 font-medium text-ek-text">{item.NOME}</td>
+                        <td className="p-3 px-4 font-mono text-ek-muted whitespace-nowrap tabular-nums">{item.CPF_CNPJ || "—"}</td>
+                        <td className="p-3 px-4 text-ek-muted whitespace-nowrap tabular-nums">{item.FONE || "—"}</td>
+                        <td className="p-3 px-4 text-center whitespace-nowrap">
                           <div
                             className="inline-flex items-center justify-center gap-1.5"
                             onClick={(e) => e.stopPropagation()}
@@ -258,7 +259,7 @@ export default function PesquisaCliente({
                               onClick={() => visualizarCliente(item)}
                               title="Visualizar ou editar cadastro"
                               aria-label="Visualizar ou editar cadastro"
-                              className="p-1.5 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-md transition"
+                              className="p-1.5 text-ek-muted hover:text-ek-text bg-ek-raised border border-ek-border hover:bg-ek-active rounded-[6px] transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -267,7 +268,7 @@ export default function PesquisaCliente({
                               onClick={() => selecionarCliente(item)}
                               title="Selecionar este cliente"
                               aria-label="Selecionar este cliente"
-                              className="p-1.5 text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition"
+                              className="p-1.5 text-brand bg-brand-soft hover:bg-brand/10 border border-brand-border rounded-[6px] transition-colors"
                             >
                               <Check className="w-4 h-4" />
                             </button>
@@ -276,7 +277,7 @@ export default function PesquisaCliente({
                               onClick={() => solicitarDesativacao(item)}
                               title="Desativar cliente"
                               aria-label="Desativar cliente"
-                              className="p-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition"
+                              className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-[6px] transition-colors"
                             >
                               <UserX className="w-4 h-4" />
                             </button>
@@ -291,14 +292,14 @@ export default function PesquisaCliente({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-3.5 border-t border-stone-200/80 bg-stone-50/90 shrink-0">
-            <span className="text-xs text-stone-500">
+          <div className="flex items-center justify-between px-5 py-3 border-t border-ek-border bg-ek-raised shrink-0">
+            <span className="text-xs text-ek-muted tabular-nums">
               {clients.length} {clients.length === 1 ? "cliente encontrado" : "clientes encontrados"}
             </span>
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 text-sm font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-sm transition active:scale-[0.98]"
+              className="ek-btn-secondary h-8 px-3 text-xs"
             >
               Fechar (Esc)
             </button>
@@ -322,31 +323,30 @@ export default function PesquisaCliente({
       {cadastrarCliente && (
         <div
           tabIndex={-1}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/45 outline-none"
         >
-          <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
+          <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-ek-raised shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-                  <User className="w-5 h-5" />
-                </div>
+                <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
                 <div>
-                  <h2 className="text-base font-bold text-stone-800 tracking-tight">
-                    {idCadastraCliente === 0 ? "Novo Cliente" : "Visualizar / Editar Cliente"}
+                  <h2 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                    <User className="w-4 h-4 text-brand" />
+                    <span>{idCadastraCliente === 0 ? "Novo cliente" : "Visualizar / editar cliente"}</span>
                   </h2>
-                  <p className="text-xs text-stone-500 font-normal">Preencha os dados do cliente</p>
+                  <p className="text-xs text-ek-muted">Preencha os dados do cliente</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setCadastrarCliente(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+                className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
                 title="Fechar"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5">
               <Cadastro_clientes
                 setListarCliente={setShowModal}
                 setCadastrarCliente={setCadastrarCliente}

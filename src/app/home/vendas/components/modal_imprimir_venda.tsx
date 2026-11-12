@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X } from "lucide-react";
+import { Printer, X } from "lucide-react";
 import { VendaModel } from "@/app/models/venda_model";
 import { VenEstModel } from "@/app/models/ven_est_model";
 
@@ -290,92 +290,97 @@ export default function ModalImprimirVenda({ isOpen, onClose, venda, desconto, f
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in outline-none"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/45 p-4 outline-none"
     >
-      <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-gray-300 flex flex-col">
+      <div className="bg-ek-surface w-full max-w-md rounded-[8px] border border-ek-border overflow-hidden flex flex-col font-sans">
 
-        <div className="bg-stone-100 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
-            <i className="fas fa-print"></i> Imprimir Venda #{venda.VEN_CODIGO}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition">
+        <div className="bg-ek-raised px-5 py-3.5 border-b border-ek-border flex justify-between items-center">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-ek-text flex items-center gap-2">
+              <Printer className="w-4 h-4 text-brand" />
+              <span>Imprimir venda #{venda.VEN_CODIGO}</span>
+            </h2>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-[6px] text-ek-muted hover:bg-ek-active hover:text-ek-text transition-colors" title="Fechar (ESC)">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-6 bg-stone-50 flex flex-col gap-4">
-          <div className="bg-white p-4 rounded border border-gray-200 shadow-sm text-center">
-            <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Valor Total da Venda</label>
-            <div className="text-3xl font-black text-green-600">{formatCurrency(venda.VEN_VALOR)}</div>
-            <div className="text-xs text-gray-500 mt-1">{new Date(venda.VEN_DATA).toLocaleDateString()} às {venda.VEN_HORA}</div>
+        <div className="p-5 bg-ek-surface flex flex-col gap-3.5">
+          <div className="bg-ek-raised px-4 py-3.5 rounded-[6px] border border-ek-border text-center">
+            <span className="text-xs font-medium text-ek-muted block mb-1">Valor total da venda</span>
+            <div className="text-3xl font-bold text-brand tabular-nums">{formatCurrency(venda.VEN_VALOR)}</div>
+            <div className="text-xs text-ek-muted mt-1 tabular-nums">{new Date(venda.VEN_DATA).toLocaleDateString()} às {venda.VEN_HORA}</div>
           </div>
 
-          {/* Resumo Visual dos Itens */}
-          <div className="bg-white p-3 rounded border border-gray-200 shadow-sm max-h-32 overflow-y-auto">
-            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1 border-b pb-1">Resumo dos Itens</label>
+          <div className="bg-ek-surface p-3 rounded-[6px] border border-ek-border max-h-32 overflow-y-auto">
+            <span className="text-xs font-semibold text-ek-muted block mb-1.5 border-b border-ek-rule pb-1">Resumo dos itens</span>
             {venda.itensVenEst && venda.itensVenEst.length > 0 ? (
-              <ul className="text-xs text-gray-600 space-y-1">
+              <ul className="text-xs text-ek-text space-y-1">
                 {itens!.map((item, i) => (
-                  <li key={i} className="flex justify-between">
-                    <span className="truncate w-2/3">{item.VE_QUANTIDADE}x {item.VE_NOME}</span>
-                    <span>{formatCurrency(item.VE_VALOR)}</span>
+                  <li key={i} className="flex justify-between gap-2">
+                    <span className="truncate">{item.VE_QUANTIDADE}x {item.VE_NOME}</span>
+                    <span className="font-medium tabular-nums shrink-0">{formatCurrency(item.VE_VALOR)}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-gray-400 italic text-center py-2">Itens não carregados para visualização</p>
+              <p className="text-xs text-ek-faint text-center py-2">Itens não carregados para visualização</p>
             )}
           </div>
 
-          {/* SELETOR DE FORMATO DE IMPRESSÃO */}
-          <div className="bg-white p-3 rounded border border-gray-200 shadow-sm">
-            <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Formato de Impressão</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
+          <div className="bg-ek-surface p-3 rounded-[6px] border border-ek-border">
+            <span className="ek-label mb-2">Formato de impressão</span>
+            <div className="flex gap-5">
+              <label className="flex items-center gap-2 cursor-pointer text-[13px] text-ek-text font-medium">
                 <input
                   type="radio"
                   name="tipoImpressao"
                   value="80mm"
                   checked={tipoImpressao === '80mm'}
                   onChange={() => setTipoImpressao('80mm')}
-                  className="w-4 h-4 text-amber-500 focus:ring-amber-500"
+                  className="w-4 h-4 accent-[#312783]"
                 />
-                <span className="text-sm text-gray-700">Bobina 80mm</span>
+                <span>Bobina 80mm</span>
               </label>
 
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer text-[13px] text-ek-text font-medium">
                 <input
                   type="radio"
                   name="tipoImpressao"
                   value="a4"
                   checked={tipoImpressao === 'a4'}
                   onChange={() => setTipoImpressao('a4')}
-                  className="w-4 h-4 text-amber-500 focus:ring-amber-500"
+                  className="w-4 h-4 accent-[#312783]"
                 />
-                <span className="text-sm text-gray-700">Folha A4 (PDF)</span>
+                <span>Folha A4 (PDF)</span>
               </label>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Observação para Impressão</label>
+            <label className="ek-label">Observação para impressão</label>
             <textarea
               ref={obsRef}
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
-              className="w-full h-20 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none resize-none bg-white shadow-inner"
+              className="ek-textarea h-20"
               placeholder="Opcional..."
             />
           </div>
         </div>
 
-        <div className="bg-stone-200 px-4 py-3 border-t border-gray-300 flex justify-between items-center text-xs font-bold text-gray-600 uppercase">
-          <div onClick={onClose} className="flex items-center gap-2 cursor-pointer hover:text-red-600 transition">
-            <span className="bg-red-200 text-red-700 px-2 py-1 rounded border border-red-300">ESC</span> Voltar
-          </div>
-          <div onClick={handlePrint} className="flex items-center gap-2 cursor-pointer hover:text-green-700 transition">
-            <span>Imprimir</span> <span className="bg-green-200 text-green-800 px-2 py-1 rounded border border-green-300">F8 / ENTER</span>
-          </div>
+        <div className="bg-ek-raised px-5 py-3 border-t border-ek-border flex justify-between items-center text-xs">
+          <button type="button" onClick={onClose} className="ek-btn-secondary h-8 px-3 text-xs flex items-center gap-1.5">
+            <kbd className="ek-kbd">ESC</kbd>
+            <span>Voltar</span>
+          </button>
+          <button type="button" onClick={handlePrint} className="ek-btn-primary h-8 px-3.5 text-xs flex items-center gap-1.5">
+            <Printer className="w-3.5 h-3.5" />
+            <span>Imprimir</span>
+            <kbd className="px-1.5 py-0.5 text-[11px] font-mono rounded bg-white/15 border border-white/25 text-white">F8 / ENTER</kbd>
+          </button>
         </div>
       </div>
     </div>

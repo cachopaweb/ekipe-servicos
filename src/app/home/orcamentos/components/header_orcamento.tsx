@@ -23,49 +23,42 @@ export default function HeaderOrcamento({
   onImprimir,
   onImprimirCompleto,
 }: HeaderOrcamentoProps) {
-  const getStatusColor = (status: string) => {
-    const s = (status || "").toUpperCase();
+  const getStatusBadge = (status: string) => {
+    const s = (status || "ABERTO").toUpperCase();
     switch (s) {
       case "ABERTO":
-        return "text-amber-500";
+        return "bg-brand-goldSoft text-brand-goldInk border border-brand-gold/40";
       case "ENVIADO":
-        return "text-brand";
+        return "bg-brand-soft text-brand border border-brand-border";
       case "APROVADO":
-        return "text-emerald-600";
       case "FINALIZADO":
-        return "text-teal-700";
+        return "bg-emerald-50 text-emerald-800 border border-emerald-200";
       case "CANCELADO":
-        return "text-rose-600";
+        return "bg-red-50 text-red-800 border border-red-200";
       default:
-        return "text-gray-600";
+        return "bg-ek-raised text-ek-muted border border-ek-border";
     }
   };
 
   return (
-    <header className="bg-white rounded-lg border border-gray-200 px-4 py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0">
+    <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 pb-4 border-b border-ek-rule shrink-0">
       {/* Esquerda: Identificador da OS e Status */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="p-2.5 bg-amber-500 text-white rounded-lg">
-          <FileText className="w-5 h-5" />
+      <div>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <h1 className="text-[22px] font-semibold text-ek-text tracking-tight leading-tight">
+            {codigoOrdem > 0 ? `Ordem de Serviço #${codigoOrdem}` : "Novo Orçamento"}
+          </h1>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadge(
+              statusOrdem
+            )}`}
+          >
+            {statusOrdem || "ABERTO"}
+          </span>
         </div>
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-lg font-black text-gray-900 tracking-tight leading-none">
-              {codigoOrdem > 0 ? `Ordem de Serviço #${codigoOrdem}` : "Novo Orçamento"}
-            </h1>
-            <span className="text-gray-400 font-bold">•</span>
-            <span
-              className={`text-sm font-black tracking-wider uppercase ${getStatusColor(
-                statusOrdem
-              )}`}
-            >
-              {statusOrdem || "ABERTO"}
-            </span>
-          </div>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Gestão comercial e técnica de serviços
-          </p>
-        </div>
+        <p className="text-sm text-ek-muted mt-0.5">
+          Gestão comercial e técnica de serviços
+        </p>
       </div>
 
       {/* Direita: Ações Rápidas */}
@@ -73,20 +66,20 @@ export default function HeaderOrcamento({
         <button
           type="button"
           onClick={onOpenPesquisaOS}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+          className="ek-btn-secondary h-8 px-3 text-xs"
           title="Buscar Ordem Existente"
         >
-          <Search className="w-3.5 h-3.5 text-gray-600" />
+          <Search className="w-3.5 h-3.5 text-ek-muted" />
           <span>Buscar OS</span>
         </button>
 
         <button
           type="button"
           onClick={onNovoOrcamento}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+          className="ek-btn-secondary h-8 px-3 text-xs"
           title="Iniciar Novo Orçamento"
         >
-          <Plus className="w-3.5 h-3.5 text-gray-600" />
+          <Plus className="w-3.5 h-3.5 text-ek-muted" />
           <span>Novo</span>
         </button>
 
@@ -95,10 +88,10 @@ export default function HeaderOrcamento({
           type="button"
           onClick={onImprimirCompleto || onImprimir}
           disabled={codigoOrdem === 0}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-md transition ${
+          className={`inline-flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-[6px] border transition-colors ${
             codigoOrdem === 0
-              ? "text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed"
-              : "text-white bg-brand hover:bg-brand-hover shadow-sm"
+              ? "text-ek-faint bg-ek-raised border-ek-border cursor-not-allowed opacity-60"
+              : "text-brand bg-brand-soft hover:bg-brand-border/50 border-brand-border"
           }`}
           title={
             codigoOrdem === 0
@@ -115,14 +108,10 @@ export default function HeaderOrcamento({
           type="button"
           onClick={onImprimir}
           disabled={codigoOrdem === 0}
-          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-md transition ${
-            codigoOrdem === 0
-              ? "text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed"
-              : "text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300"
-          }`}
+          className="ek-btn-secondary h-8 px-3 text-xs"
           title="Imprimir Orçamento Resumido"
         >
-          <Printer className="w-3.5 h-3.5 text-gray-600" />
+          <Printer className="w-3.5 h-3.5 text-ek-muted" />
           <span>Simples</span>
         </button>
 
@@ -130,11 +119,7 @@ export default function HeaderOrcamento({
           type="button"
           onClick={onSalvar}
           disabled={!canSave}
-          className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-md transition ${
-            !canSave
-              ? "text-gray-400 bg-gray-200 cursor-not-allowed"
-              : "text-white bg-emerald-600 hover:bg-emerald-700"
-          }`}
+          className="ek-btn-primary h-8 px-3.5 text-xs"
           title={
             canSave
               ? "Salvar Ordem"

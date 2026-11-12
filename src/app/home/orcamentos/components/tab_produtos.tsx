@@ -151,15 +151,15 @@ export default function TabProdutos({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
+    <div className="ek-card overflow-hidden flex flex-col">
       {/* Barra de Inclusão Rápida */}
       <form
         onSubmit={handleSubmit}
-        className="p-3 bg-stone-50 border-b border-gray-200 grid grid-cols-12 gap-2.5 items-end"
+        className="p-3.5 bg-ek-raised border-b border-ek-rule grid grid-cols-12 gap-2.5 items-end"
       >
         {/* 1. Código com Pesquisa */}
         <div className="col-span-4 sm:col-span-3 md:col-span-2">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+          <label className="ek-label">
             Código (Enter)
           </label>
           <div className="flex gap-1">
@@ -169,23 +169,23 @@ export default function TabProdutos({
               value={codProduto}
               onChange={(e) => setCodProduto(e.target.value)}
               onKeyDown={handleCodKeyDown}
-              className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
+              className="ek-input px-1.5 text-center font-medium tabular-nums"
             />
             <button
               type="button"
               onClick={onOpenPesquisaProduto}
-              className="h-10 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center transition shrink-0"
+              className="ek-btn-secondary w-9 px-0 shrink-0"
               title="Buscar Produto no Catálogo"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-4 h-4 text-brand" />
             </button>
           </div>
         </div>
 
         {/* 2. Descrição do Produto */}
         <div className="col-span-8 sm:col-span-9 md:col-span-4">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-            Descrição do Produto <span className="text-amber-500 font-bold ml-0.5">*</span>
+          <label className="ek-label">
+            Descrição do Produto <span className="text-red-600">*</span>
           </label>
           <input
             ref={nomeInputRef}
@@ -194,18 +194,14 @@ export default function TabProdutos({
             onChange={(e) => setNome(e.target.value)}
             disabled={Number(codProduto) !== 1}
             placeholder="Nome do produto..."
-            className={`w-full h-10 px-3 text-sm font-semibold uppercase border rounded-md focus:border-amber-500 outline-none ${
-              Number(codProduto) !== 1
-                ? "bg-gray-100 text-gray-700 border-gray-200"
-                : "bg-white border-gray-300"
-            }`}
+            className="ek-input font-medium uppercase"
           />
         </div>
 
         {/* 3. Quantidade */}
         <div className="col-span-4 sm:col-span-3 md:col-span-1">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-            Qtd <span className="text-amber-500 font-bold ml-0.5">*</span>
+          <label className="ek-label">
+            Qtd <span className="text-red-600">*</span>
           </label>
           <input
             ref={qtdInputRef}
@@ -215,19 +211,19 @@ export default function TabProdutos({
             value={quantidade}
             onChange={(e) => setQuantidade(parseFloat(e.target.value) || 0)}
             onKeyDown={handleQtdKeyDown}
-            className="w-full h-10 px-2 text-sm font-bold text-center border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
+            className="ek-input px-1.5 text-center font-medium tabular-nums"
           />
         </div>
 
         {/* 4. Unidade */}
         <div className="col-span-4 sm:col-span-3 md:col-span-1">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+          <label className="ek-label">
             UM
           </label>
           <select
             value={unidade}
             onChange={(e) => setUnidade(e.target.value.toUpperCase())}
-            className="w-full h-10 px-1 text-sm font-semibold uppercase border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white cursor-pointer text-center"
+            className="ek-select px-1 uppercase text-center cursor-pointer font-medium"
           >
             {unidadesMedida.map((u) => (
               <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>
@@ -239,8 +235,8 @@ export default function TabProdutos({
 
         {/* 5. Valor Unitário */}
         <div className="col-span-4 sm:col-span-6 md:col-span-1">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-            Unit. (R$) <span className="text-amber-500 font-bold ml-0.5">*</span>
+          <label className="ek-label">
+            Unit. (R$) <span className="text-red-600">*</span>
           </label>
           <input
             ref={valorInputRef}
@@ -251,13 +247,13 @@ export default function TabProdutos({
               setValorUnitarioStr(e.target.value);
             }}
             onKeyDown={handleValorKeyDown}
-            className="w-full h-10 px-2 text-sm font-bold text-right border border-gray-300 rounded-md focus:border-amber-500 outline-none bg-white tabular-nums"
+            className="ek-input px-2 text-right font-medium tabular-nums"
           />
         </div>
 
         {/* 6. Total (Quantidade × Valor Unitário) */}
         <div className="col-span-6 sm:col-span-6 md:col-span-2">
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+          <label className="ek-label">
             Total (R$)
           </label>
           <input
@@ -266,7 +262,7 @@ export default function TabProdutos({
             tabIndex={-1}
             value={formatCurrency(valorTotalCalculado)}
             placeholder="R$ 0,00"
-            className="w-full h-10 px-3 text-sm font-bold text-right border border-gray-200 rounded-md bg-stone-100 text-stone-800 outline-none tabular-nums cursor-default select-none"
+            className="ek-input bg-white text-ek-text font-semibold text-right tabular-nums cursor-default select-none"
             title="Total = Quantidade × Valor Unitário"
           />
         </div>
@@ -275,10 +271,10 @@ export default function TabProdutos({
         <div className="col-span-6 sm:col-span-6 md:col-span-1">
           <button
             type="submit"
-            className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-md flex items-center justify-center gap-1.5 text-sm font-bold transition"
+            className="ek-btn-primary w-full px-0"
             title="Adicionar Produto (Enter)"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             <span className="md:hidden">Adicionar</span>
           </button>
         </div>
@@ -288,18 +284,18 @@ export default function TabProdutos({
       <div className="overflow-x-auto min-h-[220px]">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-gray-100 text-xs font-bold text-gray-700 uppercase border-b border-gray-200">
-              <th className="py-3 px-3 w-12 text-center">#</th>
-              <th className="py-3 px-3 w-20 text-center">Cód.</th>
-              <th className="py-3 px-4">Descrição do Produto</th>
-              <th className="py-3 px-3 w-16 text-center">UM</th>
-              <th className="py-3 px-3 w-20 text-center">Qtd</th>
-              <th className="py-3 px-4 w-28 text-right">Valor Unit.</th>
-              <th className="py-3 px-4 w-32 text-right">Subtotal</th>
-              <th className="py-3 px-3 w-24 text-center">Ações</th>
+            <tr className="bg-white text-xs font-medium text-ek-muted border-b border-ek-border">
+              <th className="py-2.5 px-3 w-12 text-center font-medium">#</th>
+              <th className="py-2.5 px-3 w-20 text-center font-medium">Cód.</th>
+              <th className="py-2.5 px-4 font-medium">Descrição do Produto</th>
+              <th className="py-2.5 px-3 w-16 text-center font-medium">UM</th>
+              <th className="py-2.5 px-3 w-20 text-center font-medium">Qtd</th>
+              <th className="py-2.5 px-4 w-28 text-right font-medium">Valor Unit.</th>
+              <th className="py-2.5 px-4 w-32 text-right font-medium">Subtotal</th>
+              <th className="py-2.5 px-3 w-24 text-center font-medium">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 text-sm">
+          <tbody className="divide-y divide-ek-rule text-sm">
             {produtos.length > 0 ? (
               produtos.map((item, index) => {
                 const unitario =
@@ -309,41 +305,41 @@ export default function TabProdutos({
                 return (
                   <tr
                     key={item.ORE_CODIGO || index}
-                    className="hover:bg-amber-50/50 transition-colors even:bg-stone-50/60"
+                    className="hover:bg-ek-raised/80 transition-colors"
                   >
-                    <td className="py-3 px-3 text-center text-gray-500 font-semibold text-xs tabular-nums">
+                    <td className="py-3 px-3 text-center text-ek-faint text-xs tabular-nums">
                       {index + 1}
                     </td>
-                    <td className="py-3 px-3 text-center font-medium text-gray-600 tabular-nums">
+                    <td className="py-3 px-3 text-center text-ek-muted tabular-nums text-xs">
                       {item.ORE_PRO}
                     </td>
-                    <td className="py-3 px-4 font-semibold text-gray-900">
+                    <td className="py-3 px-4 font-medium text-ek-text">
                       {item.ORE_NOME}
                     </td>
-                    <td className="py-3 px-3 text-center uppercase font-medium text-gray-600">
+                    <td className="py-3 px-3 text-center uppercase text-ek-muted text-xs">
                       {item.ORE_EMBALAGEM}
                     </td>
-                    <td className="py-3 px-3 text-center font-bold text-gray-900 tabular-nums">
+                    <td className="py-3 px-3 text-center font-medium text-ek-text tabular-nums">
                       {item.ORE_QUANTIDADE}
                     </td>
-                    <td className="py-3 px-4 text-right font-medium text-gray-700 tabular-nums">
+                    <td className="py-3 px-4 text-right text-ek-muted tabular-nums">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
                       }).format(unitario)}
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-gray-900 tabular-nums">
+                    <td className="py-3 px-4 text-right font-semibold text-ek-text tabular-nums">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
                       }).format(item.ORE_VALOR)}
                     </td>
                     <td className="py-3 px-3">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
                           onClick={() => onEditarProduto(item)}
-                          className="p-1.5 text-gray-500 hover:text-amber-600 hover:bg-amber-100 rounded transition"
+                          className="p-1.5 text-ek-muted hover:text-brand hover:bg-brand-soft rounded-[4px] transition-colors"
                           title="Editar Produto"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -351,7 +347,7 @@ export default function TabProdutos({
                         <button
                           type="button"
                           onClick={() => onExcluirProduto(item.ORE_CODIGO, index)}
-                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition"
+                          className="p-1.5 text-ek-muted hover:text-red-700 hover:bg-red-50 rounded-[4px] transition-colors"
                           title="Remover Produto"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -363,15 +359,13 @@ export default function TabProdutos({
               })
             ) : (
               <tr>
-                <td colSpan={8} className="py-14 text-center text-gray-400">
+                <td colSpan={8} className="py-12 text-center text-ek-muted">
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="p-3 bg-gray-100 rounded-full text-gray-400">
-                      <Inbox className="w-7 h-7" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-600">
+                    <Inbox className="w-6 h-6 text-ek-control" />
+                    <p className="text-sm font-medium text-ek-text">
                       Nenhum produto adicionado nesta ordem.
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-ek-muted">
                       Digite o código ou utilize a busca para adicionar produtos ao orçamento.
                     </p>
                   </div>
@@ -383,9 +377,9 @@ export default function TabProdutos({
       </div>
 
       {/* Rodapé da tabela com contagem e subtotal */}
-      <div className="bg-stone-50 px-4 py-3 border-t border-gray-200 flex justify-between items-center text-sm font-semibold text-gray-700">
-        <span>Itens cadastrados: {produtos.length}</span>
-        <span className="text-base text-gray-900 font-bold tabular-nums">
+      <div className="bg-ek-raised px-4 py-2.5 border-t border-ek-rule flex justify-between items-center text-xs font-medium text-ek-muted">
+        <span>Itens cadastrados: <strong className="text-ek-text font-semibold tabular-nums">{produtos.length}</strong></span>
+        <span className="text-sm text-ek-text font-semibold tabular-nums">
           Total Produtos:{" "}
           {new Intl.NumberFormat("pt-BR", {
             style: "currency",

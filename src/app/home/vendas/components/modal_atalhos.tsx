@@ -49,51 +49,51 @@ export default function ModalAtalhos({ isOpen, onClose }: ModalAtalhosProps) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-fade-in outline-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/45 outline-none"
     >
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden font-sans flex flex-col">
+      <div className="relative w-full max-w-md bg-ek-surface rounded-[8px] border border-ek-border overflow-hidden font-sans flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-stone-50/90 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-border bg-ek-raised shrink-0">
           <div className="flex items-center gap-2.5">
-            <span className="w-2 h-5 bg-amber-500 rounded-full"></span>
-            <h3 className="text-base font-bold text-stone-800 tracking-tight flex items-center gap-2">
-              <Keyboard className="w-4 h-4 text-amber-600" />
+            <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
+            <h3 className="text-sm font-semibold text-ek-text tracking-[-0.01em] flex items-center gap-2">
+              <Keyboard className="w-4 h-4 text-brand" />
               <span>Atalhos do Sistema</span>
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-active transition-colors"
             title="Fechar (ESC)"
             aria-label="Fechar"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body com a lista de atalhos */}
-        <div className="p-5 sm:p-6 overflow-y-auto max-h-[70vh]">
-          <ul className="divide-y divide-stone-100">
+        <div className="p-4 sm:p-5 overflow-y-auto max-h-[70vh]">
+          <ul className="divide-y divide-ek-rule">
             {atalhos.map((item) => {
-              let keycapStyle = "bg-stone-100 text-stone-800 border-stone-300";
-              let labelStyle = "text-stone-700 font-medium";
+              let keycapStyle = "bg-ek-raised text-ek-text border-ek-control";
+              let labelStyle = "text-ek-text font-medium";
 
               if (item.variant === "success") {
-                keycapStyle = "bg-emerald-50 text-emerald-700 border-emerald-300 font-extrabold";
-                labelStyle = "text-emerald-900 font-semibold";
+                keycapStyle = "bg-brand-soft text-brand border-brand-border font-semibold";
+                labelStyle = "text-brand font-semibold";
               } else if (item.variant === "danger") {
-                keycapStyle = "bg-rose-50 text-rose-700 border-rose-300 font-extrabold";
-                labelStyle = "text-rose-800 font-semibold";
+                keycapStyle = "bg-rose-50 text-rose-700 border-rose-200 font-semibold";
+                labelStyle = "text-rose-700 font-semibold";
               }
 
               return (
                 <li
                   key={item.label}
-                  className="flex items-center justify-between py-2.5 px-2 hover:bg-amber-50/40 rounded-lg transition-colors"
+                  className="flex items-center justify-between py-2.5 px-2.5 hover:bg-ek-raised rounded-[6px] transition-colors"
                 >
-                  <span className={`text-sm ${labelStyle}`}>{item.label}</span>
+                  <span className={`text-[13px] ${labelStyle}`}>{item.label}</span>
                   <kbd
-                    className={`px-2.5 py-1 min-w-[32px] text-center font-mono text-xs font-bold border rounded-md shadow-xs select-none ${keycapStyle}`}
+                    className={`px-2.5 py-1 min-w-[34px] text-center font-mono text-xs font-semibold border rounded-[6px] select-none ${keycapStyle}`}
                   >
                     {item.key}
                   </kbd>
@@ -104,14 +104,14 @@ export default function ModalAtalhos({ isOpen, onClose }: ModalAtalhosProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-stone-200/80 bg-stone-50/90 shrink-0 text-xs text-stone-500">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-ek-border bg-ek-raised shrink-0 text-xs text-ek-muted">
           <span>
-            Pressione <kbd className="px-1.5 py-0.5 font-mono text-[11px] font-semibold bg-white border border-stone-300 rounded shadow-xs text-stone-700">ESC</kbd> para fechar
+            Pressione <kbd className="ek-kbd">ESC</kbd> para fechar
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg shadow-xs transition-all"
+            className="ek-btn-secondary h-8 px-3 text-xs"
           >
             Fechar
           </button>

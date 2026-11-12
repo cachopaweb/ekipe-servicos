@@ -55,36 +55,34 @@ export default function ModalItemProduto({
   const valorTotalCalculado = (maskRealToNumber(valorUnitarioStr) || 0) * quantidade;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white w-full max-w-lg rounded-xl border border-gray-300 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
+      <div className="bg-white w-full max-w-lg rounded-[8px] border border-ek-border shadow-xl overflow-hidden font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ek-rule bg-white">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-100 text-amber-700 rounded-md">
-              <Package className="w-5 h-5" />
-            </div>
+            <Package className="w-4 h-4 text-brand shrink-0" />
             <div>
-              <h3 className="text-base font-bold text-gray-900">
+              <h3 className="text-base font-semibold text-ek-text">
                 Editar Produto
               </h3>
-              <p className="text-xs text-gray-500">
-                Código: #{produto.ORE_CODIGO} | Ref: #{produto.ORE_PRO}
+              <p className="text-xs text-ek-muted tabular-nums">
+                Código #{produto.ORE_CODIGO} · Ref #{produto.ORE_PRO}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-700 rounded-md hover:bg-gray-100 transition"
+            className="w-8 h-8 rounded-[6px] flex items-center justify-center text-ek-muted hover:text-ek-text hover:bg-ek-raised transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSalvar} className="p-6 space-y-4">
+        <form onSubmit={handleSalvar} className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+            <label className="ek-label">
               Descrição do Produto
             </label>
             <input
@@ -92,13 +90,13 @@ export default function ModalItemProduto({
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               required
-              className="w-full h-10 px-3 text-sm font-semibold border border-gray-300 rounded-md focus:border-amber-500 uppercase outline-none"
+              className="ek-input font-medium uppercase"
             />
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+              <label className="ek-label">
                 Quantidade
               </label>
               <input
@@ -108,18 +106,18 @@ export default function ModalItemProduto({
                 value={quantidade}
                 onChange={(e) => setQuantidade(parseFloat(e.target.value) || 0)}
                 required
-                className="w-full h-10 px-3 text-sm font-bold border border-gray-300 rounded-md focus:border-amber-500 outline-none text-center"
+                className="ek-input text-center font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+              <label className="ek-label">
                 Unidade / Emb.
               </label>
               <select
                 value={embalagem}
                 onChange={(e) => setEmbalagem(e.target.value.toUpperCase())}
-                className="w-full h-10 px-3 text-sm font-semibold border border-gray-300 rounded-md focus:border-amber-500 outline-none uppercase bg-white cursor-pointer"
+                className="ek-select uppercase cursor-pointer"
               >
                 {unidadesMedida.map((u) => (
                   <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>
@@ -130,7 +128,7 @@ export default function ModalItemProduto({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+              <label className="ek-label">
                 Valor Unit. (R$)
               </label>
               <input
@@ -141,17 +139,17 @@ export default function ModalItemProduto({
                   setValorUnitarioStr(e.target.value);
                 }}
                 required
-                className="w-full h-10 px-3 text-sm font-bold border border-gray-300 rounded-md focus:border-amber-500 outline-none text-right"
+                className="ek-input text-right font-medium tabular-nums"
               />
             </div>
           </div>
 
           {/* Subtotal Display */}
-          <div className="p-3.5 bg-amber-50 rounded-md flex justify-between items-center border border-amber-200">
-            <span className="text-xs font-bold text-amber-900 uppercase">
+          <div className="px-3.5 py-2.5 bg-ek-raised rounded-[6px] flex justify-between items-center border border-ek-border">
+            <span className="text-xs font-medium text-ek-muted">
               Subtotal do Produto
             </span>
-            <span className="text-xl font-black text-amber-900">
+            <span className="text-lg font-semibold text-ek-text tabular-nums">
               {new Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -160,17 +158,17 @@ export default function ModalItemProduto({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-ek-rule">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+              className="ek-btn-secondary"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-md transition flex items-center gap-2"
+              className="ek-btn-primary"
             >
               <Save className="w-4 h-4" />
               Salvar Alterações

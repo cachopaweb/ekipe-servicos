@@ -178,11 +178,10 @@ export function Mapa({}: propsMapa) {
   }
 
   return (
-    <div className="overflow-scroll">
-      <div className="p-4 sm:w-[800px] sm:h-auto">
-        <div className="border rounded-md p-4 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-            <Input
+    <div className="w-full space-y-3 p-1">
+      <div className="ek-card p-3.5 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+          <Input
               type="text"
               value={latitude}
               className="uppercase"
@@ -237,6 +236,5 @@ export function Mapa({}: propsMapa) {
           </div>
         </div>
       </div>
-    </div>
   );
 }

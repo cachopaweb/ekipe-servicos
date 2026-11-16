@@ -53,12 +53,23 @@ function streamToBlob(stream:Stream) {
     });
   }
 
-function getFileName(path:string): string{
+function escapeSql(str: string | number | null | undefined): string {
+  if (str === null || str === undefined) return "";
+  return String(str).replace(/'/g, "''");
+}
 
-    const partesDoCaminho = path.split('/');
-    return partesDoCaminho[partesDoCaminho.length - 1];
-
-
+function getFileName(path: string): string {
+  if (!path) return "";
+  const normalized = path.replace(/\\/g, '/');
+  const segments = normalized.split('/');
+  const rawName = segments[segments.length - 1] || "";
+  // Se contiver prefixo gerado com timestamp_random_originalName, extrai o nome original amigável
+  // Ex: "1730734800000_abc12_documento.pdf" -> "documento.pdf"
+  const match = rawName.match(/^\d+_[a-z0-9]+_(.+)$/i);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return rawName;
 }
 
 async function IncrementaGenerator(generator: string): Promise<number>{
@@ -131,15 +142,8 @@ function converterDataPontoParaTraco(data:string) {
   Usado para os values dos Inputs tipo date.
 
 */ 
-function dataFormatadaHojeDotValueInput(data:Date)
-{
-
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0'); 
-  const ano = String(data.getFullYear());
-
-   return `${dia}.${mes}.${ano}`;
-
+function dataFormatadaHojeDotValueInput(data: Date | string) {
+    return FormatDate(data);
 }
 
 
@@ -148,32 +152,99 @@ function dataFormatadaHojeDotValueInput(data:Date)
   Usado para os values dos Inputs tipo date.
 
 */ 
-function dataFormatadaValueInput(data:Date)
-{
+/**
+ * Converte qualquer formato de data recebido (YYYY-MM-DD, DD.MM.YYYY, DD/MM/YYYY, ISO ou Date)
+ * em um objeto Date seguro no horário local, sem distorção por fuso UTC (zero timezone shift).
+ */
+function parseDataCalendario(data?: Date | string | null): Date {
+  if (!data) return new Date();
+  if (data instanceof Date) {
+    return isNaN(data.getTime()) ? new Date() : data;
+  }
+  const str = String(data).trim();
+  if (!str) return new Date();
 
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0'); 
-  const ano = String(data.getFullYear());
+  // Caso 1: YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss
+  const matchIso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (matchIso) {
+    const ano = parseInt(matchIso[1], 10);
+    const mes = parseInt(matchIso[2], 10) - 1;
+    const dia = parseInt(matchIso[3], 10);
+    return new Date(ano, mes, dia, 0, 0, 0, 0);
+  }
 
-   return `${ano}-${mes}-${dia}`;
+  // Caso 2: DD.MM.YYYY ou DD/MM/YYYY
+  const matchBr = str.match(/^(\d{2})[./](\d{2})[./](\d{4})/);
+  if (matchBr) {
+    const dia = parseInt(matchBr[1], 10);
+    const mes = parseInt(matchBr[2], 10) - 1;
+    const ano = parseInt(matchBr[3], 10);
+    return new Date(ano, mes, dia, 0, 0, 0, 0);
+  }
 
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? new Date() : d;
 }
 
-function FormatDate(data: Date | string): string{
-    if(data instanceof Date){
-        let dataFmt = data.toLocaleDateString().split('/');
-        return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
-    }else{
-        if(data ==='')
-          {
-            return '';
-          }
-          else
-          {
-            let dataFmt = data.split('/');
-            return dataFmt[0]+'.'+dataFmt[1]+'.'+dataFmt[2];
-          }
+/**
+ * Retorna a data no formato normalizado 'YYYY-MM-DD', ideal para <input type="date">
+ * e para contratos de transporte limpos.
+ */
+function formatDataInput(data?: Date | string | null): string {
+  if (!data) return '';
+  if (data instanceof Date && isNaN(data.getTime())) return '';
+  const d = parseDataCalendario(data);
+  if (isNaN(d.getTime())) return '';
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+}
+
+function dataFormatadaValueInput(data: Date | string): string {
+  return formatDataInput(data);
+}
+
+function FormatDate(data: Date | string | null | undefined): string {
+  if (!data) return '';
+  const d = parseDataCalendario(data);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const ano = String(d.getFullYear());
+  return `${dia}.${mes}.${ano}`;
+}
+
+/**
+ * Retorna a hora estritamente no padrão 24 horas 'HH:mm:ss' (ex: "15:07:57"),
+ * 100% imune a configurações regionais do navegador, OS ou formatos AM/PM.
+ */
+function horaFormatadaDB(data?: Date | string | null): string {
+    if (typeof data === 'string' && data.trim()) {
+        const str = data.trim();
+        const match = str.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?/i);
+        if (match) {
+            let h = parseInt(match[1], 10);
+            const m = match[2];
+            const s = match[3] || '00';
+            const meridiem = match[4]?.toUpperCase();
+            if (meridiem === 'PM' && h < 12) h += 12;
+            if (meridiem === 'AM' && h === 12) h = 0;
+            return `${String(h).padStart(2, '0')}:${m}:${s}`;
+        }
     }
+    const d = data instanceof Date && !isNaN(data.getTime()) ? data : new Date();
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    const s = String(d.getSeconds()).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
+
+/**
+ * Retorna a data e hora completas para banco: 'DD.MM.YYYY HH:mm:ss'
+ */
+function dataHoraFormatadaDB(data?: Date | string | null): string {
+    const d = data instanceof Date && !isNaN(data.getTime()) ? data : new Date();
+    return `${FormatDate(d)} ${horaFormatadaDB(d)}`;
 }
 
 /* A Função abaixo pega um valor EM STRING "dd/mm/yyyy"
@@ -181,11 +252,9 @@ e transforma no formato 'dd.mm.yyyy' para enviar ao banco
 de dados
 */
 
- function formatDateDB(data:string)
- {
-  return data.replaceAll('/', '.');
-
- }
+ function formatDateDB(data: string) {
+    return FormatDate(data);
+}
 
 function formatCurrency(value?:number)
 {
@@ -197,27 +266,19 @@ function formatCurrency(value?:number)
     return (Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(value));
 }
 
-function converterDataFormato(data: string|null): string {
-    if(data == null)
-    {
-        return '';
-    }
-    else
-    {
-    // Divide a data em ano, mês e dia
-    const [ano, mes, dia] = data.split('-');
-  
-    // Formata a nova data no formato DD/MM/AAAA
-    const novaDataFormatada = `${dia}/${mes}/${ano}`;
-  
-    return novaDataFormatada;
-    }
-  }
+function converterDataFormato(data?: Date | string | null): string {
+  if (!data) return '';
+  const d = parseDataCalendario(data);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const ano = d.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
 
   const mascaraMoeda = (num : Number) =>
   {
-    num = Number(num) * 100;
-    const aux = num.toString();
+    const cents = Math.round((Number(num) || 0) * 100);
+    const aux = Math.abs(cents).toString();
     const onlyDigits = aux
     .split("")
     .filter((s: string) => /\d/.test(s))
@@ -247,9 +308,12 @@ function converterDataFormato(data: string|null): string {
   
   function maskRealToNumber (mask:string)
   {
-    let valorFormatado = mask.replace("R$", "").replaceAll(".","");
+    if (!mask) return 0;
+    let valorFormatado = String(mask).replace("R$", "").replaceAll(".","").trim();
     valorFormatado = valorFormatado.replace(",", ".");
-    const retorno = parseFloat(valorFormatado).toFixed(2);
+    const parsed = parseFloat(valorFormatado);
+    if (isNaN(parsed)) return 0;
+    const retorno = parsed.toFixed(2);
     return parseFloat(retorno);
   }
 
@@ -277,5 +341,5 @@ const parseFloatFromString = (value: string): number => {
   return parseFloat(value.replace(/,/g, ''));
 };
 
-export { GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
-  converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput, formatNumber, parseFloatFromString };
+export { parseDataCalendario, formatDataInput, horaFormatadaDB, dataHoraFormatadaDB, GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
+  converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput, formatNumber, parseFloatFromString, escapeSql };

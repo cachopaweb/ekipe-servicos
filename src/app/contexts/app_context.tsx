@@ -12,6 +12,8 @@ interface AppDataContextType {
     EmpreitadaCtx: EmpreitadasModel | null;
     usuarioLogado: UsuarioModel | null;
     loadingAuth: boolean;
+    temAlteracoesPendentes: boolean;
+    setTemAlteracoesPendentes: React.Dispatch<SetStateAction<boolean>>;
     setOrdemCtx: React.Dispatch<SetStateAction<OrdemModel | null>>;
     setEmpreitadaCtx: React.Dispatch<SetStateAction<EmpreitadasModel | null>>;
     setUltRota: React.Dispatch<SetStateAction<string>>;
@@ -30,23 +32,42 @@ function AppProvider({ children }: AppProviderProps) {
     const [EmpreitadaCtx, setEmpreitadaCtx] = useState<EmpreitadasModel | null>(null);
     const [usuarioLogado, setUsuarioLogado] = useState<UsuarioModel | null>(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
+    const [temAlteracoesPendentes, setTemAlteracoesPendentes] = useState<boolean>(false);
 
     useEffect(() => {
+        let active = true;
+
         const carregarUsuarioStorage = async () => {
             const usuarioSalvo = localStorage.getItem('usuario_logado');
             if (usuarioSalvo) {
                 try {
-                    const userParsed = JSON.parse(usuarioSalvo);
+                    const userParsed = JSON.parse(usuarioSalvo) as UsuarioModel;
                     setUsuarioLogado(userParsed);
+                    setLoadingAuth(false);
+
+                    if (userParsed?.USU_CODIGO) {
+                        const repo = new UsuarioRepository();
+                        const atualizado = await repo.getUsuarioComPerfil(Number(userParsed.USU_CODIGO));
+                        if (active && atualizado && localStorage.getItem('usuario_logado')) {
+                            localStorage.setItem('usuario_logado', JSON.stringify(atualizado));
+                            setUsuarioLogado(atualizado);
+                        }
+                    }
+                    return;
                 } catch (error) {
                     console.error("Erro ao ler usuário do storage:", error);
                     localStorage.removeItem('usuario_logado');
                 }
             }
-            setLoadingAuth(false);
+            if (active) {
+                setLoadingAuth(false);
+            }
         };
 
         carregarUsuarioStorage();
+        return () => {
+            active = false;
+        };
     }, []);
 
     return (
@@ -58,6 +79,8 @@ function AppProvider({ children }: AppProviderProps) {
             EmpreitadaCtx,
             setEmpreitadaCtx,
             usuarioLogado,
+            temAlteracoesPendentes,
+            setTemAlteracoesPendentes,
             setUsuarioLogado,
             loadingAuth
         }}>

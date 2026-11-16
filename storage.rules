@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// Regras de Segurança do Firebase Cloud Storage (Abordagem 1: Signed URLs via Servidor)
+// Como todas as leituras, uploads e exclusões são intermediados com URLs Pré-Assinadas V4
+// geradas pelo Firebase Admin SDK no servidor Next.js, o acesso direto por clientes públicos
+// permanece 100% bloqueado.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

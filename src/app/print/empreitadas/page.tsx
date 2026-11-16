@@ -4,7 +4,8 @@ import { useReactToPrint } from 'react-to-print';
 import logo from '../../../../assets/logo.png'
 import { useAppData } from '@/app/contexts/app_context';
 import { useEffect, useRef, useState } from 'react';
-import { formatCurrency, toastMixin, DataHoje} from '../../functions/utils'
+import { formatCurrency, DataHoje } from '../../functions/utils'
+import { Printer } from 'lucide-react'
 import EmpreitadasModel from '@/app/models/empreitadas_model';
 interface printEmpreitadaProps {
     EmpreitadaCtx: EmpreitadasModel;
@@ -26,16 +27,13 @@ const PrintEmpreitadas = ({EmpreitadaCtx}:printEmpreitadaProps ) => {
     useEffect(() => {
         setCarregando(true);
         var soma = 0;
-        EmpreitadaCtx.ITENS.forEach((item) => {
+        EmpreitadaCtx?.ITENS?.forEach((item) => {
             if (item.ES_VALOR && item.ES_QUANTIDADE) {
                 soma += item.ES_VALOR;
             }
 
         })
         setSomaItens(soma);
-        toastMixin.fire({
-            title: 'Aperte no botão a baixo imprimir!'
-        });
         setCarregando(false);
     }, [])
 
@@ -113,13 +111,13 @@ const PrintEmpreitadas = ({EmpreitadaCtx}:printEmpreitadaProps ) => {
                                 <tbody>
                                     <div className='divide-solid divide-y divide-slate-500'>
                                         <div className='divide-slate-500 divide-dashed divide-y'>
-                                            {EmpreitadaCtx!.ITENS.map((item) =>
+                                            {(EmpreitadaCtx?.ITENS || []).map((item) =>
                                                 <tr className='grid grid-cols-8 ' key={item.ES_CODIGO}>
                                                     <td className='text-start text-xs'>{item.ES_CODIGO}</td>
                                                     <td className='text-start text-xs'>{item.ES_QUANTIDADE}</td>
                                                     <td className='text-start text-xs'>{item.ES_UNIDADE}</td>
                                                     <td className='col-span-3 text-start text-xs'><p className='text-balance'>{item.DESCRICAO}</p></td>
-                                                    <td className='text-start text-xs'>{formatCurrency(item.ES_VALOR! / item.ES_QUANTIDADE!)}</td>
+                                                    <td className='text-start text-xs'>{formatCurrency((item.ES_QUANTIDADE && item.ES_VALOR) ? item.ES_VALOR / item.ES_QUANTIDADE : (item.ES_VALOR || 0))}</td>
                                                     <td className='text-start text-xs'>{formatCurrency(item.ES_VALOR)}</td>
 
                                                 </tr>
@@ -177,7 +175,7 @@ const PrintEmpreitadas = ({EmpreitadaCtx}:printEmpreitadaProps ) => {
                         className={`px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold`}
                         onClick={handlePrint}
                     >
-                        <i className="fas fa-print"></i>
+                        <Printer className="w-5 h-5" />
                         <span>Imprimir</span>
                     </button>
                 </div>

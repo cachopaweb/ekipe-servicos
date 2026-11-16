@@ -3,14 +3,18 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppData } from "@/app/contexts/app_context";
-import UsuarioRepository from "@/app/repositories/usuario_repository";
+import UsuarioRepository, { isUsuarioAdmin } from "@/app/repositories/usuario_repository";
 import { FuncionarioModel } from "@/app/models/usuario_model";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
+import { toastMixin } from "@/app/functions/utils";
+import { Loader2, LogOut, User, Fingerprint, BadgeCheck, Mail, Phone, UserX, Shield } from "lucide-react";
 
 export default function PerfilUsuario() {
   const { usuarioLogado, setUsuarioLogado } = useAppData();
 
   const [funcionario, setFuncionario] = useState<FuncionarioModel | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,6 +31,11 @@ export default function PerfilUsuario() {
           }
         } catch (error) {
           console.error("Erro ao carregar perfil:", error);
+          toastMixin.fire({
+            title: 'Erro',
+            text: 'Falha ao carregar perfil.',
+            icon: 'error'
+          });
         } finally {
           setLoading(false);
         }
@@ -37,11 +46,14 @@ export default function PerfilUsuario() {
   }, [usuarioLogado]);
 
   const handleLogout = () => {
-    if (window.confirm("Deseja realmente sair do sistema?")) {
-      localStorage.removeItem('usuario_logado');
-      setUsuarioLogado(null as any);
-      router.push('/');
-    }
+    setConfirmLogout(true);
+  };
+
+  const executeLogout = () => {
+    setConfirmLogout(false);
+    localStorage.removeItem('usuario_logado');
+    setUsuarioLogado(null as any);
+    router.push('/');
   };
 
   const getIniciais = (nome: string) => {
@@ -52,148 +64,172 @@ export default function PerfilUsuario() {
   };
 
   if (!usuarioLogado) {
-    return <div className="p-4 text-center text-gray-500">Nenhum usuário identificado.</div>;
+    return <div className="p-6 text-center text-stone-500 font-medium">Nenhum usuário identificado.</div>;
   }
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-gray-500">
-        <i className="fas fa-circle-notch fa-spin mr-2"></i> Carregando perfil...
+      <div className="flex h-64 items-center justify-center text-ek-muted font-medium">
+        <Loader2 className="w-5 h-5 animate-spin mr-2 text-brand" /> Carregando perfil...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col w-full gap-4 p-2 sm:p-4 animate-fade-in font-sans overflow-y-auto">
+    <div className="flex flex-col w-full gap-4 font-sans">
 
       {/* Cabeçalho do Cartão */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 shrink-0">
-        <div className="bg-gradient-to-r from-amber-400 to-amber-500 h-24 sm:h-32 w-full relative">
-          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+      <div className="ek-card overflow-hidden shrink-0">
+        <div className="h-[4px] w-full flex">
+          <div className="flex-1 bg-brand" />
+          <div className="w-24 bg-brand-gold" />
         </div>
 
-        <div className="px-4 sm:px-6 pb-4 sm:pb-6 relative">
-          <div className="absolute -top-12 left-4 sm:-top-16 sm:left-6">
-            <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-white bg-stone-200 flex items-center justify-center shadow-lg text-stone-500 text-2xl sm:text-4xl font-bold select-none">
+        <div className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-[8px] border border-brand-border bg-brand-soft flex items-center justify-center text-brand text-xl font-bold select-none shrink-0">
               {getIniciais(funcionario?.FUN_NOME || usuarioLogado.USU_LOGIN || "")}
             </div>
-          </div>
 
-          <div className="ml-28 sm:ml-36 pt-1 sm:pt-2 flex flex-col sm:flex-row justify-between items-start sm:items-center min-h-[60px]">
-            <div className="w-full pr-2">
-              <h1 className="text-lg sm:text-2xl font-black text-gray-800 uppercase tracking-tight truncate w-full">
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-ek-text uppercase tracking-[-0.01em] truncate">
                 {funcionario?.FUN_NOME || usuarioLogado.USU_LOGIN}
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 font-medium truncate">
+              <p className="text-xs sm:text-sm text-ek-muted font-mono truncate">
                 @{usuarioLogado.USU_LOGIN}
               </p>
             </div>
-            <div className={`mt-2 sm:mt-0 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border shrink-0 ${usuarioLogado.FUN_ESTADO === 'ATIVO' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
-              {usuarioLogado.FUN_ESTADO || 'DESCONHECIDO'}
-            </div>
+          </div>
+
+          <div className={`px-2.5 py-1 rounded-[6px] text-xs font-semibold border shrink-0 ${usuarioLogado.FUN_ESTADO === 'ATIVO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+            {usuarioLogado.FUN_ESTADO || 'DESCONHECIDO'}
           </div>
         </div>
       </div>
 
       {/* Detalhes do Perfil */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
 
         {/* Coluna Esquerda: Dados de Acesso */}
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md border border-gray-200 lg:col-span-1 h-fit">
-          <h3 className="text-gray-400 font-bold text-xs uppercase mb-3 border-b border-gray-100 pb-2">
-            Dados de Acesso
-          </h3>
+        <div className="ek-card p-5 sm:p-6 lg:col-span-1 flex flex-col justify-between h-full">
+          <div>
+            <h3 className="text-xs font-semibold text-ek-muted mb-4 border-b border-ek-rule pb-2">
+              Dados de acesso
+            </h3>
 
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase block">Login</label>
-              <div className="text-base font-semibold text-gray-800 flex items-center gap-2 truncate">
-                <i className="fas fa-user text-amber-400 w-4"></i>
-                {usuarioLogado.USU_LOGIN}
+            <div className="space-y-4">
+              <div>
+                <span className="text-xs font-medium text-ek-muted block mb-1">Login</span>
+                <div className="text-sm font-semibold text-ek-text flex items-center gap-2 truncate">
+                  <User className="w-4 h-4 text-brand shrink-0" />
+                  <span>{usuarioLogado.USU_LOGIN}</span>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase block">ID Usuário</label>
-              <div className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                <i className="fas fa-fingerprint text-amber-400 w-4"></i>
-                #{usuarioLogado.USU_CODIGO}
+              <div>
+                <span className="text-xs font-medium text-ek-muted block mb-1">ID usuário</span>
+                <div className="text-sm font-semibold text-ek-text flex items-center gap-2 tabular-nums">
+                  <Fingerprint className="w-4 h-4 text-brand shrink-0" />
+                  <span>#{usuarioLogado.USU_CODIGO}</span>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase block">ID Funcionário</label>
-              <div className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                <i className="fas fa-id-badge text-amber-400 w-4"></i>
-                #{usuarioLogado.USU_FUN?.toString() || "N/A"}
+              <div>
+                <span className="text-xs font-medium text-ek-muted block mb-1">ID funcionário</span>
+                <div className="text-sm font-semibold text-ek-text flex items-center gap-2 tabular-nums">
+                  <BadgeCheck className="w-4 h-4 text-brand shrink-0" />
+                  <span>#{usuarioLogado.USU_FUN?.toString() || "N/A"}</span>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xs font-medium text-ek-muted block mb-1">Perfil de acesso</span>
+                <div className="text-sm font-semibold text-ek-text flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-brand shrink-0" />
+                  <span>{isUsuarioAdmin(usuarioLogado) ? "Admin" : "Operador"}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-100">
+          <div className="mt-6 pt-4 border-t border-ek-rule">
             <button
+              type="button"
               onClick={handleLogout}
-              className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-lg border border-red-200 transition flex items-center justify-center gap-2 group text-sm"
+              className="ek-btn-danger w-full justify-center text-sm"
             >
-              <i className="fas fa-sign-out-alt group-hover:-translate-x-1 transition-transform"></i>
-              Sair do Sistema
+              <LogOut className="w-4 h-4" />
+              Sair do sistema
             </button>
           </div>
         </div>
 
         {/* Coluna Direita: Dados Pessoais */}
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md border border-gray-200 lg:col-span-2">
-          <h3 className="text-gray-400 font-bold text-xs uppercase mb-3 border-b border-gray-100 pb-2">
-            Dados Pessoais
-          </h3>
+        <div className="ek-card p-5 sm:p-6 lg:col-span-2 flex flex-col justify-between h-full">
+          <div>
+            <h3 className="text-xs font-semibold text-ek-muted mb-4 border-b border-ek-rule pb-2">
+              Dados pessoais
+            </h3>
 
-          {funcionario ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-gray-500 uppercase block">Nome Completo</label>
-                <div className="text-base text-gray-800 border-b border-gray-100 py-1 truncate">
-                  {funcionario.FUN_NOME}
+            {funcionario ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                <div className="md:col-span-2">
+                  <span className="text-xs font-medium text-ek-muted block mb-1">Nome completo</span>
+                  <div className="text-sm font-semibold text-ek-text border-b border-ek-rule pb-2 truncate">
+                    {funcionario.FUN_NOME}
+                  </div>
+                </div>
+
+                <div className="overflow-hidden">
+                  <span className="text-xs font-medium text-ek-muted block mb-1">E-mail</span>
+                  <div className="text-sm font-medium text-ek-text border-b border-ek-rule pb-2 flex items-center gap-2 truncate">
+                    <Mail className="w-4 h-4 text-ek-faint shrink-0" />
+                    <span className="truncate">{funcionario.FUN_EMAIL || "Não informado"}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs font-medium text-ek-muted block mb-1">Telefone / Celular</span>
+                  <div className="text-sm font-medium text-ek-text border-b border-ek-rule pb-2 flex items-center gap-2 tabular-nums">
+                    <Phone className="w-4 h-4 text-ek-faint shrink-0" />
+                    <span>{funcionario.FUN_FONE || "Não informado"}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs font-medium text-ek-muted block mb-1">Situação cadastral</span>
+                  <div className="text-sm font-semibold text-ek-text border-b border-ek-rule pb-2 flex items-center gap-2">
+                    <span className={`inline-block w-2 h-2 rounded-full ${funcionario.FUN_ESTADO === 'ATIVO' ? 'bg-emerald-500' : 'bg-ek-faint'}`} />
+                    <span>{funcionario.FUN_ESTADO}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs font-medium text-ek-muted block mb-1">Código interno</span>
+                  <div className="text-sm font-semibold font-mono text-ek-text border-b border-ek-rule pb-2 tabular-nums">
+                    {funcionario.FUN_CODIGO}
+                  </div>
                 </div>
               </div>
-
-              <div className="overflow-hidden">
-                <label className="text-[10px] font-bold text-gray-500 uppercase block">E-mail</label>
-                <div className="text-base text-gray-800 border-b border-gray-100 py-1 flex items-center gap-2 truncate">
-                  <i className="far fa-envelope text-gray-400 text-sm"></i>
-                  <span className="truncate">{funcionario.FUN_EMAIL || "Não informado"}</span>
-                </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-ek-muted bg-ek-raised rounded-[6px] border border-dashed border-ek-border">
+                <UserX className="w-8 h-8 mb-2 text-ek-faint" />
+                <p className="text-sm">Dados não vinculados ao funcionário.</p>
               </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block">Telefone / Celular</label>
-                <div className="text-base text-gray-800 border-b border-gray-100 py-1 flex items-center gap-2">
-                  <i className="fas fa-phone text-gray-400 text-sm"></i>
-                  {funcionario.FUN_FONE || "Não informado"}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block">Situação Cadastral</label>
-                <div className="text-base text-gray-800 border-b border-gray-100 py-1">
-                  {funcionario.FUN_ESTADO}
-                </div>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-gray-500 uppercase block">Código Interno</label>
-                <div className="text-base text-gray-800 border-b border-gray-100 py-1">
-                  {funcionario.FUN_CODIGO}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-40 text-gray-400 bg-stone-50 rounded-lg border-2 border-dashed border-gray-200">
-              <i className="fas fa-user-slash text-3xl mb-2"></i>
-              <p className="text-sm">Dados não vinculados.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
+
+      <ModalConfirmacao
+        isOpen={confirmLogout}
+        onClose={() => setConfirmLogout(false)}
+        onConfirm={executeLogout}
+        title="Sair do Sistema"
+        message="Deseja realmente encerrar sua sessão no sistema?"
+        type="danger"
+        confirmText="Sim, Sair"
+      />
     </div>
   );
 }

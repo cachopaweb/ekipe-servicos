@@ -67,11 +67,24 @@ export function Mapa({}: propsMapa) {
   async function carregaFornecedores() {
     const repository = new FornecedorRepository();
     const listaFornecedores = await repository.getAllFornecedores();
+    const invalidos = listaFornecedores.filter(
+      (fornecedor) =>
+        fornecedor.LATITUDE &&
+        fornecedor.LONGITUDE &&
+        !isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE)
+    );
+    if (invalidos.length > 0) {
+      toastMixin.fire({
+        icon: 'warning',
+        title: 'Atenção',
+        text: `${invalidos.length} fornecedor(es) possuem coordenadas inválidas e não serão exibidos no mapa.`,
+      });
+    }
     setFornecedores(listaFornecedores);
   }
 
   async function carregaLatitudelongitude() {
-    if (!isNaN(OrdemCtx.ORD_CLI)) {
+    if (OrdemCtx && !isNaN(OrdemCtx.ORD_CLI)) {
       const repository = new ClientRepository();
       const cidadeRepository = new CidadeRepository();
       const clienteAux: ClienteModel = await repository.getClienteById(OrdemCtx.ORD_CLI);
@@ -165,11 +178,10 @@ export function Mapa({}: propsMapa) {
   }
 
   return (
-    <div className="overflow-scroll">
-      <div className="p-4 sm:w-[800px] sm:h-auto">
-        <div className="border rounded-md p-4 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-            <Input
+    <div className="w-full space-y-3 p-1">
+      <div className="ek-card p-3.5 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+          <Input
               type="text"
               value={latitude}
               className="uppercase"
@@ -197,11 +209,9 @@ export function Mapa({}: propsMapa) {
                 <MarcacaoCliente />
                 {fornecedores.map(
                   (fornecedor) =>
-
                     fornecedor.LATITUDE &&
                     fornecedor.LONGITUDE &&
-                    (
-                      isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE) ?
+                    isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE) ? (
                       <Marker
                         key={fornecedor.CODIGO}
                         position={[Number(fornecedor.LATITUDE), Number(fornecedor.LONGITUDE)]}
@@ -219,20 +229,12 @@ export function Mapa({}: propsMapa) {
                           km de distância
                         </Popup>
                       </Marker>
-                      : 
-                      <>
-                        {toastMixin.fire({
-                          icon: 'error',
-                          title: `Fornecedor ${fornecedor.NOME} possui latitude ou longitude inválida!`,
-                        })}
-                      </>
-                    )
+                    ) : null
                 )}
               </MapContainer>
             )}
           </div>
         </div>
       </div>
-    </div>
   );
 }

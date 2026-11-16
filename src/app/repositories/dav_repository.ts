@@ -1,4 +1,4 @@
-import { FormatDate } from "../functions/utils";
+import { FormatDate, horaFormatadaDB } from "../functions/utils";
 import { DAVModel, DAVProModel } from "../models/dav_model";
 import api from "../services/api";
 
@@ -8,7 +8,7 @@ export default class DAVRepository {
             const response = await api.post('/dataset', {
                 'sql': `UPDATE OR INSERT INTO DAV (DAV_CODIGO, DAV_DATA, DAV_HORA, DAV_FUN, DAV_VALOR, DAV_CLI, DAV_FORMAS_PGM, DAV_VALIDADE,
                         DAV_ESTADO, DAV_NOVO, DAV_FUNCAO, DAV_VENDA, DAV_CLIENTE, DAV_CPF_CNPJ, DAV_FATURA)
-                        VALUES (${dav.DAV_CODIGO}, '${FormatDate(dav.DAV_DATA)}', '${dav.DAV_HORA}', ${dav.DAV_FUN}, ${dav.DAV_VALOR}, ${dav.DAV_CLI}, 
+                        VALUES (${dav.DAV_CODIGO}, '${FormatDate(dav.DAV_DATA)}', '${horaFormatadaDB(dav.DAV_HORA)}', ${dav.DAV_FUN}, ${dav.DAV_VALOR}, ${dav.DAV_CLI}, 
                                 '${dav.DAV_FORMAS_PGM}', '${dav.DAV_VALIDADE}', ${dav.DAV_ESTADO}, ${dav.DAV_NOVO}, '${dav.DAV_FUNCAO}', ${dav.DAV_VENDA}, 
                                 '${dav.DAV_CLIENTE}', '${dav.DAV_CPF_CNPJ}', ${dav.DAV_FATURA})
                         MATCHING (DAV_CODIGO)`

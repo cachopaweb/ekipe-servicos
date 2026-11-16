@@ -1,1557 +1,1505 @@
-"use client"
-import { useEffect, useRef, useState } from "react";
+"use client";
+
+import { Suspense, useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import { useAppData } from "@/app/contexts/app_context";
+import {
+  FormatDate,
+  Status,
+  toastMixin,
+  IncrementaGenerator,
+  converterDataPontoParaTraco,
+  parseDataCalendario,
+  formatDataInput,
+} from "@/app/functions/utils";
+
+// Modelos
+import OrdemModel from "@/app/models/ordem_model";
+import { ClienteModel } from "@/app/models/cliente_model";
+import { FornecedorModel } from "@/app/models/fornecedor_model";
+import { ProdutoModel } from "@/app/models/produto_model";
+import OrdEstModel from "@/app/models/ord_est_model";
+import OrdSerModel from "@/app/models/ord_ser_model";
+import UnidadeMedidaModel from "@/app/models/unidade_med_model";
+import { SolicitanteModel } from "@/app/models/solicitante_model";
+
+// Repositórios
+import OrdemRepository from "@/app/repositories/ordem_repository";
+import ProdutoRepository from "@/app/repositories/produto_repository";
+import ClientRepository from "@/app/repositories/cliente_repository";
+import FornecedorRepository from "@/app/repositories/fornecedor_repository";
+import CidadeRepository from "@/app/repositories/cidade_repository";
+import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
+import SolicitanteRepository from "@/app/repositories/solicitante_repository";
+
+// Modais Externos e Pesquisas
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
 import Pesquisa_produto from "../../pesquisas/pesquisa_produto";
-import { ClienteModel } from "../../models/cliente_model";
-import { ProdutoModel } from "../../models/produto_model";
-import OrdEstModel from "../../models/ord_est_model";
-import OrdSerModel from "../../models/ord_ser_model";
-import Modal from "../../../components/component/modal";
-import {
-    FormatDate, GeraCodigo, Status, keyBoardInputEvent, toastMixin,
-    mascaraMoedaEvent, mascaraMoeda, maskRealToNumber,
-    IncrementaGenerator,
-    converterDataPontoParaTraco,
-    formatNumber,
-    parseFloatFromString
-} from "@/app/functions/utils";
-import OrdemModel from "@/app/models/ordem_model";
-import OrdemRepository from "@/app/repositories/ordem_repository";
-import UnidadeMedidaModel from "@/app/models/unidade_med_model";
-import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
+import PesquisaFornecedor from "@/app/pesquisas/pesquisa_fornecedor";
+import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
 import Empreitadas from "../empreitadas/page";
 import Faturamentos from "@/app/faturamentos/page";
 import OperacaoOrdens from "@/app/faturamentos/implementations/operacao_ordens";
-import ProdutoRepository from "@/app/repositories/produto_repository";
-import { useAppData } from "@/app/contexts/app_context";
 import PrintOrcamentos from "@/app/print/orcamento/page";
-import PesquisaOrdem from "@/app/pesquisas/pesquisa_os";
-import ClientRepository from "@/app/repositories/cliente_repository";
-import CidadeRepository from "@/app/repositories/cidade_repository";
+import PrintOSCompleta from "@/components/component/print_os_completa";
 import { ModalListarArquivos } from "@/components/component/files";
-import PesquisaFornecedor from "@/app/pesquisas/pesquisa_fornecedor";
-import { FornecedorModel } from "@/app/models/fornecedor_model";
-import CliForModel from "@/app/models/cli_for_model";
-import FornecedorRepository from "@/app/repositories/fornecedor_repository";
+import Modal from "@/components/component/modal";
 
+// Subcomponentes Modulares da Página
+import HeaderOrcamento from "./components/header_orcamento";
+import FormIdentificacao from "./components/form_identificacao";
+import TabServicos from "./components/tab_servicos";
+import TabProdutos from "./components/tab_produtos";
+import FormObservacoes from "./components/form_observacoes";
+import PainelTotais from "./components/painel_totais";
+import ModalItemServico from "./components/modal_item_servico";
+import ModalItemProduto from "./components/modal_item_produto";
+import ModalConfirmacao from "./components/modal_confirmacao";
+import ModalCadastroSolicitante from "./components/modal_cadastro_solicitante";
+
+// Ícones Profissionais
+import { Wrench, Package, CheckCircle2, FileText, Printer } from "lucide-react";
+
+function OrcamentosContent() {
+    const searchParams = useSearchParams();
+    const { setOrdemCtx, OrdemCtx, setTemAlteracoesPendentes } = useAppData();
+    const lastOrdemParamRef = useRef<string | null>(null);
+
+  // Filas de exclusão pendente (E02: persistem apenas ao salvar com sucesso)
+  const [servicosParaExcluir, setServicosParaExcluir] = useState<number[]>([]);
+  const [produtosParaExcluir, setProdutosParaExcluir] = useState<number[]>([]);
+
+  // Controle booleano de alterações pendentes (Dirty State - R03)
+  const [isDirty, setIsDirty] = useState<boolean>(false);
+
+  // Controle de diálogo de saída sem salvar
+  const [showDiscardModal, setShowDiscardModal] = useState<boolean>(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  // Estados da Ordem
+  const [ordem, setOrdem] = useState<OrdemModel | null>(null);
+  const [codigoOrdem, setCodigoOrdem] = useState<number>(0);
+  const [dataAbertura, setDataAbertura] = useState<Date>(new Date());
+  const [statusOrdem, setStatusOrdem] = useState<string>(Status[0].toUpperCase());
+  const [nfs, setNfs] = useState<string>("");
+  const [codFatura, setCodFatura] = useState<number>(0);
+  const [foiFaturado, setFoiFaturado] = useState<boolean>(false);
+  const [buscouOrdem, setBuscouOrdem] = useState<boolean>(false);
+
+  // Observações
+  const [solicitacao, setSolicitacao] = useState<string>("");
+  const [obs, setObs] = useState<string>("");
+  const [obs_adm, setObs_adm] = useState<string>("");
+
+  // Campos Operacionais de OS Aprovada (OM, Pedido, Previsão e Justificativa)
+  const [om, setOm] = useState<string>("");
+  const [pedidoCompra, setPedidoCompra] = useState<string>("");
+  const [dataPrevisaoConclusao, setDataPrevisaoConclusao] = useState<string>("");
+  const [justificativaAtraso, setJustificativaAtraso] = useState<string>("");
+
+  // Solicitante (Coordenador que abre/aprova o chamado)
+  const [solicitanteId, setSolicitanteId] = useState<number>(0);
+  const [solicitanteNome, setSolicitanteNome] = useState<string>("");
+  const [solicitantes, setSolicitantes] = useState<SolicitanteModel[]>([]);
+  const [showModalNovoSolicitante, setShowModalNovoSolicitante] = useState<boolean>(false);
+
+  // Entidades Vinculadas
+  const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({
+    CODIGO: 1,
+    NOME: "CONSUMIDOR",
+  });
+  const [parceiroSelecionado, serParceiroSelecionado] = useState<FornecedorModel>({
+    CODIGO: 0,
+    NOME: "",
+  });
+  const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({
+    PRO_CODIGO: 1,
+    PRO_NOME: "GENERICO",
+    PRO_VALORV: 0,
+  });
+
+  // Funcionário Logado
+  const [nomeFuncionario, setNomeFuncionario] = useState<string>("");
+  const [idFuncionario, setIdFuncionario] = useState<number>(0);
+
+  // Itens da Ordem
+  const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
+  const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
+  const [listaUnidadesMed, setListaUnidadesMed] = useState<UnidadeMedidaModel[]>([]);
+
+  // Descontos
+  const [valorDesconto, setValorDesconto] = useState<number>(0);
+  const [valorPorcentagemDesconto, setValorPorcentagemDesconto] = useState<number>(0);
+
+  // E06: Totais da OS, Total Pago e Saldo a Pagar (R04, A15–A16)
+  const [totalPago, setTotalPago] = useState<number>(0);
+  const [carregandoTotalPago, setCarregandoTotalPago] = useState<boolean>(false);
+  const [erroTotalPago, setErroTotalPago] = useState<boolean>(false);
+
+  // Controle de Abas
+  const [abaAtiva, setAbaAtiva] = useState<"SERVICOS" | "PRODUTOS">("SERVICOS");
+
+  // Modais de Edição de Itens
+  const [servicoEdt, setServicoEdt] = useState<OrdSerModel | null>(null);
+  const [showModalEdtServico, setShowModalEdtServico] = useState<boolean>(false);
+
+  const [produtoEdt, setProdutoEdt] = useState<OrdEstModel | null>(null);
+  const [showModalEdtProduto, setShowModalEdtProduto] = useState<boolean>(false);
+
+  // Modais de Pesquisa e Extensões
+  const [showModalPesquisaOS, setShowModalPesquisaOS] = useState<boolean>(false);
+  const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState<boolean>(false);
+  const [showModalPesquisaFornecedor, setShowModalPesquisaFornecedor] = useState<boolean>(false);
+  const [showModalPesquisaProduto, setShowModalPesquisaProduto] = useState<boolean>(false);
+  const [showModalimprimir, setShowModalImprimir] = useState<boolean>(false);
+  const [showModalEmpreitadas, setShowModalEmpreitadas] = useState<boolean>(false);
+  const [showModalListaArquivos, setShowModalListaArquivos] = useState<boolean>(false);
+  const [showFaturamento, setShowFaturamento] = useState<boolean>(false);
+  const [showModalPrintOSCompleta, setShowModalPrintOSCompleta] = useState<boolean>(false);
+  const [showModalPosFaturamento, setShowModalPosFaturamento] = useState<boolean>(false);
+
+  // Modal de Confirmação Unificado
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "danger" | "success" | "warning" | "info";
+    confirmText?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+    onConfirm: () => {},
+  });
+
+  // Lista de Status Disponíveis
+  const listaStatusDisponiveis = useMemo(() => {
+    const list = Object.values(Status).filter((v) => isNaN(Number(v)));
+    return list.map((v) => v.toString().toUpperCase());
+  }, []);
+
+  const makeOrcamentoSnapshot = useCallback(
+    (params: {
+      cliCod: number;
+      parcCod: number;
+      dataStr: string;
+      status: string;
+      nfsVal: string;
+      solic: string;
+      obsVal: string;
+      obsAdmVal: string;
+      descVal: number;
+      descPct: number;
+      omVal?: string;
+      pedVal?: string;
+      prevVal?: string;
+      justVal?: string;
+      solicId?: number;
+      servs: OrdSerModel[];
+      prods: OrdEstModel[];
+    }) =>
+      JSON.stringify({
+        cliCod: params.cliCod || 1,
+        parcCod: params.parcCod || 0,
+        dataStr: params.dataStr || "",
+        status: (params.status || "").trim().toUpperCase(),
+        nfsVal: (params.nfsVal || "").trim(),
+        solic: (params.solic || "").trim(),
+        obsVal: (params.obsVal || "").trim(),
+        obsAdmVal: (params.obsAdmVal || "").trim(),
+        descVal: Number(params.descVal || 0),
+        descPct: Number(params.descPct || 0),
+        omVal: (params.omVal || "").trim(),
+        pedVal: (params.pedVal || "").trim(),
+        prevVal: (params.prevVal || "").trim(),
+        justVal: (params.justVal || "").trim(),
+        solicId: Number(params.solicId || 0),
+        servs: (params.servs || []).map((s) => ({
+          cod: s.OS_CODIGO,
+          nome: (s.OS_NOME || "").trim(),
+          qtd: Number(s.OS_QUANTIDADE || 0),
+          um: (s.OS_UNIDADE_MED || "").trim(),
+          vlr: Number(s.OS_VALOR || 0),
+        })),
+        prods: (params.prods || []).map((p) => ({
+          cod: p.ORE_CODIGO,
+          pro: p.ORE_PRO,
+          nome: (p.ORE_NOME || "").trim(),
+          qtd: Number(p.ORE_QUANTIDADE || 0),
+          um: (p.ORE_EMBALAGEM || "").trim(),
+          vlr: Number(p.ORE_VALOR || 0),
+        })),
+      }),
+    []
+  );
+
+  const savedSnapshotRef = useRef<string>("");
+  const historyPushedRef = useRef<boolean>(false);
+
+  // Inicializa o snapshot limpo na montagem
+  useEffect(() => {
+    if (!savedSnapshotRef.current) {
+      savedSnapshotRef.current = makeOrcamentoSnapshot({
+        cliCod: 1,
+        parcCod: 0,
+        dataStr: formatDataInput(dataAbertura),
+        status: Status[0].toUpperCase(),
+        nfsVal: "",
+        solic: "",
+        obsVal: "",
+        obsAdmVal: "",
+        descVal: 0,
+        descPct: 0,
+        omVal: "",
+        pedVal: "",
+        prevVal: "",
+        justVal: "",
+        solicId: 0,
+        servs: [],
+        prods: [],
+      });
+    }
+  }, [makeOrcamentoSnapshot]);
+
+  // Calcula automaticamente se existem alterações não salvas comparando com o snapshot salvo
+  useEffect(() => {
+    if (!savedSnapshotRef.current) return;
+    const currentSnap = makeOrcamentoSnapshot({
+      cliCod: clienteSelecionado.CODIGO,
+      parcCod: parceiroSelecionado.CODIGO,
+      dataStr: formatDataInput(dataAbertura),
+      status: statusOrdem,
+      nfsVal: nfs,
+      solic: solicitacao,
+      obsVal: obs,
+      obsAdmVal: obs_adm,
+      descVal: valorDesconto,
+      descPct: valorPorcentagemDesconto,
+      omVal: om,
+      pedVal: pedidoCompra,
+      prevVal: dataPrevisaoConclusao,
+      justVal: justificativaAtraso,
+      solicId: solicitanteId,
+      servs: listaServicosInseridos,
+      prods: listaProdutosInseridos,
+    });
+    setIsDirty(currentSnap !== savedSnapshotRef.current);
+  }, [
+    makeOrcamentoSnapshot,
+    clienteSelecionado.CODIGO,
+    parceiroSelecionado.CODIGO,
+    dataAbertura,
+    statusOrdem,
+    nfs,
+    solicitacao,
+    obs,
+    obs_adm,
+    valorDesconto,
+    valorPorcentagemDesconto,
+    om,
+    pedidoCompra,
+    dataPrevisaoConclusao,
+    justificativaAtraso,
+    solicitanteId,
+    listaServicosInseridos,
+    listaProdutosInseridos,
+  ]);
+
+  // Notifica o Layout e componentes externos sobre a pendência
+  useEffect(() => {
+    setTemAlteracoesPendentes(isDirty);
+    return () => setTemAlteracoesPendentes(false);
+  }, [isDirty, setTemAlteracoesPendentes]);
+
+  // Intercepta fechamento/recarregamento da aba (beforeunload nativo)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
+  // Intercepta botão Voltar/Avançar do navegador (popstate) sem duplicar entradas no histórico
+  useEffect(() => {
+    if (isDirty && !historyPushedRef.current) {
+      window.history.pushState({ orcamentoDirtyGuard: true }, "", window.location.href);
+      historyPushedRef.current = true;
+    } else if (!isDirty) {
+      historyPushedRef.current = false;
+    }
+
+    const handlePopState = () => {
+      if (isDirty) {
+        window.history.pushState({ orcamentoDirtyGuard: true }, "", window.location.href);
+        historyPushedRef.current = true;
+        setPendingAction(() => () => {
+          historyPushedRef.current = false;
+          window.history.back();
+        });
+        setShowDiscardModal(true);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [isDirty]);
+
+  // Executa uma ação protegida por verificação de alterações pendentes
+  const executeWithDirtyCheck = (action: () => void) => {
+    if (isDirty) {
+      setPendingAction(() => action);
+      setShowDiscardModal(true);
+    } else {
+      action();
+    }
+  };
+
+  // Totais
+  const totalProdutos = useMemo(() => {
+    if (!Array.isArray(listaProdutosInseridos)) return 0;
+    return listaProdutosInseridos.reduce((acc, curr) => acc + (curr.ORE_VALOR || 0), 0);
+  }, [listaProdutosInseridos]);
+
+  const totalServicos = useMemo(() => {
+    if (!Array.isArray(listaServicosInseridos)) return 0;
+    return listaServicosInseridos.reduce((acc, curr) => acc + (curr.OS_VALOR || 0), 0);
+  }, [listaServicosInseridos]);
+
+  const totalItens = (Array.isArray(listaProdutosInseridos) ? listaProdutosInseridos.length : 0) + (Array.isArray(listaServicosInseridos) ? listaServicosInseridos.length : 0);
+
+  // Carrega automaticamente a OS informada via query string (?ordem=1234)
+  const ordemParam = searchParams?.get("ordem") ?? null;
+  useEffect(() => {
+    if (ordemParam && ordemParam !== lastOrdemParamRef.current) {
+      const parsed = Number(ordemParam);
+      if (Number.isInteger(parsed) && parsed > 0) {
+        lastOrdemParamRef.current = ordemParam;
+        setCodigoOrdem(parsed);
+      }
+    }
+  }, [ordemParam]);
+
+  // Carregamento Inicial
+  useEffect(() => {
+    carregaUnidadesMed();
+    carregaSolicitantes();
+    try {
+      const funcionario = JSON.parse(localStorage.getItem("usuario_logado") || "null");
+      if (funcionario) {
+        setNomeFuncionario(funcionario.FUN_NOME || "");
+        setIdFuncionario(funcionario.USU_FUN || 0);
+      }
+    } catch {
+      // Ignora erro de JSON
+    }
+  }, []);
+
+  const carregaSolicitantes = useCallback(async () => {
+    try {
+      const repository = new SolicitanteRepository();
+      const lista = await repository.getSolicitantes();
+      setSolicitantes(lista || []);
+    } catch (error) {
+      console.error("Erro ao carregar solicitantes:", error);
+    }
+  }, []);
+
+  const carregaUnidadesMed = async () => {
+    try {
+      const repository = new UnidadeMedidaRepository();
+      const unidades = await repository.getUnidadeMedidas();
+      setListaUnidadesMed(unidades || []);
+    } catch (error) {
+      toastMixin.fire("Erro", String(error), "error");
+    }
+  };
+
+  // Re-busca ordem quando faturada e disponibiliza emissão de PDF Completo (D07 / A22)
+  useEffect(() => {
+    if (foiFaturado) {
+      buscaOrdemServidor();
+      setShowModalPosFaturamento(true);
+    }
+  }, [foiFaturado]);
+
+  // Sincroniza Cliente no Contexto apenas quando o código realmente mudar
+  useEffect(() => {
+    if (clienteSelecionado?.CODIGO && OrdemCtx && OrdemCtx.ORD_CLI !== clienteSelecionado.CODIGO) {
+      setOrdemCtx((prev) => (prev ? { ...prev, ORD_CLI: clienteSelecionado.CODIGO } : prev));
+    }
+  }, [clienteSelecionado?.CODIGO, OrdemCtx, setOrdemCtx]);
+
+  const ordemServicoParaEmpreitadas = useMemo<OrdemModel>(() => {
+    return {
+      ...(ordem || {
+        ORD_CODIGO: codigoOrdem,
+        ORD_DATA: formatDataInput(dataAbertura),
+        ORD_VALOR: totalProdutos + totalServicos - (valorDesconto ?? 0),
+        ORD_CLI: clienteSelecionado.CODIGO,
+        ORD_DESCONTO_P: 0,
+        ORD_DESCONTO_S: 0,
+        ORD_DEVOLUCAO_P: "N",
+        ORD_ESTADO: statusOrdem,
+        ORD_FUN: idFuncionario,
+        ORD_NFS: nfs,
+        ORD_OBS: obs,
+        ORD_OBS_ADM: obs_adm,
+        ORD_SOLICITACAO: solicitacao,
+        CLI_NOME: clienteSelecionado.NOME,
+        ORD_FAT: codFatura,
+      }),
+      itensOrdSer: listaServicosInseridos,
+      itensOrdEst: listaProdutosInseridos,
+    } as OrdemModel;
+  }, [
+    ordem,
+    codigoOrdem,
+    dataAbertura,
+    totalProdutos,
+    totalServicos,
+    valorDesconto,
+    clienteSelecionado.CODIGO,
+    clienteSelecionado.NOME,
+    statusOrdem,
+    idFuncionario,
+    nfs,
+    obs,
+    obs_adm,
+    solicitacao,
+    codFatura,
+    listaServicosInseridos,
+    listaProdutosInseridos,
+  ]);
+
+  // Carrega o total pago/faturado da OS (recebimentos do cliente vinculados à OS)
+  const carregaTotalPagoOS = async (codigo: number) => {
+    if (!codigo || codigo <= 0) {
+      setTotalPago(0);
+      setErroTotalPago(false);
+      setCarregandoTotalPago(false);
+      return;
+    }
+    setCarregandoTotalPago(true);
+    setErroTotalPago(false);
+    try {
+      const rep = new OrdemRepository();
+      const pago = await rep.buscaTotalPagoOS(codigo);
+      setTotalPago(pago);
+    } catch (err) {
+      console.error("Erro ao carregar total pago da OS:", err);
+      setErroTotalPago(true);
+    } finally {
+      setCarregandoTotalPago(false);
+    }
+  };
+
+  // Debounce para busca de ordem quando o código é alterado
+  useEffect(() => {
+    if (codigoOrdem <= 0) {
+      setTotalPago(0);
+      setErroTotalPago(false);
+      setCarregandoTotalPago(false);
+    } else {
+      // Limpa total pago imediatamente ao trocar de OS para não exibir resíduo da OS anterior
+      setTotalPago(0);
+      setErroTotalPago(false);
+    }
+
+    const timeout = setTimeout(() => {
+      if (codigoOrdem > 0) {
+        buscaOrdemServidor();
+      }
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [codigoOrdem]);
+
+  // Buscar Ordem no Servidor
+  const buscaOrdemServidor = async () => {
+    try {
+      if (codigoOrdem === 0) {
+        serParceiroSelecionado({ CODIGO: 0, NOME: "" });
+        return;
+      }
+
+      const fornecedorRepository = new FornecedorRepository();
+      const cliRepository = new ClientRepository();
+      const repository = new OrdemRepository();
+      const ord = await repository.buscaOrdem(codigoOrdem);
+
+      if (!ord) {
+        toastMixin.fire("Atenção", "Ordem não encontrada!", "warning");
+        return;
+      }
+
+      const parceiro = await fornecedorRepository.getFornecedorById(ord.ORD_FORNECEDOR ?? 0);
+      serParceiroSelecionado(parceiro || { CODIGO: 0, NOME: "" });
+
+      setDataAbertura(parseDataCalendario(ord.ORD_DATA));
+
+
+
+      const cli = await cliRepository.getClienteById(ord.ORD_CLI);
+      setClienteSelecionado(cli || { CODIGO: 1, NOME: "CONSUMIDOR" });
+
+      setNfs(ord.ORD_NFS ?? "");
+      setObs(ord.ORD_OBS ?? "");
+      setObs_adm(ord.ORD_OBS_ADM ?? "");
+      setSolicitacao(ord.ORD_SOLICITACAO ?? "");
+      setStatusOrdem(ord.ORD_ESTADO || Status[0].toUpperCase());
+      setCodFatura(ord.ORD_FAT ?? 0);
+      setValorPorcentagemDesconto(ord.ORD_PORCENTAGEM_DESCONTO ?? 0);
+      setValorDesconto(ord.ORD_VALOR_DESCONTO ?? 0);
+
+      // Carrega campos operacionais de OS Aprovada
+      setOm(ord.ORD_OM || "");
+      setPedidoCompra(ord.ORD_PEDIDO_COMPRA || "");
+      const previsaoFormatada = ord.ORD_PREVISAO_CONCLUSAO && ord.ORD_PREVISAO_CONCLUSAO !== "1900-01-01"
+        ? formatDataInput(parseDataCalendario(ord.ORD_PREVISAO_CONCLUSAO))
+        : "";
+      setDataPrevisaoConclusao(previsaoFormatada);
+      setJustificativaAtraso(ord.ORD_JUSTIFICATIVA_ATRASO || "");
+
+      // Solicitante (Coordenador que abre/aprova o chamado)
+      setSolicitanteId(ord.ORD_SOLICITANTE_ID ?? 0);
+      setSolicitanteNome(ord.ORD_SOLICITANTE_NOME || "");
+
+      // Busca Produtos e Serviços
+      const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
+      setListaProdutosInseridos(Array.isArray(produtos) ? produtos : []);
+
+      const servicos = await repository.buscaServicosOrdem(codigoOrdem);
+      setListaServicosInseridos(Array.isArray(servicos) ? servicos : []);
+
+      ord.itensOrdEst = Array.isArray(produtos) ? produtos : [];
+      ord.itensOrdSer = Array.isArray(servicos) ? servicos : [];
+
+      setOrdem(ord);
+      setOrdemCtx(ord);
+      setBuscouOrdem(true);
+
+      // E06: Carrega total pago acumulado nas empreitadas da OS
+      await carregaTotalPagoOS(codigoOrdem);
+
+      // Ordem carregada do servidor: atualiza snapshot salvo e limpa filas de exclusão (R03)
+      const dataParsed = parseDataCalendario(ord.ORD_DATA);
+      const cliLoaded = cli || { CODIGO: 1, NOME: "CONSUMIDOR" };
+      const parcLoaded = parceiro || { CODIGO: 0, NOME: "" };
+      const prodsLoaded = Array.isArray(produtos) ? produtos : [];
+      const servsLoaded = Array.isArray(servicos) ? servicos : [];
+
+      savedSnapshotRef.current = makeOrcamentoSnapshot({
+        cliCod: cliLoaded.CODIGO,
+        parcCod: parcLoaded.CODIGO,
+        dataStr: formatDataInput(dataParsed),
+        status: ord.ORD_ESTADO || Status[0].toUpperCase(),
+        nfsVal: ord.ORD_NFS ?? "",
+        solic: ord.ORD_SOLICITACAO ?? "",
+        obsVal: ord.ORD_OBS ?? "",
+        obsAdmVal: ord.ORD_OBS_ADM ?? "",
+        descVal: ord.ORD_VALOR_DESCONTO ?? 0,
+        descPct: ord.ORD_PORCENTAGEM_DESCONTO ?? 0,
+        omVal: ord.ORD_OM || "",
+        pedVal: ord.ORD_PEDIDO_COMPRA || "",
+        prevVal: previsaoFormatada,
+        justVal: ord.ORD_JUSTIFICATIVA_ATRASO || "",
+        solicId: ord.ORD_SOLICITANTE_ID ?? 0,
+        servs: servsLoaded,
+        prods: prodsLoaded,
+      });
+      setIsDirty(false);
+      setServicosParaExcluir([]);
+      setProdutosParaExcluir([]);
+
+      toastMixin.fire({
+        title: "Ordem encontrada",
+        text: `Ordem #${codigoOrdem} carregada com sucesso`,
+        icon: "success",
+        timer: 1500,
+      });
+    } catch (error) {
+      toastMixin.fire("Erro", String(error), "error");
+    }
+  };
+
+  // Limpar formulário para Novo Orçamento
+  const handleNovoOrcamento = (silent?: boolean) => {
+    const novaData = new Date();
+    const novoStatus = Status[0].toUpperCase();
+    setCodigoOrdem(0);
+    setOrdem(null);
+    setBuscouOrdem(false);
+    setTotalPago(0);
+    setCarregandoTotalPago(false);
+    setErroTotalPago(false);
+    setDataAbertura(novaData);
+    setStatusOrdem(novoStatus);
+    setNfs("");
+    setCodFatura(0);
+    setSolicitacao("");
+    setObs("");
+    setObs_adm("");
+    setOm("");
+    setPedidoCompra("");
+    setDataPrevisaoConclusao("");
+    setJustificativaAtraso("");
+    setSolicitanteId(0);
+    setSolicitanteNome("");
+    setClienteSelecionado({ CODIGO: 1, NOME: "CONSUMIDOR" });
+    serParceiroSelecionado({ CODIGO: 0, NOME: "" });
+    setListaServicosInseridos([]);
+    setListaProdutosInseridos([]);
+    setValorDesconto(0);
+    setValorPorcentagemDesconto(0);
+    savedSnapshotRef.current = makeOrcamentoSnapshot({
+      cliCod: 1,
+      parcCod: 0,
+      dataStr: formatDataInput(novaData),
+      status: novoStatus,
+      nfsVal: "",
+      solic: "",
+      obsVal: "",
+      obsAdmVal: "",
+      descVal: 0,
+      descPct: 0,
+      omVal: "",
+      pedVal: "",
+      prevVal: "",
+      justVal: "",
+      solicId: 0,
+      servs: [],
+      prods: [],
+    });
+    setIsDirty(false);
+    setServicosParaExcluir([]);
+    setProdutosParaExcluir([]);
+    if (!silent) {
+      toastMixin.fire({
+        title: "Novo Orçamento",
+        text: "Campos limpos para criação de uma nova ordem",
+        icon: "info",
+        timer: 1500,
+      });
+    }
+  };
+
+  // Salvar Ordem no Banco
+  const salvaOrdem = async (): Promise<boolean> => {
+    if (!statusOrdem) {
+      toastMixin.fire("Atenção", "Informe o estado/status da ordem", "warning");
+      return false;
+    }
+    if (!dataAbertura || isNaN(dataAbertura.getTime())) {
+      toastMixin.fire("Atenção", "Por favor, informe uma data de abertura válida.", "warning");
+      return false;
+    }
+    if (!solicitacao.trim()) {
+      toastMixin.fire("Atenção", "A solicitação do cliente é obrigatória!", "warning");
+      return false;
+    }
+    if (listaProdutosInseridos.length === 0 && listaServicosInseridos.length === 0) {
+      toastMixin.fire("Atenção", "Insira ao menos um produto ou serviço na ordem.", "warning");
+      return false;
+    }
+
+    try {
+      const cidadeRep = new CidadeRepository();
+      const cidade = await cidadeRep.getCidade(clienteSelecionado.CODCIDADE ?? 0);
+
+      let codigo = codigoOrdem;
+      if (codigo === 0) {
+        codigo = await IncrementaGenerator("GEN_ORD");
+      }
+
+      const ord: OrdemModel = {
+        ORD_CODIGO: codigo,
+        ORD_DATA: formatDataInput(dataAbertura),
+        ORD_DATAC: ordem?.ORD_DATAC,
+        ORD_HORA: ordem?.ORD_HORA,
+        ORD_VALOR: totalProdutos + totalServicos - (valorDesconto ?? 0),
+        ORD_CLI: clienteSelecionado.CODIGO,
+        ORD_DESCONTO_P: 0,
+        ORD_DESCONTO_S: 0,
+        ORD_DEVOLUCAO_P: "N",
+        ORD_ESTADO: statusOrdem,
+        ORD_FUN: ordem?.ORD_FUN && ordem.ORD_FUN > 0 ? ordem.ORD_FUN : idFuncionario,
+        FUN_NOME: ordem?.FUN_NOME || nomeFuncionario,
+        ORD_NFS: nfs,
+        ORD_OBS: obs,
+        ORD_OBS_ADM: obs_adm,
+        ORD_SOLICITACAO: solicitacao,
+        CLI_NOME: clienteSelecionado.NOME,
+        ORD_FAT: codFatura,
+        CLI_CNPJ_CPF: clienteSelecionado.CPF_CNPJ || "",
+        CLI_ENDERECO: clienteSelecionado.ENDERECO || "",
+        CLI_NUMERO: clienteSelecionado.NUMERO || "",
+        CLI_BAIRRO: clienteSelecionado.BAIRRO || "",
+        CLI_FONE: clienteSelecionado.FONE || "",
+        itensOrdEst: listaProdutosInseridos,
+        itensOrdSer: listaServicosInseridos,
+        CID_NOME: cidade?.CID_NOME || "",
+        CID_UF: cidade?.CID_UF || "",
+        ORD_FORNECEDOR: parceiroSelecionado.CODIGO || 0,
+        ORD_VALOR_DESCONTO: valorDesconto ?? 0,
+        ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto ?? 0,
+        ORD_TOTAL_SEM_DESCONTO: totalProdutos + totalServicos,
+        ORD_OM: om,
+        ORD_PEDIDO_COMPRA: pedidoCompra,
+        ORD_PREVISAO_CONCLUSAO: dataPrevisaoConclusao,
+        ORD_JUSTIFICATIVA_ATRASO: justificativaAtraso,
+        ORD_SOLICITANTE_ID: solicitanteId > 0 ? solicitanteId : undefined,
+        ORD_SOLICITANTE_NOME: solicitanteNome || undefined,
+      };
+
+      const repository = new OrdemRepository();
+      const prodRepository = new ProdutoRepository();
+      await repository.insereordem(ord);
+
+      // Executa exclusões pendentes de serviços e produtos no banco apenas ao salvar (R03)
+      for (const codServ of servicosParaExcluir) {
+        if (codServ > 0) {
+          await repository.deleteServicoOrdemPorCodigo(codServ);
+        }
+      }
+      for (const codProd of produtosParaExcluir) {
+        if (codProd > 0) {
+          await prodRepository.deleteProdutoOrdemPorCodigo(codProd);
+        }
+      }
+
+      // Salva Serviços
+      if (listaServicosInseridos.length > 0) {
+        for (const s of listaServicosInseridos) {
+          if (!s.OS_CODIGO || s.OS_CODIGO <= 0) {
+            s.OS_CODIGO = await IncrementaGenerator("GEN_OS");
+          }
+          s.OS_ORD = codigo;
+          await repository.insereServicos(codigo, s);
+        }
+      }
+
+      // Salva Produtos
+      if (listaProdutosInseridos.length > 0) {
+        for (const p of listaProdutosInseridos) {
+          if (!p.ORE_CODIGO || p.ORE_CODIGO <= 0) {
+            p.ORE_CODIGO = await IncrementaGenerator("GEN_ORE");
+          }
+          p.ORE_ORD = codigo;
+          await repository.insereProdutos(codigo, p);
+        }
+      }
+
+      setCodigoOrdem(codigo);
+      setOrdem(ord);
+      setOrdemCtx(ord);
+      setBuscouOrdem(true);
+
+      // E06: Recarrega o total pago acumulado após salvar
+      await carregaTotalPagoOS(codigo);
+
+      // Sucesso ao salvar: atualiza snapshot salvo, zera o dirty state e limpa as filas de exclusão (R03)
+      savedSnapshotRef.current = makeOrcamentoSnapshot({
+        cliCod: clienteSelecionado.CODIGO,
+        parcCod: parceiroSelecionado.CODIGO,
+        dataStr: formatDataInput(dataAbertura),
+        status: statusOrdem,
+        nfsVal: nfs,
+        solic: solicitacao,
+        obsVal: obs,
+        obsAdmVal: obs_adm,
+        descVal: valorDesconto,
+        descPct: valorPorcentagemDesconto,
+        omVal: om,
+        pedVal: pedidoCompra,
+        prevVal: dataPrevisaoConclusao,
+        justVal: justificativaAtraso,
+        solicId: solicitanteId,
+        servs: listaServicosInseridos,
+        prods: listaProdutosInseridos,
+      });
+      setIsDirty(false);
+      setServicosParaExcluir([]);
+      setProdutosParaExcluir([]);
+
+      toastMixin.fire({
+        title: "Sucesso",
+        text: `Ordem #${codigo} salva com sucesso!`,
+        icon: "success",
+        timer: 2000,
+      });
+      return true;
+    } catch (e) {
+      toastMixin.fire({
+        title: "Erro ao Salvar",
+        text: String(e),
+        icon: "error",
+      });
+      return false;
+    }
+  };
+
+  // Excluir Serviço (em memória até salvar - R03)
+  const handleExcluirServico = (codigo: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Excluir Serviço",
+      message: "Tem certeza de que deseja remover este serviço da ordem?",
+      type: "danger",
+      confirmText: "Sim, Excluir",
+      onConfirm: () => {
+        setListaServicosInseridos((prev) => prev.filter((s) => s.OS_CODIGO !== codigo));
+        if (codigo > 0) {
+          setServicosParaExcluir((prev) => (prev.includes(codigo) ? prev : [...prev, codigo]));
+        }
+        setIsDirty(true);
+        toastMixin.fire({
+          title: "Serviço Removido",
+          text: "Clique em Salvar Orçamento para efetivar a alteração.",
+          icon: "success",
+          timer: 1500,
+        });
+        setConfirmModal((c) => ({ ...c, isOpen: false }));
+      },
+    });
+  };
+
+  // Excluir Produto (em memória até salvar - R03)
+  const handleExcluirProduto = (codigo: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Excluir Produto",
+      message: "Tem certeza de que deseja remover este produto da ordem?",
+      type: "danger",
+      confirmText: "Sim, Excluir",
+      onConfirm: () => {
+        setListaProdutosInseridos((prev) => prev.filter((p) => p.ORE_CODIGO !== codigo));
+        if (codigo > 0) {
+          setProdutosParaExcluir((prev) => (prev.includes(codigo) ? prev : [...prev, codigo]));
+        }
+        setIsDirty(true);
+        toastMixin.fire({
+          title: "Produto Removido",
+          text: "Clique em Salvar Orçamento para efetivar a alteração.",
+          icon: "success",
+          timer: 1500,
+        });
+        setConfirmModal((c) => ({ ...c, isOpen: false }));
+      },
+    });
+  };
+
+  // Inserir Novo Serviço (ID definitivo gerado ao salvar)
+  const handleAdicionarServico = async (novo: OrdSerModel) => {
+    try {
+      const tempCodigo = -Date.now() - Math.floor(Math.random() * 10000);
+      setListaServicosInseridos((prev) => [
+        ...prev,
+        {
+          ...novo,
+          OS_CODIGO: tempCodigo,
+        },
+      ]);
+      setIsDirty(true);
+      toastMixin.fire({
+        title: "Serviço Adicionado",
+        icon: "success",
+        timer: 1200,
+      });
+    } catch (err) {
+      toastMixin.fire("Erro", String(err), "error");
+    }
+  };
+
+  // Inserir Novo Produto (ID definitivo gerado ao salvar)
+  const handleAdicionarProduto = async (novo: OrdEstModel) => {
+    try {
+      const tempCodigo = -Date.now() - Math.floor(Math.random() * 10000);
+      setListaProdutosInseridos((prev) => [
+        ...prev,
+        {
+          ...novo,
+          ORE_CODIGO: tempCodigo,
+        },
+      ]);
+      setIsDirty(true);
+      toastMixin.fire({
+        title: "Produto Adicionado",
+        icon: "success",
+        timer: 1200,
+      });
+    } catch (err) {
+      toastMixin.fire("Erro", String(err), "error");
+    }
+  };
+
+  // Salvar Edição de Serviço
+  const handleSaveServicoEditado = (servicoAtualizado: OrdSerModel) => {
+    setListaServicosInseridos((prev) => {
+      const idx = prev.findIndex((s) => s.OS_CODIGO === servicoAtualizado.OS_CODIGO);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = servicoAtualizado;
+        return copy;
+      }
+      return prev;
+    });
+    setIsDirty(true);
+    setShowModalEdtServico(false);
+    toastMixin.fire({
+      title: "Serviço Atualizado",
+      icon: "success",
+      timer: 1200,
+    });
+  };
+
+  // Salvar Edição de Produto
+  const handleSaveProdutoEditado = (produtoAtualizado: OrdEstModel) => {
+    setListaProdutosInseridos((prev) => {
+      const idx = prev.findIndex((p) => p.ORE_CODIGO === produtoAtualizado.ORE_CODIGO);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = produtoAtualizado;
+        return copy;
+      }
+      return prev;
+    });
+    setIsDirty(true);
+    setShowModalEdtProduto(false);
+    toastMixin.fire({
+      title: "Produto Atualizado",
+      icon: "success",
+      timer: 1200,
+    });
+  };
+
+  // Impressão
+  const handleImprimir = () => {
+    if (ordem != null) {
+      setOrdemCtx(ordem);
+      setShowModalImprimir(true);
+    } else {
+      toastMixin.fire("Atenção", "Salve ou busque a ordem antes de imprimir.", "warning");
+    }
+  };
+
+  // Impressão Completa da OS (R06 / D07)
+  const handleImprimirCompleto = () => {
+    if (codigoOrdem > 0) {
+      setShowModalPrintOSCompleta(true);
+    } else {
+      toastMixin.fire("Atenção", "Salve ou busque a ordem antes de gerar o relatório completo.", "warning");
+    }
+  };
+
+  // Faturamento
+  const handleFaturamento = async () => {
+    if (totalItens === 0) {
+      toastMixin.fire("Atenção", "Insira ao menos um produto ou serviço para faturar!", "warning");
+      return;
+    }
+    const salvou = await salvaOrdem();
+    if (!salvou) return;
+    setShowFaturamento(true);
+  };
+
+  return (
+    <div className="flex flex-col w-full min-h-full bg-white p-4 sm:p-6 pb-20 lg:pb-6 gap-4 font-sans text-ek-text">
+      {/* 1. Header Superior com Status e Ações */}
+      <HeaderOrcamento
+        codigoOrdem={codigoOrdem}
+        statusOrdem={statusOrdem}
+        canSave={totalItens > 0}
+        onOpenPesquisaOS={() => executeWithDirtyCheck(() => setShowModalPesquisaOS(true))}
+        onNovoOrcamento={() => executeWithDirtyCheck(handleNovoOrcamento)}
+        onSalvar={salvaOrdem}
+        onImprimir={handleImprimir}
+        onImprimirCompleto={handleImprimirCompleto}
+      />
+
+      {/* 2. Grid de Conteúdo: Coluna Principal (75%) e Lateral (25%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 items-start">
+        {/* Coluna Principal (Itens, Identificação e Observações) */}
+        <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-3 min-w-0">
+          {/* Card de Identificação */}
+          <FormIdentificacao
+            cliente={clienteSelecionado}
+            onOpenPesquisaCliente={() => setShowModalPesquisaCliente(true)}
+            parceiro={parceiroSelecionado}
+            onOpenPesquisaFornecedor={() => setShowModalPesquisaFornecedor(true)}
+            onClearParceiro={() => {
+              serParceiroSelecionado({ CODIGO: 0, NOME: "" });
+              setIsDirty(true);
+            }}
+            dataAbertura={dataAbertura}
+            setDataAbertura={(d) => {
+              setDataAbertura(d);
+              setIsDirty(true);
+            }}
+            statusOrdem={statusOrdem}
+            setStatusOrdem={(s) => {
+              setStatusOrdem(s);
+              setIsDirty(true);
+            }}
+            listaStatus={listaStatusDisponiveis}
+            nfs={nfs}
+            setNfs={(n) => {
+              setNfs(n);
+              setIsDirty(true);
+            }}
+            codFatura={codFatura}
+            nomeFuncionario={ordem?.FUN_NOME || nomeFuncionario}
+            solicitacao={solicitacao}
+            setSolicitacao={(s) => {
+              setSolicitacao(s);
+              setIsDirty(true);
+            }}
+            om={om}
+            setOm={(v) => {
+              setOm(v);
+              setIsDirty(true);
+            }}
+            pedidoCompra={pedidoCompra}
+            setPedidoCompra={(v) => {
+              setPedidoCompra(v);
+              setIsDirty(true);
+            }}
+            dataPrevisaoConclusao={dataPrevisaoConclusao}
+            setDataPrevisaoConclusao={(v) => {
+              setDataPrevisaoConclusao(v);
+              setIsDirty(true);
+            }}
+            justificativaAtraso={justificativaAtraso}
+            setJustificativaAtraso={(v) => {
+              setJustificativaAtraso(v);
+              setIsDirty(true);
+            }}
+            solicitanteId={solicitanteId}
+            setSolicitanteId={(id) => {
+              setSolicitanteId(id);
+              setIsDirty(true);
+            }}
+            solicitanteNome={solicitanteNome}
+            setSolicitanteNome={(nome) => {
+              setSolicitanteNome(nome);
+              setIsDirty(true);
+            }}
+            solicitantes={solicitantes}
+            onOpenNovoSolicitante={() => setShowModalNovoSolicitante(true)}
+          />
+
+          {/* Abas de Itens: Serviços vs Produtos (Underline Framed Sheet) */}
+          <div>
+            <div className="flex items-center gap-6 border-b border-ek-rule mb-3">
+              <button
+                type="button"
+                onClick={() => setAbaAtiva("SERVICOS")}
+                className={`relative flex items-center gap-2 py-2.5 text-sm transition-colors border-b-2 -mb-px ${
+                  abaAtiva === "SERVICOS"
+                    ? "border-brand text-ek-text font-semibold"
+                    : "border-transparent text-ek-muted font-medium hover:text-ek-text"
+                }`}
+              >
+                <Wrench className={`w-4 h-4 ${abaAtiva === "SERVICOS" ? "text-brand" : "text-ek-faint"}`} />
+                <span>Serviços ({listaServicosInseridos.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAbaAtiva("PRODUTOS")}
+                className={`relative flex items-center gap-2 py-2.5 text-sm transition-colors border-b-2 -mb-px ${
+                  abaAtiva === "PRODUTOS"
+                    ? "border-brand text-ek-text font-semibold"
+                    : "border-transparent text-ek-muted font-medium hover:text-ek-text"
+                }`}
+              >
+                <Package className={`w-4 h-4 ${abaAtiva === "PRODUTOS" ? "text-brand" : "text-ek-faint"}`} />
+                <span>Produtos ({listaProdutosInseridos.length})</span>
+              </button>
+            </div>
+
+            {/* Conteúdo da Aba Ativa */}
+            {abaAtiva === "SERVICOS" ? (
+              <TabServicos
+                servicos={listaServicosInseridos}
+                unidadesMedida={listaUnidadesMed}
+                onAdicionarServico={handleAdicionarServico}
+                onEditarServico={(s) => {
+                  setServicoEdt(s);
+                  setShowModalEdtServico(true);
+                }}
+                onExcluirServico={handleExcluirServico}
+              />
+            ) : (
+              <TabProdutos
+                produtos={listaProdutosInseridos}
+                unidadesMedida={listaUnidadesMed}
+                onAdicionarProduto={handleAdicionarProduto}
+                onEditarProduto={(p) => {
+                  setProdutoEdt(p);
+                  setShowModalEdtProduto(true);
+                }}
+                onExcluirProduto={handleExcluirProduto}
+                onOpenPesquisaProduto={() => setShowModalPesquisaProduto(true)}
+                produtoSelecionado={produtoSelecionado}
+                setProdutoSelecionado={setProdutoSelecionado}
+              />
+            )}
+          </div>
+
+          {/* Card de Termos e Observações */}
+          <FormObservacoes
+            obs={obs}
+            setObs={(o) => {
+              setObs(o);
+              setIsDirty(true);
+            }}
+            obsAdm={obs_adm}
+            setObsAdm={(a) => {
+              setObs_adm(a);
+              setIsDirty(true);
+            }}
+          />
+        </div>
+
+        {/* Coluna Lateral: Resumo Financeiro & Atalhos (30%) */}
+        <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-3 min-w-0">
+          <PainelTotais
+            totalServicos={totalServicos}
+            totalProdutos={totalProdutos}
+            valorDesconto={valorDesconto}
+            setValorDesconto={(v) => {
+              setValorDesconto(v);
+              setIsDirty(true);
+            }}
+            valorPorcentagemDesconto={valorPorcentagemDesconto}
+            setValorPorcentagemDesconto={(p) => {
+              setValorPorcentagemDesconto(p);
+              setIsDirty(true);
+            }}
+            codigoOrdem={codigoOrdem}
+            codFatura={codFatura}
+            totalItens={totalItens}
+            totalPago={totalPago}
+            carregandoTotalPago={carregandoTotalPago}
+            erroTotalPago={erroTotalPago}
+            onRetryTotalPago={() => carregaTotalPagoOS(codigoOrdem)}
+            isDirty={isDirty}
+            onFaturar={handleFaturamento}
+            onAbrirEmpreitadas={() => setShowModalEmpreitadas(true)}
+            onAbrirArquivos={() => setShowModalListaArquivos(true)}
+            onImprimir={handleImprimir}
+            onImprimirCompleto={handleImprimirCompleto}
+            onSalvar={salvaOrdem}
+            canSave={totalItens > 0}
+          />
+        </div>
+      </div>
+
+      {/* --- MODAIS DE PESQUISA, FATURAMENTO, IMPRESSÃO E ARQUIVOS --- */}
+
+      {/* Modal Pesquisa OS */}
+      {showModalPesquisaOS && (
+        <PesquisaOrdem
+          OrdemSelecionado={codigoOrdem}
+          setOrdemSelecionado={setCodigoOrdem}
+          showModal={showModalPesquisaOS}
+          setShowModal={setShowModalPesquisaOS}
+          setBuscouOrdem={setBuscouOrdem}
+        />
+      )}
+
+      {/* Modal Pesquisa Cliente */}
+      {showModalPesquisaCliente && (
+        <Pesquisa_cliente
+          clienteSelecionado={clienteSelecionado}
+          setClienteSelecionado={(cli) => {
+            setClienteSelecionado(cli);
+            setIsDirty(true);
+          }}
+          showModal={showModalPesquisaCliente}
+          setShowModal={setShowModalPesquisaCliente}
+        />
+      )}
+
+      {/* Modal Pesquisa Fornecedor / Parceiro */}
+      {showModalPesquisaFornecedor && (
+        <PesquisaFornecedor
+          fornecedorSelecionado={parceiroSelecionado}
+          setFornecedorSelecionado={(forn) => {
+            serParceiroSelecionado(forn);
+            setIsDirty(true);
+          }}
+          showModal={showModalPesquisaFornecedor}
+          setShowModal={setShowModalPesquisaFornecedor}
+        />
+      )}
+
+      {/* Modal Pesquisa Produto */}
+      {showModalPesquisaProduto && (
+        <Pesquisa_produto
+          produtoSelecionado={produtoSelecionado}
+          setProdutoSelecionado={setProdutoSelecionado}
+          showModal={showModalPesquisaProduto}
+          setShowModal={setShowModalPesquisaProduto}
+        />
+      )}
+
+      {/* Modal Edição de Serviço */}
+      {showModalEdtServico && servicoEdt && (
+        <ModalItemServico
+          isOpen={showModalEdtServico}
+          onClose={() => setShowModalEdtServico(false)}
+          servico={servicoEdt}
+          unidadesMedida={listaUnidadesMed}
+          onSave={handleSaveServicoEditado}
+        />
+      )}
+
+      {/* Modal Edição de Produto */}
+      {showModalEdtProduto && produtoEdt && (
+        <ModalItemProduto
+          isOpen={showModalEdtProduto}
+          onClose={() => setShowModalEdtProduto(false)}
+          produto={produtoEdt}
+          unidadesMedida={listaUnidadesMed}
+          onSave={handleSaveProdutoEditado}
+        />
+      )}
+
+      {/* Modal de Confirmação Unificado */}
+      <ModalConfirmacao
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((c) => ({ ...c, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+      />
+
+      {/* Modal de Descarte de Alterações Pendentes (E02 / R03) */}
+      <ModalConfirmacao
+        isOpen={showDiscardModal}
+        onClose={() => {
+          setShowDiscardModal(false);
+          setPendingAction(null);
+        }}
+        onConfirm={async () => {
+          setShowDiscardModal(false);
+          setIsDirty(false);
+          setServicosParaExcluir([]);
+          setProdutosParaExcluir([]);
+          if (codigoOrdem > 0) {
+            await buscaOrdemServidor();
+          } else {
+            handleNovoOrcamento(true);
+          }
+          const act = pendingAction;
+          setPendingAction(null);
+          if (act) act();
+        }}
+        title="Atenção!"
+        message="Existem alterações que ainda não foram salvas. Se você sair desta tela, todas as alterações realizadas serão perdidas. Deseja realmente sair sem salvar?"
+        type="warning"
+        confirmText="Sair sem salvar"
+        cancelText="Continuar editando"
+      />
+
+      {/* Modal de Impressão */}
+      {showModalimprimir && (
+        <Modal
+          showModal={showModalimprimir}
+          setShowModal={setShowModalImprimir}
+          title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
+          showButtonExit={false}
+          body={<PrintOrcamentos />}
+        />
+      )}
+
+      {/* Modal de Faturamento */}
+      {showFaturamento && (
+        <Modal
+          title="Faturamento de Ordem de Serviço"
+          showModal={showFaturamento}
+          setShowModal={setShowFaturamento}
+          showButtonExit={false}
+          body={
+            <Faturamentos
+              tipoRecPag="R"
+              Operacao={new OperacaoOrdens()}
+              pedFat={{
+                PF_CODIGO: 0,
+                PF_COD_CLI: clienteSelecionado.CODIGO,
+                PF_CAMPO_DATAC: "ORD_DATAC",
+                PF_CAMPO_FAT: "ORD_FAT",
+                PF_CAMPO_PED: "ORD_CODIGO",
+                PF_CLIENTE: clienteSelecionado.NOME,
+                PF_COD_PED: codigoOrdem,
+                PF_DATA: FormatDate(new Date()),
+                PF_DATAC: "01/01/1900",
+                PF_DESCONTO: valorDesconto || 0,
+                PF_FAT: 0,
+                PF_FUN: idFuncionario || 1,
+                PF_PARCELAS: 1,
+                PF_TABELA: "ORDENS",
+                PF_TIPO: 1,
+                PF_VALOR: totalProdutos + totalServicos - (valorDesconto || 0),
+                PF_VALORB: 0,
+                PF_VALORPG: 0,
+              }}
+              model={ordem!}
+              itens={listaProdutosInseridos}
+              itens2={listaServicosInseridos}
+              setShowModal={setShowFaturamento}
+              setFaturado={setFoiFaturado}
+              cliFor={clienteSelecionado}
+              valorTotal={totalProdutos + totalServicos - (valorDesconto || 0)}
+            />
+          }
+        />
+      )}
+
+      {/* Modal de Empreitadas */}
+      {showModalEmpreitadas && (
+        <Modal
+          showModal={showModalEmpreitadas}
+          setShowModal={(show) => {
+            setShowModalEmpreitadas(show);
+            if (!show && codigoOrdem > 0) {
+              carregaTotalPagoOS(codigoOrdem);
+            }
+          }}
+          title="Empreitadas"
+          showButtonExit={false}
+          body={
+            <Empreitadas
+              ordemServico={ordemServicoParaEmpreitadas}
+              onUpdateTotalPago={() => {
+                if (codigoOrdem > 0) carregaTotalPagoOS(codigoOrdem);
+              }}
+            />
+          }
+        />
+      )}
+
+      {/* Modal de Listar Arquivos / Anexos */}
+      {showModalListaArquivos && (
+        <ModalListarArquivos
+          codigoOrdem={codigoOrdem}
+          setShowModal={setShowModalListaArquivos}
+          showmodal={showModalListaArquivos}
+        />
+      )}
+
+      {/* Modal de Impressão Completa da OS (R06 / D07) */}
+      {showModalPrintOSCompleta && (
+        <Modal
+          showModal={showModalPrintOSCompleta}
+          setShowModal={setShowModalPrintOSCompleta}
+          title={`Relatório Completo • Ordem de Serviço #${codigoOrdem}`}
+          showButtonExit={false}
+          body={
+            <PrintOSCompleta
+              codigoOrdem={codigoOrdem}
+              onClose={() => setShowModalPrintOSCompleta(false)}
+            />
+          }
+        />
+      )}
+
+      {/* Modal Pós-Faturamento com Ações de Emissão de Documento (D07 / A22) */}
+      {showModalPosFaturamento && (
+        <Modal
+          showModal={showModalPosFaturamento}
+          setShowModal={setShowModalPosFaturamento}
+          title="Faturamento Concluído com Sucesso!"
+          showButtonExit={false}
+          body={
+            <div className="flex flex-col items-center text-center p-4">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full flex items-center justify-center mb-3">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-semibold text-ek-text">
+                Ordem de Serviço #{codigoOrdem} faturada com sucesso!
+              </h3>
+              <p className="text-xs text-ek-muted mt-1 max-w-sm">
+                A fatura foi vinculada e os lançamentos financeiros foram criados. Deseja emitir o relatório completo agora?
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 mt-5 w-full max-w-md">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModalPosFaturamento(false);
+                    setShowModalPrintOSCompleta(true);
+                  }}
+                  className="ek-btn-primary w-full sm:flex-1 h-9 text-xs"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Gerar PDF Completo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModalPosFaturamento(false);
+                    if (ordem) {
+                      setOrdemCtx(ordem);
+                    }
+                    setShowModalImprimir(true);
+                  }}
+                  className="ek-btn-secondary w-full sm:flex-1 h-9 text-xs"
+                >
+                  <Printer className="w-4 h-4 text-ek-muted" />
+                  <span>Orçamento Resumido</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowModalPosFaturamento(false)}
+                className="mt-3.5 text-xs text-ek-muted hover:text-ek-text underline font-medium transition-colors"
+              >
+                Concluir sem imprimir agora
+              </button>
+            </div>
+          }
+        />
+      )}
+
+      {/* Modal Cadastro Rápido de Solicitante */}
+      <ModalCadastroSolicitante
+        isOpen={showModalNovoSolicitante}
+        onClose={() => setShowModalNovoSolicitante(false)}
+        onSalvo={(novo) => {
+          setSolicitantes((prev) => {
+            const exists = prev.some((s) => s.SOL_CODIGO === novo.SOL_CODIGO);
+            if (exists) {
+              return prev.map((s) => (s.SOL_CODIGO === novo.SOL_CODIGO ? novo : s));
+            }
+            return [...prev, novo].sort((a, b) => a.SOL_NOME.localeCompare(b.SOL_NOME));
+          });
+          setSolicitanteId(novo.SOL_CODIGO);
+          setSolicitanteNome(novo.SOL_NOME);
+          setIsDirty(true);
+        }}
+      />
+    </div>
+  );
+}
 
 export default function Orcamentos() {
-    const { setOrdemCtx, OrdemCtx } = useAppData();
-    const [ordem, setOrdem] = useState<OrdemModel | null>(null);
-    const [dataAbertura, setDataAbertura] = useState(new Date());
-    const [showModalPesquisaCliente, setShowModalPesquisaCliente] = useState(false);
-    const [showModalPesquisaFornecedor, setShowModalPesquisaFornecedor] = useState(false);
-    const [showModalPesquisaProduto, setShowModalPesquisaProduto] = useState(false);
-    const [showModalSalvar, setShowModalSalvar] = useState(false);
-    const [showModalDeletaServicoOrd, setShowModalDeletaServicoOrd] = useState(false);
-    const [codServicoDeletado, setCodServicoDeletado] = useState(0);
-    const [showModalDeletaProdutoOrd, setShowModalDeletaProdutoOrd] = useState(false);
-    const [codProdutoDeletado, setCodProdutoDeletado] = useState(0);
-    const [produtoEdt, setProdutoEdt] = useState<OrdEstModel>({ ORE_CODIGO: 0, ORE_EMBALAGEM: '', ORE_NOME: '', ORE_ORD: 0, ORE_PRO: 0, ORE_QUANTIDADE: 0, ORE_VALOR: 0 })
-    const [servicoEdt, setServicoEdt] = useState<OrdSerModel>({ OS_CODIGO: 0, OS_NOME: '', OS_ORD: 0, OS_QUANTIDADE: 0, OS_SER: 0, OS_UNIDADE_MED: '', OS_VALOR: 0, })
-    const [showModalEdtServico, setShowModalEdtServico] = useState(false);
-    const [showModalEdtProduto, setShowModalEdtProduto] = useState(false);
-    const [showModalEmpreitadas, setShowModalEmpreitadas] = useState(false);
-    const [showModalListaArquivos, setShowModalListaArquivos] = useState(false);
-    const [clienteSelecionado, setClienteSelecionado] = useState<ClienteModel>({ CODIGO: 1, NOME: 'CONSUMIDOR' });
-    const [parceiroSelecionado, serParceiroSelecionado] = useState<FornecedorModel>({ CODIGO: 0, NOME: '' });
-    const [produtoSelecionado, setProdutoSelecionado] = useState<ProdutoModel>({ PRO_CODIGO: 1, PRO_NOME: 'GENERICO', PRO_VALORV: 0 });
-    const [atendente, setAtendente] = useState('');
-    const [abaAtiva, setAbaAtiva] = useState('SERVICOS');
-    const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
-    const [valorDesconto, setValorDesconto] = useState(0);
-    const [valorPorcentagemDesconto, setValorPorcentagemDesconto] = useState(0);
-
-    const [divWidthServicos, setDivWidthServicos] = useState<number>(0);
-    const [divWidthProdutos, setDivWidthProdutos] = useState<number>(0);
-    const [buscouOrdem, setBuscouOrdem] = useState(false);
-    const [salvou, setSalvou] = useState(false);
-    ////servico  
-    const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
-    const [codigoOrdem, setCodigoOrdem] = useState(0);
-    const [nfs, setNfs] = useState('');
-    const [obs, setObs] = useState('');
-    const [obs_adm, setObs_adm] = useState('');
-    const [solicitacao, setSolicitacao] = useState('');
-    const [statusOrdem, setStatusOrdem] = useState(Status[0].toUpperCase());
-    const [listaUnidadesMed, setListaUnidadesMed] = useState<UnidadeMedidaModel[]>([]);
-    const [showFaturamento, setShowFaturamento] = useState(false);
-    const [codFatura, setCodFatura] = useState(0);
-    const [foiFaturado, setFoiFaturado] = useState(false);
-    const [showModalimprimir, setShowModalImprimir] = useState(false);
-    const [showModalPesquisaOS, setShowModalPesquisaOS] = useState(false);
-    const [nomeFuncionario, setNomeFuncionario] = useState('');
-    const [idFuncionario, setIdFuncionario] = useState(0);
-    useEffect(() => {
-        buscaOrdemServidor();
-    }, [foiFaturado])
-
-    useEffect(() => {
-        setOrdemCtx({ ...OrdemCtx, ORD_CLI: clienteSelecionado.CODIGO })
-
-    }, [clienteSelecionado])
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            if (codigoOrdem > 0)
-                buscaOrdemServidor()
-        }, 1000)
-        return () => clearTimeout(timeout);
-    }, [codigoOrdem])
-
-    const carregaUnidadesMed = async () => {
-        try {
-            const repository = new UnidadeMedidaRepository();
-            const unidades = await repository.getUnidadeMedidas();
-            setListaUnidadesMed(unidades);
-        } catch (error) {
-            toastMixin.fire('Erro', String(error), 'error')
-        }
-    }
-
-
-    useEffect(() => {
-        carregaUnidadesMed()
-        const edtCodigoOrdem = document.getElementById('edtCodigoOrdem') as HTMLInputElement;
-        edtCodigoOrdem!.select();
-        edtCodigoOrdem!.focus();
-        const funcionario = JSON.parse(localStorage.getItem('usuario_logado')!);
-        setNomeFuncionario(funcionario.FUN_NOME);
-        setIdFuncionario(funcionario.USU_FUN);
-
-
-    }, [])
-
-    const listaStatus = () => {
-        let list = Object.values(Status).filter(v => isNaN(Number(v)));
-        list = list.map(v => v.toString().toUpperCase());
-        return list;
-    }
-
-    async function imprimeOrcamento() {
-
-        if (ordem != null) {
-            setOrdemCtx(ordem!);
-            setShowModalImprimir(true);
-        }
-    }
-
-    const handleClickAba = (aba: string) => {
-        setAbaAtiva(aba);
-    }
-
-    const totalProdutos = () => listaProdutosInseridos.length > 0 ? listaProdutosInseridos.map(p => p.ORE_VALOR).reduce((item1, item2) => item1 + item2) : 0;
-    const totalServicos = () => listaServicosInseridos.length > 0 ? listaServicosInseridos.map(s => s.OS_VALOR).reduce((item1, item2) => item1 + item2) : 0;
-
-
-    const deletaServicoOrdem = async () => {
-        const rep = new OrdemRepository();
-        const flag: boolean = await rep.deleteServicoOrdemPorCodigo(codServicoDeletado);
-        const idServico = listaServicosInseridos.findIndex(e => e.OS_CODIGO === codServicoDeletado);
-        const lista = Array.from(listaServicosInseridos)
-
-        if (!flag) {
-            toastMixin.fire('Atenção', 'Não foi possível deletar!', 'warning');
-        }
-        else {
-            toastMixin.fire({
-                title: 'Deleta Serviço',
-                text: 'Serviço deletado com Sucesso',
-                timer: 2000
-            })
-            lista.splice(idServico, 1);
-            setListaServicosInseridos(lista);
-        }
-        setCodServicoDeletado(0);
-        setShowModalDeletaServicoOrd(false);
-    }
-
-
-    const deletaProdutoOrdem = async () => {
-        const rep = new ProdutoRepository();
-        const flag: boolean = await rep.deleteProdutoOrdemPorCodigo(codProdutoDeletado);
-        const idProd = listaProdutosInseridos.findIndex(e => e.ORE_CODIGO === codProdutoDeletado);
-        const lista = Array.from(listaProdutosInseridos)
-
-        if (!flag) {
-            toastMixin.fire('Atenção', 'Não foi possível deletar!', 'warning');
-        }
-        else {
-            toastMixin.fire({
-                title: 'Deleta Produto',
-                text: 'Produto deletado com Sucesso',
-                timer: 2000
-            })
-            lista.splice(idProd, 1);
-            setListaProdutosInseridos(lista);
-        }
-        setCodProdutoDeletado(0);
-        setShowModalDeletaProdutoOrd(false);
-    }
-
-    const salvaOrdem = async () => {
-        const cidadeRep = new CidadeRepository();
-        const cidade = await cidadeRep.getCidade(clienteSelecionado.CODCIDADE ?? 0);
-
-        if (statusOrdem === '') {
-            toastMixin.fire('Atenção', 'Informe o estado', 'warning').finally(() => {
-                setShowModalSalvar(false);
-                const edtStatus = document.getElementById('statusid');
-                if (edtStatus) {
-                    edtStatus.focus();
-                }
-            });
-
-            return;
-        }
-        if (solicitacao === '') {
-            toastMixin.fire('Atenção', 'Solicitação não informada', 'warning').finally(() => {
-                setShowModalSalvar(false);
-                const edtSolicitacao = document.getElementById('solicitacaoid');
-                if (edtSolicitacao) {
-                    edtSolicitacao.focus();
-                }
-            });
-            return;
-        }
-        if (listaProdutosInseridos.length === 0 && listaServicosInseridos.length === 0) {
-            toastMixin.fire('Atenção', 'Insere produtos ou serviços na OS.', 'warning').finally(() => {
-                setShowModalSalvar(false);
-                if (listaServicosInseridos.length === 0) {
-                    setAbaAtiva('SERVICOS')
-                }
-                if (listaProdutosInseridos.length === 0) {
-                    setAbaAtiva('PRODUTOS')
-                }
-            });
-            return;
-        }
-        if (dataAbertura.toString().replaceAll('/', '') === '') {
-            setDataAbertura(new Date());
-        }
-        toastMixin.fire({
-            title: 'Salvar',
-            text: 'Salvando ordem',
-            timer: 2000
-        })
-        const repository = new OrdemRepository();
-        let codigo = codigoOrdem;
-        if (codigo === 0) {
-            codigo = await IncrementaGenerator('GEN_ORD');
-        }
-        try {
-            let ord: OrdemModel | null = null;
-
-            if (buscouOrdem) {
-                ord = {
-                    ORD_CODIGO: codigo,
-                    ORD_DATA: converterDataPontoParaTraco(FormatDate(dataAbertura)),
-                    ORD_VALOR: (totalProdutos() + totalServicos()) - (valorDesconto ?? 0),
-                    ORD_CLI: clienteSelecionado.CODIGO,
-                    ORD_DESCONTO_P: 0,
-                    ORD_DESCONTO_S: 0,
-                    ORD_DEVOLUCAO_P: 'N',
-                    ORD_ESTADO: statusOrdem,
-                    ORD_FUN: idFuncionario,
-                    ORD_NFS: nfs,
-                    ORD_OBS: obs,
-                    ORD_OBS_ADM: obs_adm,
-                    ORD_SOLICITACAO: solicitacao,
-                    CLI_NOME: clienteSelecionado.NOME,
-                    ORD_FAT: 0,
-                    CLI_CNPJ_CPF: clienteSelecionado.CPF_CNPJ!,
-                    CLI_ENDERECO: clienteSelecionado.ENDERECO != null ? clienteSelecionado.ENDERECO : '',
-                    CLI_NUMERO: clienteSelecionado.NUMERO != null ? clienteSelecionado.NUMERO : '',
-                    CLI_BAIRRO: clienteSelecionado.BAIRRO != null ? clienteSelecionado.BAIRRO : '',
-                    CLI_FONE: clienteSelecionado.FONE != null ? clienteSelecionado.FONE : '',
-                    itensOrdEst: listaProdutosInseridos,
-                    itensOrdSer: listaServicosInseridos,
-                    CID_NOME: cidade.CID_NOME,
-                    CID_UF: cidade.CID_UF,
-                    ORD_FORNECEDOR: parceiroSelecionado.CODIGO,
-                    ORD_VALOR_DESCONTO: valorDesconto ?? 0,
-                    ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto ?? 0,
-                    ORD_TOTAL_SEM_DESCONTO: (totalProdutos() + totalServicos())
-                }
-            }
-            else {
-                ord = {
-                    ORD_CODIGO: codigo,
-                    ORD_DATA: converterDataPontoParaTraco(FormatDate(new Date())),
-                    ORD_VALOR: (totalProdutos() + totalServicos()) - (valorDesconto ?? 0),
-                    ORD_CLI: clienteSelecionado.CODIGO,
-                    ORD_DESCONTO_P: 0,
-                    ORD_DESCONTO_S: 0,
-                    ORD_DEVOLUCAO_P: 'N',
-                    ORD_ESTADO: statusOrdem,
-                    ORD_FUN: idFuncionario,
-                    ORD_NFS: nfs,
-                    ORD_OBS: obs,
-                    ORD_OBS_ADM: obs_adm,
-                    ORD_SOLICITACAO: solicitacao,
-                    CLI_NOME: clienteSelecionado.NOME,
-                    ORD_FAT: 0,
-                    CLI_CNPJ_CPF: clienteSelecionado.CPF_CNPJ!,
-                    CLI_ENDERECO: clienteSelecionado.ENDERECO != null ? clienteSelecionado.ENDERECO : '',
-                    CLI_NUMERO: clienteSelecionado.NUMERO != null ? clienteSelecionado.NUMERO : '',
-                    CLI_BAIRRO: clienteSelecionado.BAIRRO != null ? clienteSelecionado.BAIRRO : '',
-                    CLI_FONE: clienteSelecionado.FONE != null ? clienteSelecionado.FONE : '',
-                    itensOrdEst: listaProdutosInseridos,
-                    itensOrdSer: listaServicosInseridos,
-                    CID_NOME: cidade.CID_NOME,
-                    CID_UF: cidade.CID_UF,
-                    ORD_FORNECEDOR: parceiroSelecionado.CODIGO,
-                    ORD_VALOR_DESCONTO: valorDesconto ?? 0,
-                    ORD_PORCENTAGEM_DESCONTO: valorPorcentagemDesconto ?? 0,
-                    ORD_TOTAL_SEM_DESCONTO: (totalProdutos() + totalServicos())
-                }
-
-            }
-
-            ////
-            setOrdem(ord);
-            repository.insereordem(ord);
-            if (ordem?.ORD_DATA.includes('.')) {
-                setOrdem({ ...ordem, ORD_DATA: converterDataPontoParaTraco(ordem.ORD_DATA) });
-            }
-            ////
-            if (listaServicosInseridos.length > 0) {
-                toastMixin.fire({
-                    title: 'Salvar',
-                    text: 'Salvando os serviços',
-                    timer: 2000
-                })
-                ////
-                listaServicosInseridos.forEach(async s => {
-                    if (s.OS_CODIGO === 0) {
-                        s.OS_CODIGO = await IncrementaGenerator('GEN_OS');
-                    }
-                    s.OS_ORD = codigo;
-                    repository.insereServicos(codigo, s);
-                });
-            }
-            if (listaProdutosInseridos.length > 0) {
-                toastMixin.fire({
-                    title: 'Salvar',
-                    text: 'Salvando os produtos',
-                    timer: 2000
-                })
-                ////
-                listaProdutosInseridos.forEach(async p => {
-                    if (p.ORE_CODIGO === 0) {
-                        p.ORE_CODIGO = await IncrementaGenerator('GEN_ORE');
-                    }
-                    p.ORE_ORD = codigo;
-                    repository.insereProdutos(codigo, p);
-                });
-                ////                
-
-            }
-            setCodigoOrdem(codigo);
-        } catch (e) {
-            toastMixin.fire({
-                title: 'Erro',
-                text: 'Erro ao salvar ordem: ' + String(e),
-                timer: 2000
-            })
-        } finally {
-            setShowModalSalvar(false)
-        }
-    }
-
-    const buscaOrdemServidor = async () => {
-        try {
-            if (codigoOrdem === 0) {
-                serParceiroSelecionado({ CODIGO: 0, NOME: '' });
-                return;
-            }
-
-            const fornecedorRepository = new FornecedorRepository();
-            const cliRepository = new ClientRepository();
-            const repository = new OrdemRepository();
-            const ord = await repository.buscaOrdem(codigoOrdem);
-            console.log('ord');
-            console.log(JSON.stringify(ord))
-            const parceiro = await fornecedorRepository.getFornecedorById(ord.ORD_FORNECEDOR ?? 0);
-
-            serParceiroSelecionado(parceiro);
-            const data = new Date(ord.ORD_DATA);
-            setAtendente(ord.FUN_NOME!);
-            //setClienteSelecionado(new ClienteModel(ord.ORD_CLI, ord.CLI_NOME));
-
-            setClienteSelecionado(await cliRepository.getClienteById(ord.ORD_CLI))
-            data.setDate(data.getDate() + 1);
-            setDataAbertura(data);
-            setNfs(ord.ORD_NFS ?? '');
-            setObs(ord.ORD_OBS);
-            setObs_adm(ord.ORD_OBS_ADM);
-            setSolicitacao(ord.ORD_SOLICITACAO);
-            setStatusOrdem(ord.ORD_ESTADO);
-            setCodFatura(ord.ORD_FAT ?? 0);
-            setValorPorcentagemDesconto(ord.ORD_PORCENTAGEM_DESCONTO ?? 0);
-            setValorDesconto(ord.ORD_VALOR_DESCONTO ?? 0);
-
-            //produtos
-            const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
-            if (produtos.length > 0)
-                setListaProdutosInseridos([...produtos])
-            else
-                setListaProdutosInseridos([])
-            //servicos
-            const servicos = await repository.buscaServicosOrdem(codigoOrdem);
-            if (servicos.length > 0)
-                setListaServicosInseridos([...servicos])
-            else
-                setListaServicosInseridos([])
-            toastMixin.fire({
-                title: 'Ordem encontrada com sucesso'
-            });
-            if (produtos.length > 0) {
-                ord.itensOrdEst = [...produtos];
-            }
-            else {
-                ord.itensOrdEst = [];
-            }
-
-            if (servicos.length > 0) {
-                ord.itensOrdSer = [...servicos];
-            }
-            else {
-                ord.itensOrdSer = [];
-            }
-
-
-
-            setOrdem(ord);
-            setBuscouOrdem(true);
-        } catch (error) {
-            toastMixin.fire('Erro', String(error), 'error')
-        }
-    }
-
-    const buscarOrdem = async (e: keyBoardInputEvent) => {
-        if (e.key === 'Enter') {
-            buscaOrdemServidor()
-        }
-    }
-
-    const ModalEdtServico = () => {
-
-        const titulo = "Editar Serviço " + servicoEdt.OS_CODIGO;
-        const [osNome, setOsNome] = useState(servicoEdt.OS_NOME);
-        const [osQuantidade, setOsQuantidade] = useState(servicoEdt.OS_QUANTIDADE);
-        const [osUnidadeMedida, setOsUnidadeMedida] = useState(servicoEdt.OS_UNIDADE_MED);
-        const [osValor, setOsValor] = useState(servicoEdt.OS_VALOR);
-        const [osValorStr, setOsValorStr] = useState(mascaraMoeda(servicoEdt.OS_VALOR / servicoEdt.OS_QUANTIDADE));
-
-        const salvar = () => {
-            var lista = listaServicosInseridos;
-            let indice = lista.indexOf(servicoEdt);
-
-
-            var valor = maskRealToNumber(osValorStr);
-            var servico: OrdSerModel = {
-                OS_CODIGO: servicoEdt.OS_CODIGO,
-                OS_NOME: osNome.toUpperCase(),
-                OS_QUANTIDADE: osQuantidade,
-                OS_UNIDADE_MED: osUnidadeMedida,
-                OS_VALOR: valor * osQuantidade,
-                OS_ORD: servicoEdt.OS_ORD,
-                OS_SER: servicoEdt.OS_SER,
-                OS_TIPO: servicoEdt.OS_TIPO,
-                OS_VALORR: servicoEdt.OS_VALORR
-            };
-            lista.splice(indice, 1);
-            lista.push(servico);
-            lista.sort(function (a, b) {
-                return a.OS_CODIGO < b.OS_CODIGO ? -1 : a.OS_CODIGO > b.OS_CODIGO ? 1 : 0;
-            })
-
-            setListaServicosInseridos(lista);
-
-            setShowModalEdtServico(false);
-            setShowModalSalvar(true);
-
-        }
-
-
-        return (
-            <Modal showModal={showModalEdtServico} setShowModal={setShowModalEdtServico}
-                title={titulo}
-                showButtonExit={false}
-                body={
-                    <div className="grid grid-rows divide-y">
-                        <div className="grid grid-rows">
-                            <span className="mt-2">Serviço: </span>
-                            <input value={osNome} onChange={(e) => setOsNome(e.target.value)} className="sm:w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
-                            </input>
-                        </div>
-                        <div className="grid grid-rows">
-                            <span className="mt-2">Quantidade </span>
-                            <input value={osQuantidade} step={1} onChange={(e) => setOsQuantidade(Number(e.target.value))} className="sm:w-14 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
-                            </input>
-                        </div>
-                        <div className="grid grid-rows">
-                            <span className="mt-2">Unidade de Medida: </span>
-                            <select value={osUnidadeMedida} onChange={(e) => setOsUnidadeMedida(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-20">
-                                {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
-                            </select>
-                        </div>
-                        <div className="grid grid-rows">
-                            <span className="mt-2">Valor </span>
-                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24">
-                            </input>
-                        </div>
-
-                        <div className="grid grid-cols-2">
-                            <button
-                                className="bg-green-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                                type="button"
-                                onClick={() => salvar()}
-                            >
-                                <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
-                                Salvar
-                            </button>
-
-                            <button
-                                className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 mb-2 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                                type="button"
-                                onClick={() => setShowModalEdtServico(false)}
-                            >
-                                <i className="fa fa-solid fa-ban text-white p-2"></i>
-                                Cancelar
-                            </button>
-                        </div>
-                    </div>
-                }
-            />);
-
-    }
-
-
-    const ModalEdtProduto = () => {
-
-        const titulo = "Editar Produto " + produtoEdt.ORE_CODIGO;
-        const [oreNome, setOreNome] = useState(produtoEdt.ORE_NOME);
-        const [oreQuantidade, setOreQuantidade] = useState(produtoEdt.ORE_QUANTIDADE);
-        const [oreEmbalagem, setOreEmbalagem] = useState(produtoEdt.ORE_EMBALAGEM);
-        const [oreValor, setOreValor] = useState(produtoEdt.ORE_VALOR);
-        const [osValorStr, setOsValorStr] = useState(mascaraMoeda(produtoEdt.ORE_VALOR / produtoEdt.ORE_QUANTIDADE));
-
-        const salvar = () => {
-            var lista = listaProdutosInseridos;
-            let indice = lista.indexOf(produtoEdt);
-
-            var valor = maskRealToNumber(osValorStr);
-            var produto: OrdEstModel = {
-                ORE_CODIGO: produtoEdt.ORE_CODIGO,
-                ORE_NOME: oreNome.toUpperCase(),
-                ORE_QUANTIDADE: oreQuantidade,
-                ORE_EMBALAGEM: oreEmbalagem,
-                ORE_VALOR: valor * oreQuantidade,
-                ORE_ORD: produtoEdt.ORE_ORD,
-                ORE_PRO: produtoEdt.ORE_PRO,
-                ORE_ALIQICMS: produtoEdt.ORE_ALIQICMS,
-                ORE_LUCRO: produtoEdt.ORE_LUCRO,
-                ORE_VALORC: produtoEdt.ORE_VALORC,
-                ORE_VALORCM: produtoEdt.ORE_VALORCM,
-                ORE_VALORF: produtoEdt.ORE_VALORF,
-                ORE_VALORL: produtoEdt.ORE_VALORL,
-                ORE_VALORR: produtoEdt.ORE_VALORR,
-                PRO_DESCRICAO: produtoEdt.PRO_DESCRICAO
-            };
-            lista.splice(indice, 1);
-            lista.push(produto);
-            lista.sort(function (a, b) {
-                return a.ORE_CODIGO < b.ORE_CODIGO ? -1 : a.ORE_CODIGO > b.ORE_CODIGO ? 1 : 0;
-            })
-
-            setListaProdutosInseridos(lista);
-            setShowModalEdtProduto(false);
-            setShowModalSalvar(true);
-
-        }
-        return (
-            <Modal showModal={showModalEdtProduto} setShowModal={setShowModalEdtProduto}
-                title={titulo}
-                showButtonExit={false}
-                body={
-                    <div className="grid grid-rows divide-y w-full sm:w-[500px]">
-                        <div className="grid grid-rows p-2">
-                            <span className="mt-2">Produto: </span>
-                            <input value={oreNome} onChange={(e) => setOreNome(e.target.value.toUpperCase())} className="w-full uppercase p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="text">
-                            </input>
-                        </div>
-                        <div className="grid grid-rows p-2">
-                            <span className="mt-2">Quantidade </span>
-                            <input value={oreQuantidade} step={1} onChange={(e) => setOreQuantidade(Number(e.target.value))} className="w-24 p-1 border rounded-md mb-2 border-spacing-1 border-amber-400" type="number">
-                            </input>
-                        </div>
-                        <div className="grid grid-rows p-2">
-                            <span className="mt-2">Unidade de Medida: </span>
-                            <select value={oreEmbalagem} onChange={(e) => setOreEmbalagem(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 w-32">
-                                {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
-                            </select>
-                        </div>
-                        <div className="grid grid-rows p-2">
-                            <span className="mt-2">Valor </span>
-                            <input id="valorOs" type="text" value={osValorStr} onChange={event => { mascaraMoedaEvent(event), setOsValorStr(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 w-32">
-                            </input>
-                        </div>
-
-                        <div className="grid grid-cols-2 p-2 gap-2">
-                            <button
-                                className="bg-green-500 text-white active:bg-green-600 font-bold uppercase p-2 text-sm rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150"
-                                type="button"
-                                onClick={() => salvar()}
-                            >
-                                <i className="fa fa-solid fa-floppy-disk text-white mr-2"></i>
-                                Salvar
-                            </button>
-
-                            <button
-                                className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-2 text-sm rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150"
-                                type="button"
-                                onClick={() => setShowModalEdtProduto(false)}
-                            >
-                                <i className="fa fa-solid fa-ban text-white mr-2"></i>
-                                Cancelar
-                            </button>
-                        </div>
-                    </div>
-                }
-            />
-        );
-
-    }
-
-
-    const ModalDeletaProdutOrd = () => {
-        return (
-            <Modal showModal={showModalDeletaProdutoOrd} setShowModal={setShowModalDeletaProdutoOrd}
-                title="Deseja deletar o Produto?"
-                showButtonExit={false}
-                body={
-                    <div>
-                        <button
-                            className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                            type="button"
-                            onClick={() => setShowModalDeletaProdutoOrd(false)}
-                        >
-                            <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
-                            Cancelar
-                        </button>
-                        <button
-                            className="bg-orange-500 text-white active:bg-orange-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                            type="button"
-                            onClick={deletaProdutoOrdem}
-                        >
-                            <i className="fa fa-solid fa-trash-can text-white p-2"></i>
-                            Deletar
-                        </button>
-                    </div>
-                }
-            />
-        );
-    }
-
-
-    const ModalDeletaServicoOrd = () => {
-        return (
-            <Modal showModal={showModalDeletaServicoOrd} setShowModal={setShowModalDeletaServicoOrd}
-                title="Deseja deletar o Serviço?"
-                showButtonExit={false}
-                body={
-                    <div>
-                        <button
-                            className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                            type="button"
-                            onClick={() => setShowModalDeletaServicoOrd(false)}
-                        >
-                            <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
-                            Cancelar
-                        </button>
-                        <button
-                            className="bg-orange-500 text-white active:bg-orange-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                            type="button"
-                            onClick={deletaServicoOrdem}
-                        >
-                            <i className="fa fa-solid fa-trash-can text-white p-2"></i>
-                            Deletar
-                        </button>
-                    </div>
-                }
-            />
-        );
-    }
-
-    const ModalSalvar = () => {
-        return (
-            <Modal showModal={showModalSalvar} setShowModal={setShowModalSalvar}
-                title="Salvar Ordem"
-                showButtonExit={false}
-                body={
-                    <div>
-                        <button
-                            className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                            type="button"
-                            onClick={() => setShowModalSalvar(false)}
-                        >
-                            <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
-                            Cancelar
-                        </button>
-                        <button
-                            className="bg-green-500 text-white active:bg-green-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                            type="button"
-                            onClick={salvaOrdem}
-                        >
-                            <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
-                            Salvar
-                        </button>
-                    </div>
-                }
-            />
-        );
-    }
-
-    const AbaServicos = () => {
-        const refDivServicos = useRef<HTMLDivElement>(null);
-
-        const [valorUnitarioAux, setValorUnitarioAux] = useState('');
-        useEffect(() => {
-            setDivWidthServicos(refDivServicos.current ? refDivServicos.current.offsetWidth : 0);
-        }, [refDivServicos.current]);
-
-        useEffect(() => {
-            const valorUnit = maskRealToNumber(valorUnitarioAux);
-            setServico({ ...servico, OS_VALOR: valorUnit ? valorUnit : 0 })
-
-        }, [valorUnitarioAux]);
-
-        const [servico, setServico] = useState<OrdSerModel>({
-            OS_CODIGO: 0,
-            OS_NOME: 'GENERICO',
-            OS_ORD: 0,
-            OS_QUANTIDADE: 1,
-            OS_SER: 0,
-            OS_UNIDADE_MED: 'PC',
-            OS_VALOR: 0,
-        })
-
-        const excluirServico = (id: number) => {
-            setCodServicoDeletado(id);
-            setShowModalDeletaServicoOrd(true);
-        }
-
-
-        const editaServico = (servico: OrdSerModel) => {
-            setServicoEdt(servico);
-            setShowModalEdtServico(true);
-        }
-
-        const selectNome = () => {
-            (document.getElementById('edtNomeServico') as HTMLInputElement).select();
-        }
-
-
-        const inserirServico = async (servico: OrdSerModel) => {
-            try {
-                if (servico.OS_QUANTIDADE === 0) {
-                    toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
-                    return;
-                }
-                if (servico.OS_VALOR === 0) {
-                    toastMixin.fire('Valor zero', 'O Valor do serviço não pode ser Zero', 'warning')
-                    return;
-                }
-                const codigo = await IncrementaGenerator('GEN_OS');
-                setListaServicosInseridos(item => [...item, {
-                    OS_CODIGO: codigo,
-                    OS_NOME: servico.OS_NOME,
-                    OS_UNIDADE_MED: servico.OS_UNIDADE_MED,
-                    OS_SER: servico.OS_SER,
-                    OS_QUANTIDADE: servico.OS_QUANTIDADE,
-                    OS_VALOR: servico.OS_VALOR * servico.OS_QUANTIDADE,
-                    OS_ORD: 0,
-                }])
-            } catch (error) {
-                toastMixin.fire('Atenção', String(error), 'warning')
-            }
-        }
-
-        const edtCodServicoKeydown = (e: keyBoardInputEvent) => {
-            if (e.key === 'Enter') {
-                const edtNomeServico = document.getElementById('edtNomeServico');
-                edtNomeServico?.focus();
-            }
-        }
-
-
-
-        const edtNomeServicoKeydown = (e: keyBoardInputEvent) => {
-            if (e.key === 'Enter') {
-                const edtQuantServico = document.getElementById('edtQuantidadeServico');
-                edtQuantServico?.focus();
-            }
-        }
-
-        const edtQuantServicoKeydown = (e: keyBoardInputEvent) => {
-            if (e.key === 'Enter') {
-                const edtValorServico = document.getElementById('edtValorServico');
-                edtValorServico?.focus();
-            }
-        }
-
-        const edtValorServicoKeyDown = (e: keyBoardInputEvent) => {
-            if (e.key === 'Enter') {
-                const edtNomeServico = document.getElementById('edtNomeServico');
-                edtNomeServico?.focus();
-                inserirServico(servico);
-            }
-        }
-
-        return (
-            <div ref={refDivServicos} className="bg-white rounded-lg shadow-md">
-                <div className="border-b-2">
-                    <div className="sm:flex">
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="codigo">Código</label>
-                            <div className="flex flex-row">
-                                <input id="codigoServicoid" value={servico.OS_SER} onKeyDown={edtCodServicoKeydown} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 flex-1" type="text" />
-                                <button
-                                    className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                    type="button"
-                                // onClick={() => setShowModalPesquisaServico(true)}
-                                >
-                                    <i className="fas fa-magnifying-glass text-white"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="servico">Serviço</label>
-                            <input id="edtNomeServico"
-                                onFocus={selectNome}
-                                onKeyDown={edtNomeServicoKeydown} value={servico.OS_NOME} onChange={(e) => setServico({ ...servico, OS_NOME: String(e.target.value).toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
-                        </div>
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="unidade">UND.</label>
-                            <select value={servico.OS_UNIDADE_MED} onChange={(e) => setServico({ ...servico, OS_UNIDADE_MED: e.target.value.toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
-                                {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
-                            </select>
-                        </div>
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="quant">Quant</label>
-                            <input id="edtQuantidadeServico" type="number" step=".01" onKeyDown={edtQuantServicoKeydown} value={servico.OS_QUANTIDADE} onChange={(e) => setServico({ ...servico, OS_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" />
-                        </div>
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="valor">Valor</label>
-                            <input id="edtValorServico" onKeyDown={edtValorServicoKeyDown} value={valorUnitarioAux ?? ''} onChange={event => { mascaraMoedaEvent(event), setValorUnitarioAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
-                        </div>
-                        <div>
-                            <button
-                                id="btnInsereServico"
-                                className="w-12 h-12 m-4 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                type="button"
-                                onClick={e => inserirServico(servico)}                            >
-                                <i className="fas fa-check text-white "></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex items-center justify-center">
-                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
-                        <thead className="text-black w-full h-full">
-                            {divWidthServicos > 600 ? (
-                                <tr className="bg-amber-400 flex flex-col flex-nowrap sm:flex-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left sm:w-[5%]">Cód.</th>
-                                    <th className="p-3 text-left sm:w-[46%]">Serviço</th>
-                                    <th className="p-3 text-left sm:w-[5%]">Qtd</th>
-                                    <th className="p-3 text-left sm:w-[5%]">UM</th>
-                                    <th className="p-3 text-left sm:w-[13%]">Valor Unit.</th>
-                                    <th className="p-3 text-left sm:w-[13%]">Valor Total</th>
-                                    <th className="p-3 text-left sm:w-[11%]">Ação</th>
-                                </tr>
-                            )
-                                :
-                                listaServicosInseridos.map(item =>
-                                    <tr key={item.OS_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:flex-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                        <th className="p-3 text-left h-12">Cód.</th>
-                                        <th className="p-3 text-left h-12">Serviço</th>
-                                        <th className="p-3 text-left h-12">Quantidade</th>
-                                        <th className="p-3 text-left h-12">UM</th>
-                                        <th className="p-3 text-left h-12">Valor Unit.</th>
-                                        <th className="p-3 text-left h-12">Valor Total</th>
-                                        <th className="p-3 text-left h-12">Ação</th>
-                                    </tr>
-                                )
-                            }
-                        </thead>
-                        <tbody className="flex-1 sm:flex-none">
-                            {listaServicosInseridos.map((item) =>
-                                <tr key={item.OS_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[5%]">{item.OS_SER}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[46%]">{item.OS_NOME}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[5%]">{item.OS_QUANTIDADE}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[5%]">{item.OS_UNIDADE_MED}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR / item.OS_QUANTIDADE)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 h-12 sm:h-auto sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.OS_VALOR)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-1 h-12 sm:h-auto sm:p-3 sm:w-[11%] text-red-400 hover:text-red-600 hover:font-medium cursor-pointer">
-                                        {divWidthServicos > 600 ?
-                                            <div className="grid grid-rows-2">
-                                                <button
-                                                    className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => excluirServico(item.OS_CODIGO)}
-                                                >
-                                                    <i className="fas fa-trash text-white "></i>
-
-                                                </button>
-                                                <button
-                                                    className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => editaServico(item)}
-                                                >
-                                                    <i className="fas fa-pencil text-white "></i>
-                                                </button>
-                                            </div>
-                                            :
-                                            <div className="grid grid-cols-2">
-                                                <button
-                                                    className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => excluirServico(item.OS_CODIGO)}
-                                                >
-                                                    <i className="fas fa-trash text-white "></i>
-
-                                                </button>
-                                                <button
-                                                    className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => editaServico(item)}
-                                                >
-                                                    <i className="fas fa-pencil text-white "></i>
-                                                </button>
-                                            </div>}
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        );
-    }
-
-    const AbaProdutos = () => {
-        const refDivProdutos = useRef<HTMLDivElement>(null);
-
-        const [valorUnitarioAux, setValorUnitarioAux] = useState('');
-        useEffect(() => {
-            setDivWidthProdutos(refDivProdutos.current ? refDivProdutos.current.offsetWidth : 0);
-        }, [refDivProdutos.current]);
-
-        useEffect(() => {
-            const valorUnit = maskRealToNumber(valorUnitarioAux);
-            setProduto({ ...produto, ORE_VALOR: valorUnit ? valorUnit : 0 })
-
-        }, [valorUnitarioAux]);
-
-        const [produto, setProduto] = useState<OrdEstModel>({
-            ORE_CODIGO: 0,
-            ORE_EMBALAGEM: 'PC',
-            ORE_NOME: 'GENERICO',
-            ORE_ORD: 0,
-            ORE_PRO: 1,
-            ORE_QUANTIDADE: 1,
-            ORE_VALOR: 0
-        });
-
-        useEffect(() => {
-            if (produtoSelecionado.PRO_CODIGO > 1) {
-                const edtQuantidade = document.getElementById('edtQuantidade');
-                edtQuantidade?.focus();
-                setProduto({
-                    ORE_CODIGO: 0,
-                    ORE_EMBALAGEM: 'PC',
-                    ORE_NOME: produtoSelecionado.PRO_NOME,
-                    ORE_ORD: 0,
-                    ORE_PRO: produtoSelecionado.PRO_CODIGO,
-                    ORE_QUANTIDADE: 1,
-                    ORE_VALOR: produtoSelecionado.PRO_VALORV ?? 0
-                })
-            }
-        }, [produtoSelecionado])
-
-        const edtNomeProdutoKeyDown = (e: keyBoardInputEvent) => {
-            if (e.key === 'Enter') {
-                const edtQuantidade = document.getElementById('edtQuantidade');
-                edtQuantidade?.focus();
-            }
-        }
-        const edtQuantidadeKeyDown = (e: keyBoardInputEvent) => {
-            if (e.key === 'Enter') {
-                const edtValorProduto = document.getElementById('edtValorProduto');
-                edtValorProduto?.focus();
-            }
-        }
-
-        const edtValorProdutoKeyDown = (e: keyBoardInputEvent) => {
-            if (e.key === 'Enter') {
-                const btnInserirProduto = document.getElementById('btnInserirProduto');
-                btnInserirProduto?.focus();
-            }
-        }
-
-        const edtProdutoKeydown = async (e: keyBoardInputEvent) => {
-            if (e.key === 'Enter') {
-                try {
-                    const produtoRepository = new ProdutoRepository();
-                    toastMixin.fire('Aguarde...', 'Buscando produto', 'info')
-                    const produtoResponse = await produtoRepository.getProdutoPorCodigo(produto.ORE_PRO);
-                    if (produtoResponse) {
-                        setProduto({
-                            ORE_CODIGO: 0,
-                            ORE_NOME: produtoResponse.PRO_NOME,
-                            ORE_EMBALAGEM: produtoResponse.PRO_EMBALAGEM!,
-                            ORE_ORD: codigoOrdem,
-                            ORE_PRO: produtoResponse.PRO_CODIGO,
-                            ORE_QUANTIDADE: 1,
-                            ORE_VALOR: produtoResponse.PRO_VALORV!,
-                        })
-
-                        const edtNomeProduto = document.getElementById('edtNomeProduto');
-                        edtNomeProduto?.focus();
-
-
-                    }
-                } catch (error) {
-                    toastMixin.fire('Erro ao buscar produto', String(error), 'error');
-                }
-            }
-        }
-
-        const inserirProduto = async (produto: OrdEstModel) => {
-            try {
-                if (produto.ORE_QUANTIDADE === 0) {
-                    toastMixin.fire('Quantidade zero', 'A quantidade não pode ser Zero', 'warning')
-                    return;
-                }
-                if (produto.ORE_PRO === 0) {
-                    toastMixin.fire('Código Zero', 'O Código do produto não pode ser Zero', 'warning')
-                    return;
-                }
-                if (!produto.ORE_VALOR) {
-                    toastMixin.fire('Valor vazio', 'Insira um valor', 'warning')
-                    return;
-                }
-                if (produto.ORE_VALOR === 0) {
-                    toastMixin.fire('Valor zero', 'O Valor do produto não pode ser Zero', 'warning')
-                    return;
-                }
-                const codigo = await IncrementaGenerator('GEN_ORE');
-                setListaProdutosInseridos(item => [...item, {
-                    ORE_CODIGO: codigo,
-                    ORE_NOME: produto.ORE_NOME,
-                    ORE_EMBALAGEM: produto.ORE_EMBALAGEM,
-                    ORE_PRO: produto.ORE_PRO,
-                    ORE_QUANTIDADE: produto.ORE_QUANTIDADE,
-                    ORE_VALOR: produto.ORE_VALOR * produto.ORE_QUANTIDADE,
-                    ORE_ORD: 0,
-                }])
-                const edtCodProduto = document.getElementById('codigoProdutoid');
-                edtCodProduto?.focus();
-            } catch (error) {
-                toastMixin.fire('Atenção', String(error), 'warning')
-            }
-        }
-
-        const excluirProduto = (id: number) => {
-            setCodProdutoDeletado(id);
-            setShowModalDeletaProdutoOrd(true);
-        }
-        const editaProduto = (produto: OrdEstModel) => {
-            setProdutoEdt(produto);
-            setShowModalEdtProduto(true);
-
-
-        }
-        const selectNome = () => {
-            (document.getElementById('edtNomeProduto') as HTMLInputElement).select();
-        }
-
-        const handleChangeQuantidadeProduto = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const formattedValue = formatNumber(e.target.value);
-            setProduto({ ...produto, ORE_QUANTIDADE: parseFloatFromString(formattedValue) });
-        };
-
-        return (
-            <div ref={refDivProdutos} className="bg-white rounded-lg  shadow-md">
-                <div className="border-b-2">
-                    <div className="sm:flex">
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="codigo">Código</label>
-                            <div className="flex flex-row">
-                                <input id="codigoProdutoid" value={produto.ORE_PRO} onKeyDown={edtProdutoKeydown} onChange={e => setProduto({ ...produto, ORE_PRO: parseInt(e.target.value ?? 0) })} className="p-1 border rounded-md border-spacing-1 border-amber-400 flex-1" type="text" />
-                                <button
-                                    className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                    type="button"
-                                    onClick={() => setShowModalPesquisaProduto(true)}
-                                >
-                                    <i className="fas fa-magnifying-glass text-white"></i>
-                                </button>
-                                {showModalPesquisaProduto &&
-                                    <Pesquisa_produto
-                                        produtoSelecionado={produtoSelecionado}
-                                        setProdutoSelecionado={setProdutoSelecionado}
-                                        showModal={showModalPesquisaProduto}
-                                        setShowModal={setShowModalPesquisaProduto}
-                                    />
-                                }
-                            </div>
-                        </div>
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="produto">Produto</label>
-                            <input
-                                id='edtNomeProduto'
-                                onFocus={selectNome}
-                                value={produto.ORE_NOME}
-                                onKeyDown={edtNomeProdutoKeyDown}
-                                onChange={(e) => produtoSelecionado.PRO_CODIGO == 1 ? setProduto({ ...produto, ORE_NOME: String(e.target.value).toUpperCase() }) : null}
-                                className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-80" type="text" />
-                        </div>
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="unidade">UND.</label>
-                            <select id="edtUM" value={produto.ORE_EMBALAGEM} onChange={(e) => setProduto({ ...produto, ORE_EMBALAGEM: e.target.value.toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-36">
-                                {listaUnidadesMed.map(u => <option key={u.UM_UNIDADE} value={u.UM_UNIDADE}>{u.UM_UNIDADE}</option>)}
-                            </select>
-                        </div>
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="quant">Quant</label>
-                            <input id="edtQuantidade" type="number" step=".01" onKeyDown={edtQuantidadeKeyDown} value={produto.ORE_QUANTIDADE} onChange={(e) => setProduto({ ...produto, ORE_QUANTIDADE: e.target.value ? parseFloat(e.target.value) : 0 })} className="p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" />
-                        </div>
-                        <div className="flex flex-col p-2">
-                            <label htmlFor="valor">Valor</label>
-                            <input id="edtValorProduto" onKeyDown={edtValorProdutoKeyDown} value={valorUnitarioAux ?? ''} onChange={event => { mascaraMoedaEvent(event), setValorUnitarioAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400 sm:w-24" type="text" />
-                        </div>
-                        <div className="">
-                            <button
-                                className="w-12 h-12 m-4 p-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                type="button"
-                                id="btnInserirProduto"
-                                onClick={e => inserirProduto(produto)}
-                            >
-                                <i className="fas fa-check text-white "></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex items-center justify-center">
-                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
-                        <thead className="text-black w-full">
-                            {divWidthProdutos > 600 ? (
-                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:flex-row sm:table-fixed rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left sm:w-[5%]">Cód.</th>
-                                    <th className="p-3 text-left sm:w-[46%]">Produto</th>
-                                    <th className="p-3 text-left sm:w-[5%]">Qtd</th>
-                                    <th className="p-3 text-left sm:w-[5%]">UM</th>
-                                    <th className="p-3 text-left sm:w-[13%]">Valor Unit.</th>
-                                    <th className="p-3 text-left sm:w-[13%]">Valor Total</th>
-                                    <th className="p-3 text-left sm:w-[13%]">Ação</th>
-                                </tr>)
-                                : listaProdutosInseridos.map(item =>
-                                    <tr key={item.ORE_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:flex-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                        <th className="p-3 text-left h-12">Cód.</th>
-                                        <th className="p-3 text-left h-12">Produto</th>
-                                        <th className="p-3 text-left h-12">Quantidade</th>
-                                        <th className="p-3 text-left h-12">UM</th>
-                                        <th className="p-3 text-left h-12">Valor Unit.</th>
-                                        <th className="p-3 text-left h-12">Valor Total</th>
-                                        <th className="p-3 text-left h-12">Ação</th>
-                                    </tr>)
-                            }
-                        </thead>
-                        <tbody className="flex-1 sm:flex-none">
-                            {listaProdutosInseridos.map((item) =>
-                                <tr key={item.ORE_CODIGO} className="flex flex-col flex-nowrap sm:flex-row sm:table-fixed mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[5%]">{item.ORE_PRO}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:whitespace-normal whitespace-nowrap overflow-x-hidden text-ellipsis w-52 sm:w-[46%]">{item.ORE_NOME}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[5%]">{item.ORE_QUANTIDADE}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[5%]">{item.ORE_EMBALAGEM}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR / item.ORE_QUANTIDADE)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-3 sm:w-[13%]">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.ORE_VALOR)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 h-12 sm:h-auto p-1 sm:p-3 text-red-400 hover:text-red-600 hover:font-medium cursor-pointer sm:w-[13%]">
-                                        {divWidthProdutos > 600 ?
-                                            <div className="grid grid-rows-2">
-                                                <button
-                                                    className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => excluirProduto(item.ORE_CODIGO)}
-                                                >
-                                                    <i className="fas fa-trash text-white "></i>
-
-                                                </button>
-                                                <button
-                                                    className="p-1 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => editaProduto(item)}
-                                                >
-                                                    <i className="fas fa-pencil text-white "></i>
-                                                </button>
-                                            </div>
-                                            :
-                                            <div className="grid grid-cols-2">
-                                                <button
-                                                    className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => excluirProduto(item.ORE_CODIGO)}
-                                                >
-                                                    <i className="fas fa-trash text-white "></i>
-
-                                                </button>
-                                                <button
-                                                    className="p-1 w-12 text-sm mb-2 px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                                    type="button"
-                                                    onClick={() => editaProduto(item)}
-                                                >
-                                                    <i className="fas fa-pencil text-white "></i>
-                                                </button>
-                                            </div>}
-
-
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        );
-    }
-
-
-
-    const ModalImprimir = () => {
-        return (
-            <Modal showModal={showModalimprimir} setShowModal={setShowModalImprimir}
-                title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
-                showButtonExit={false}
-                body={
-                    <PrintOrcamentos />
-                }
-            />
-        );
-    }
-
-    const Atalhos = () => {
-        return (
-            <>
-                <div className="sm:flex justify-center items-center h-8 w-full bg-amber-300 rounded-t-md text-center shadow-lg">
-                    <h2 className="text-black font-bold">Atalhos</h2>
-                </div>
-                <div className="p-4 space-y-4">
-                    <button
-                        className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
-                        onClick={e => setShowModalEmpreitadas(true)}
-                        disabled={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? true : false}
-                    >
-                        <i className="fas fa-hand-holding-usd"></i>
-                        <span>Empreitadas</span>
-                    </button>
-                    <button
-                        className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
-                        onClick={e => setShowModalListaArquivos(true)}
-                        disabled={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? true : false}
-                    >
-                        <i className="fas fa-exchange-alt"></i>
-                        <span>Listar Arquivos</span>
-                    </button>
-                    <button
-                        className={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
-                        onClick={e => imprimeOrcamento()}
-                        disabled={(codigoOrdem == 0 || isNaN(codigoOrdem)) ? true : false}
-                    >
-                        <i className="fas fa-print"></i>
-                        <span>Imprimir</span>
-                    </button>
-                    <button
-                        className={(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-gray-500 font-bold' : 'px-4 py-3 flex items-center space-x-4 rounded-md  group text-black font-bold'}
-
-                        onClick={() => setShowModalSalvar(true)}
-                        disabled={listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0}
-                    >
-                        <i className="fa-solid fa-floppy-disk"></i>
-                        <span>Salvar</span>
-                    </button>
-                </div>
-            </>
-        );
-    }
-
-    const faturamentoOS = async () => {
-        await salvaOrdem();
-        if ((listaProdutosInseridos.length === 0) && (listaServicosInseridos.length === 0)) {
-            toastMixin.fire('Inserira ou menos um produtos ou serviço, para faturar!', 'Atenção', 'warning');
-            return;
-        }
-        setShowFaturamento(true);
-    }
-
-    const Totalizador = () => {
-        const [valorDescontoAux, setValorDescontoAux] = useState('');
-        useEffect(() => {
-
-        }, [valorDesconto, valorPorcentagemDesconto]);
-
-        function calculaValorDesconto() {
-            const total = totalProdutos() + totalServicos();
-            const valorRealDesconto = (valorDescontoAux.replace('R$', '').replace('.', '').replace(',', '.'));
-            const porcentagemDesconto = (parseFloat(valorRealDesconto) / total) * 100;
-            console.log('Valor Real Desconto:', valorRealDesconto);
-            console.log('Porcentagem Desconto:', porcentagemDesconto);
-            setValorDesconto(parseFloat(valorRealDesconto));
-            setValorPorcentagemDesconto(porcentagemDesconto);
-
-            return (porcentagemDesconto / 100) * total;
-
-        }
-
-
-        return (
-            <>
-                <div className="sm:flex justify-center items-center h-8 w-full bg-amber-300 rounded-t-md text-center shadow-lg">
-                    <h2 className="text-black font-bold">Total</h2>
-                </div>
-                <div className="p-3 space-y-3">
-                    <div>
-                        <h4 className="text-sm font-bold">Valor Total Produtos</h4>
-                        <span className="text-lg font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalProdutos())}</span>
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-bold">Valor Total Serviços</h4>
-                        <span className="text-lg font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(totalServicos())}</span>
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-bold">Valor Total Descontos</h4>
-                        <div className=" flex flex-col sm:flex-col sm:items-start">
-                            <div>
-                                <label className="ml-1">R$</label>
-                                <input id="edtDescontoValor" value={valorDescontoAux ?? ''} onChange={event => { mascaraMoedaEvent(event), setValorDescontoAux(event.target.value) }} className="uppercase p-1 border rounded-md border-spacing-1 border-blue-950 sm:w-24" type="text" />
-                                <button className="mt-2 mb-2 ml-7 w-20 h-7  text-white text-bold rounded-md bg-black hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none" onClick={calculaValorDesconto}>Aplicar</button>
-                            </div>
-
-                            <div className="text-sm font-bold">
-
-                                <label>{valorPorcentagemDesconto.toFixed(2)}</label>
-                                <label className="ml-1">{"% | R$ "}</label>
-                                <label>{valorDesconto}</label>
-
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-bold">Valor Total OS sem desconto</h4>
-                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0))}</span>
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-bold">Valor Total OS</h4>
-                        <span className="text-xl font-bold">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format((totalProdutos()) + (totalServicos() ?? 0) - (valorDesconto == null ? 0 : valorDesconto))}</span>
-                    </div>
-                    <div>
-                        <button onClick={faturamentoOS} disabled={(codFatura > 0) || codigoOrdem === 0} className={`p-0 w-32 h-12 text-white text-bold ${(codFatura > 0) || codigoOrdem === 0 ? 'bg-gray-400' : 'bg-black'} rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}>Faturar</button>
-                    </div>
-                </div>
-            </>
-        );
-    }
-
-    return (
-        <div className="flex flex-col w-full min-w-0 h-auto overflow-x-hidden">
-            <div className="bg-white rounded-lg shadow-md m-2">
-                <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Orçamentos</h2>
-                <div className="sm:flex gap-2">
-                    <div className="flex flex-wrap items-start justify-start">
-                        <div className="flex flex-1 flex-col p-1">
-                            <label htmlFor="codOrdem">Cod. Ordem</label>
-                            <div className="flex flex-row">
-                                <input type="number" id="edtCodigoOrdem" disabled={true} placeholder="0" autoFocus onKeyDown={(e) => buscarOrdem(e)} value={codigoOrdem ?? ''} onChange={e => setCodigoOrdem(parseInt(e.target.value))} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
-                                <button
-                                    className={`${(listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0) ? 'bg-slate-400 active:bg-slate-600' : 'bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
-                                    type="button"
-                                    onClick={() => setShowModalSalvar(true)}
-                                    disabled={listaProdutosInseridos.length == 0 && listaServicosInseridos.length == 0}
-                                >
-                                    <i className="fa fa-solid fa-floppy-disk text-white"></i>
-                                </button>
-                                <button
-                                    className={`bg-amber-500 active:bg-amber-600'} p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none`}
-                                    type="button"
-                                    onClick={e => setShowModalPesquisaOS(true)}
-                                >
-                                    <i className="fas fa-magnifying-glass text-white"></i>
-                                </button>
-                                {showModalEdtServico && <ModalEdtServico />}
-                                {showModalEdtProduto && <ModalEdtProduto />}
-                                {showModalSalvar && <ModalSalvar />}
-                                {showModalDeletaServicoOrd && <ModalDeletaServicoOrd />}
-                                {showModalDeletaProdutoOrd && <ModalDeletaProdutOrd />}
-                                {showModalPesquisaOS && <PesquisaOrdem
-                                    OrdemSelecionado={codigoOrdem}
-                                    setOrdemSelecionado={setCodigoOrdem}
-                                    showModal={showModalPesquisaOS}
-                                    setShowModal={setShowModalPesquisaOS}
-                                    setBuscouOrdem={setBuscouOrdem}
-                                />}
-                            </div>
-                        </div>
-                        <div className="flex flex-1 flex-col p-1">
-                            <label htmlFor="dataAb">Data Abertura</label>
-                            <input value={dataAbertura.toLocaleDateString()} className="sm:w-28 uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
-                        </div>
-                        <div className="flex flex-1 flex-col p-1">
-                            <label htmlFor="fatura">Fatura</label>
-                            <input value={codFatura} readOnly className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
-                        </div>
-                        <div className="flex flex-1 flex-col p-1">
-                            <label htmlFor="nfServico">NF Serviço</label>
-                            <input value={nfs} onChange={(e) => setNfs(e.target.value.toUpperCase())} className="sm:w-28 uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
-                        </div>
-                        <div className="flex flex-col p-1">
-                            <label htmlFor="status">Status</label>
-                            <select id='statusid' value={statusOrdem} onChange={(e) => setStatusOrdem(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" >
-                                {listaStatus().map(status => <option key={status} value={status}>{status}</option>)}
-                            </select>
-                        </div>
-                        <div className="flex flex-1 flex-col p-1">
-                            <label htmlFor="cliente">Cliente</label>
-                            <div className="flex flex-row">
-                                <input id="clientid" value={clienteSelecionado.NOME} readOnly className="w-80 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
-                                <button
-                                    className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                    type="button"
-                                    onClick={() => setShowModalPesquisaCliente(true)}
-                                >
-                                    <i className="fas fa-magnifying-glass text-white"></i>
-                                </button>
-                                {showModalPesquisaCliente &&
-                                    <Pesquisa_cliente
-                                        clienteSelecionado={clienteSelecionado}
-                                        setClienteSelecionado={setClienteSelecionado}
-                                        showModal={showModalPesquisaCliente}
-                                        setShowModal={setShowModalPesquisaCliente}
-                                    />
-                                }
-                            </div>
-                        </div>
-                        <div className="flex flex-col w-full">
-                            <div className="flex flex-row">
-                                <div className="flex flex-1 flex-col p-1">
-                                    <label htmlFor="solicitacoes">Solicitações</label>
-                                    <textarea id="solicitacaoid" value={solicitacao} onChange={(e) => setSolicitacao(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
-                                </div>
-                                <div className="flex flex-1 flex-col p-1">
-                                    <label htmlFor="obs">Observações</label>
-                                    <textarea id="obsid" value={obs} onChange={e => setObs(e.target.value.toLocaleUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
-                                </div>
-                            </div>
-                            <div className="flex flex-row">
-                                <div className="flex flex-1 flex-col p-1">
-                                    <label htmlFor="solicitacoes">Parceiro</label>
-                                    <div className="flex flex-row">
-                                        <input id="clientid" value={parceiroSelecionado.NOME} readOnly className="w-96 border uppercase p-1 rounded-md border-spacing-1 border-amber-400" type="text" />
-                                        <button
-                                            className="p-1 text-sm px-2 mx-1 bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none"
-                                            type="button"
-                                            onClick={() => setShowModalPesquisaFornecedor(true)}
-                                        >
-                                            <i className="fas fa-magnifying-glass text-white"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="flex flex-1 flex-col p-1">
-                                    <label htmlFor="solicitacoes">Anotações</label>
-                                    <textarea id="anotacaoid" value={obs_adm} onChange={(e) => setObs_adm(e.target.value.toUpperCase())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="sm:flex gap-2 h-82 p-2">
-                        <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
-                            <Atalhos />
-                        </div>
-                        <div className="bg-amber-400 sm:w-44 rounded-lg shadow-md my-4 w-full">
-                            <Totalizador />
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div className='border border-b-indigo-800'>
-                    <ul className='flex cursor-pointer'>
-                        <li onClick={() => handleClickAba('SERVICOS')} className={`p-1 m-2 ${abaAtiva === 'SERVICOS' ? 'bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none' : 'bg-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none text-black'}`}>Serviços</li>
-                        <li onClick={() => handleClickAba('PRODUTOS')} className={`p-1 m-2 ${abaAtiva === 'PRODUTOS' ? 'bg-black text-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none' : 'bg-white rounded-md hover:bg-amber-500 active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none text-black'}`}>Produtos</li>
-                    </ul>
-                </div>
-                {abaAtiva === 'SERVICOS' ? <AbaServicos /> : <AbaProdutos />}
-            </div>
-            {showFaturamento && <Modal
-                title="Faturamento OS"
-                showModal={showFaturamento}
-                setShowModal={setShowFaturamento}
-                showButtonExit={false}
-                body={<Faturamentos
-                    tipoRecPag="R"
-                    Operacao={new OperacaoOrdens()}
-                    pedFat={{
-                        PF_CODIGO: 0,
-                        PF_COD_CLI: clienteSelecionado.CODIGO,
-                        PF_CAMPO_DATAC: 'ORD_DATAC',
-                        PF_CAMPO_FAT: 'ORD_FAT',
-                        PF_CAMPO_PED: 'ORD_CODIGO',
-                        PF_CLIENTE: clienteSelecionado.NOME,
-                        PF_COD_PED: codigoOrdem,
-                        PF_DATA: new Date().toLocaleDateString(),
-                        PF_DATAC: '01/01/1900',
-                        PF_DESCONTO: 0,
-                        PF_FAT: 0,
-                        PF_FUN: 1,
-                        PF_PARCELAS: 1,
-                        PF_TABELA: 'ORDENS',
-                        PF_TIPO: 1,
-                        PF_VALOR: 0,
-                        PF_VALORB: 0,
-                        PF_VALORPG: 0,
-                    }}
-                    model={ordem!}
-                    itens={listaProdutosInseridos}
-                    itens2={listaServicosInseridos}
-                    setShowModal={setShowFaturamento}
-                    setFaturado={setFoiFaturado}
-                    cliFor={clienteSelecionado}
-                    valorTotal={totalProdutos() + totalServicos()} />}
-            />}
-            {showModalimprimir && <ModalImprimir />}
-            {showModalEmpreitadas &&
-                <Modal showModal={showModalEmpreitadas} setShowModal={setShowModalEmpreitadas}
-                    title="Empreitadas"
-                    showButtonExit={false}
-                    body={
-                        <Empreitadas ordemServico={ordem!} />
-                    }
-                />}
-            {showModalPesquisaFornecedor &&
-                <PesquisaFornecedor
-                    fornecedorSelecionado={parceiroSelecionado}
-                    setFornecedorSelecionado={serParceiroSelecionado}
-                    showModal={showModalPesquisaFornecedor}
-                    setShowModal={setShowModalPesquisaFornecedor}
-                />
-
-            }
-            {showModalListaArquivos && <ModalListarArquivos
-                codigoOrdem={codigoOrdem}
-                setShowModal={setShowModalListaArquivos}
-                showmodal={showModalListaArquivos}
-            />}
-
-        </div >
-    );
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm text-ek-muted">Carregando orçamento...</div>
+      }
+    >
+      <OrcamentosContent />
+    </Suspense>
+  );
 }

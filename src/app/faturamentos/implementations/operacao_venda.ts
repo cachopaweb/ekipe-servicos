@@ -5,7 +5,7 @@ import { VendaModel } from "@/app/models/venda_model";
 import VendaRepository from "@/app/repositories/venda_repository";
 import CaixaModel from "@/app/models/caixa_model";
 import CaixaRepository from "@/app/repositories/caixa_repository";
-import { IncrementaGenerator } from "@/app/functions/utils";
+import { IncrementaGenerator, FormatDate, horaFormatadaDB, dataHoraFormatadaDB } from "@/app/functions/utils";
 import ClientRepository from "@/app/repositories/cliente_repository";
 import { ClienteModel } from "@/app/models/cliente_model";
 import DAVRepository from "@/app/repositories/dav_repository";
@@ -68,13 +68,13 @@ export default class OperacaoVenda implements OperacoesStrategy {
           DAV_CLI: venda.VEN_CLI,
           DAV_CLIENTE: this.clienteModel.NOME,
           DAV_CPF_CNPJ: this.clienteModel?.CPF_CNPJ ?? '',
-          DAV_DATA: new Date().toLocaleDateString(),
+          DAV_DATA: FormatDate(new Date()),
           DAV_ESTADO: 2,
           DAV_FATURA: this.codFatura,
           DAV_FORMAS_PGM: 'DINHEIRO',
           DAV_FUN: 1,
           DAV_FUNCAO: 'VENDA',
-          DAV_HORA: new Date().toLocaleTimeString(),
+          DAV_HORA: horaFormatadaDB(),
           DAV_NOVO: 1,
           DAV_VALIDADE: '10 DIAS',
           DAV_VALOR: venda.VEN_VALOR,
@@ -105,7 +105,7 @@ export default class OperacaoVenda implements OperacoesStrategy {
           const hisProRepository = new HisProRepository();
           hisProRepository.insereHisPro({
             HP_CODIGO: await IncrementaGenerator('GEN_HP'),
-            HP_DATA: new Date().toLocaleDateString(),
+            HP_DATA: FormatDate(new Date()),
             HP_DOC: venEst.VE_VEN.toString(),
             HP_ORIGEM: `OS - ${this.clienteModel?.NOME}`,
             HP_PRO: venEst.VE_PRO,
@@ -123,7 +123,7 @@ export default class OperacaoVenda implements OperacoesStrategy {
           const repositoryDAV = new DAVRepository();
           repositoryDAV.insereDAVPro({
             DP_CODIGO: await IncrementaGenerator('GEN_DP'),
-            DP_DATA: new Date().toLocaleDateString(),
+            DP_DATA: FormatDate(new Date()),
             DP_ACRESCIMO: 0,
             DP_ALIQICMS: '0',
             DP_CANCELADO: 'N',
@@ -163,13 +163,13 @@ export default class OperacaoVenda implements OperacoesStrategy {
       const result = repository.inserePedFat(model);
       //ultima venda cli
       const clienteRepository = new ClientRepository();
-      clienteRepository.setUltimaVendaCliente(new Date().toLocaleDateString(), model.PF_COD_CLI);
+      clienteRepository.setUltimaVendaCliente(FormatDate(new Date()), model.PF_COD_CLI);
       //faturamento
       const faturamentosRepository = new FaturamentosRepository();
       faturamentosRepository.insereFaturamentos({
         FAT_CODIGO: this.codFatura,
         FAT_CLI: model.PF_COD_CLI,
-        FAT_DATA: new Date().toLocaleDateString(),
+        FAT_DATA: FormatDate(new Date()),
         FAT_DESCRICAO: model.PF_COD_PED,
         FAT_JUROS: 0,
         FAT_PARCELAS: model.PF_PARCELAS,
@@ -199,7 +199,7 @@ export default class OperacaoVenda implements OperacoesStrategy {
             REC_CODIGO: codRecebimento,
             REC_CAI: this.caixaModel!.CAI_CODIGO,
             REC_CON: 0,
-            REC_DATAR: new Date().toLocaleDateString(),
+            REC_DATAR: FormatDate(new Date()),
             REC_DESCONTADO: 'N',
             REC_DESCONTOS: pp.PP_DESCONTOS,
             REC_DUPLICATA: pp.PP_DUPLICATA,
@@ -210,7 +210,7 @@ export default class OperacaoVenda implements OperacoesStrategy {
             REC_SITUACAO: 0,
             REC_TIPO: pp.DescricaoTipoPgm!,
             REC_VALOR: pp.PP_VALOR,
-            REC_VENCIMENTO: new Date().toLocaleDateString(),
+            REC_VENCIMENTO: FormatDate(new Date()),
           });
           //se for a vista insere movimentacao
           if (pp.PP_TP === 0) {
@@ -222,8 +222,8 @@ export default class OperacaoVenda implements OperacoesStrategy {
               MOV_CON: 0,
               MOV_CREDITO: pp.PP_VALORPG,
               MOV_DEBITO: 0,
-              MOV_DATA: new Date().toLocaleDateString(),
-              MOV_DATAHORA: (new Date().toLocaleDateString()) + ' ' + (new Date().toLocaleTimeString()),
+              MOV_DATA: FormatDate(new Date()),
+              MOV_DATAHORA: dataHoraFormatadaDB(),
               MOV_DESCRICAO: `VD - ${this.codFatura} - ${this.clienteModel?.NOME}`,
               MOV_ESTADO: 'A',
               MOV_NOME: 'VENDA',
@@ -241,13 +241,13 @@ export default class OperacaoVenda implements OperacoesStrategy {
             result = await repositoryRecPgm.insereRecPgm({
               RP_CODIGO: codRecPgm,
               RP_DINHEIRO: pp.PP_VALORPG,
-              RP_DATAPGM: new Date().toLocaleDateString(),
+              RP_DATAPGM: FormatDate(new Date()),
               RP_CHEQUE: 0,
               RP_REC: codRecebimento,
               RP_CAI: this.caixaModel!.CAI_CODIGO,
               RP_DESCONTOS: 0,
               RP_FUN: 1,
-              RP_HORA: new Date().toLocaleTimeString(),
+              RP_HORA: horaFormatadaDB(),
               RP_JUROS: 0,
               RP_MOV: codMov
             });

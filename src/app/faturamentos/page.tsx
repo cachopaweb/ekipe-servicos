@@ -3,17 +3,19 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import PedFatModel from "../models/ped_fat_model";
 import PFParcelaModel from "../models/pf_parcela_model";
+import TipoPgmModel from "../models/tipo_pgm_model";
 import TipoPgmRepository from "../repositories/tipo_pgm_repository";
-import { GeraCodigo, IncrementaGenerator, keyBoardInputEvent, keyBoardSelectEvent, toastMixin } from "../functions/utils";
+import { IncrementaGenerator, keyBoardInputEvent, keyBoardSelectEvent, toastMixin, formatCurrency, formatDataInput, parseDataCalendario } from "../functions/utils";
 import CliForModel from "../models/cli_for_model";
-import Modal from "../../components/component/modal";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 import OperacoesStrategy from "./contracts/operacoes_interfaces";
+import { CheckCircle, AlertCircle, PlusCircle, CreditCard, Loader2 } from "lucide-react";
 
 interface FaturamentoProps {
     valorTotal: number;
-    cliFor: CliForModel,
+    cliFor: CliForModel;
     setShowModal?: Dispatch<SetStateAction<boolean>>;
-    Operacao: OperacoesStrategy,
+    Operacao: OperacoesStrategy;
     model: Object;
     itens: Object;
     itens2?: Object;
@@ -39,8 +41,9 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     const [numParcelasRestantes, setNumParcelasRestantes] = useState(0);
     const [parcela, setParcela] = useState(0);
     const [showModalSalvar, setShowModalSalvar] = useState(false);
+    const [isFinishing, setIsFinishing] = useState(false);
     const [codTipoPgm, setCodTipoPgm] = useState(0);
-    const [vencimento, setVencimento] = useState(new Date());
+    const [vencimentoStr, setVencimentoStr] = useState(() => formatDataInput(new Date()));
 
     useEffect(() => {
         if (numParcelas && (numParcelas > 0))
@@ -64,15 +67,18 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     useEffect(() => {
         iniciaCodFatura()
         const edtEntrada = document.getElementById('edtEntrada') as HTMLInputElement;
-        edtEntrada!.select();
+        edtEntrada?.select();
     }, [])
 
     const iniciaCodFatura = async () => {
         try {
-            const cod = await IncrementaGenerator('GEN_FAT');
+            const genFat = tipoRecPag === 'P' ? 'GEN_FAT2' : 'GEN_FAT';
+            const cod = await IncrementaGenerator(genFat);
             setCodFatura(cod);
-            const codPedFat = await IncrementaGenerator('GEN_PF');
-            setCodPedFat(codPedFat);
+            (Operacao as any).codFatura = cod;
+            const codPf = await IncrementaGenerator('GEN_PF');
+            setCodPedFat(codPf);
+            (Operacao as any).codPedFat = codPf;
         } catch (error) {
             toastMixin.fire('Erro ao iniciar codigo fatura', String(error), 'error');
         }
@@ -83,7 +89,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
             const repository = new TipoPgmRepository();
             const tp = await repository.buscaTipoPgm(tipo);
             setListaTipoPgm(tp);
-            if (tp) {
+            if (tp && tp.length > 0) {
                 setCodTipoPgm(tp[0].TP_CODIGO);
             }
 
@@ -98,7 +104,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                 setVlrEntrada(0);
             }
             setParcela(0);
-            setVencimento(new Date());
+            setVencimentoStr(formatDataInput(new Date()));
             setListaPFParcela([])
             const edtParcelas = document.getElementById('edtParcelas');
             edtParcelas?.focus()
@@ -127,10 +133,10 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     }
 
     const keyDownParcelas = async (e: keyBoardInputEvent) => {
-        const tipoPgm = listaTipopgm!.find((tp) => tp.TP_CODIGO === (tipoRecPag === 'R' ? 0 : -1));
-        ////
+        const tipoPgm = listaTipopgm?.find((tp) => tp.TP_CODIGO === (tipoRecPag === 'R' ? 0 : -1));
         setParcela(0);
-        setVencimento(new Date());
+        const hoje = new Date();
+        setVencimentoStr(formatDataInput(hoje));
         if (e.key === 'Enter') {
             if (!numParcelas || numParcelas === 0) {
                 toastMixin.fire('Número de parcelas não informado!', 'Informe o número de parcelas', 'warning');
@@ -145,18 +151,20 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                     PP_JUROS: 0,
                     PP_ESTADO: 3, // 3 é pago 1 em aberto
                     PP_PF: codPedFat,
-                    PP_TP: tipoPgm!.TP_CODIGO,
+                    PP_TP: tipoPgm?.TP_CODIGO ?? 0,
                     PP_VALOR: vlrEntrada!,
                     PP_VALORPG: vlrEntrada!,
-                    PP_VENCIMENTO: vencimento,
-                    DescricaoTipoPgm: tipoPgm!.TP_DESCRICAO
+                    PP_VENCIMENTO: new Date(hoje),
+                    DescricaoTipoPgm: tipoPgm?.TP_DESCRICAO ?? 'DINHEIRO'
                 }
                 setNumParcelasRestantes(numParcelas!);
                 setValorDescontavel(parseFloat(((valorTotal! - vlrEntrada!) / numParcelas!).toFixed(2)));
 
                 setListaPFParcela([pfParcela])
                 setParcela(1);
-                setVencimento(new Date(vencimento.setDate(vencimento.getDate() + 30)))
+                const proxVenc = new Date(hoje);
+                proxVenc.setDate(proxVenc.getDate() + 30);
+                setVencimentoStr(formatDataInput(proxVenc));
                 edtTipoPgm?.focus();
             } else {
                 setNumParcelasRestantes(numParcelas!);
@@ -168,8 +176,9 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     }
 
     const salvarParcela = async (nparcela: number) => {
-        const tipoPgm = listaTipopgm!.find((tp) => tp.TP_CODIGO === codTipoPgm);
+        const tipoPgm = listaTipopgm?.find((tp) => tp.TP_CODIGO === codTipoPgm);
         const edtTipoPgm = document.getElementById('tipoPgm');
+        const dtVenc = vencimentoStr ? parseDataCalendario(vencimentoStr) : new Date();
         const pfParcela: PFParcelaModel = {
             PP_CODIGO: 0,
             PP_DUPLICATA: `${codFatura}-${nparcela}/${vlrEntrada && vlrEntrada > 0 ? numParcelas! + 1 : numParcelas}`,
@@ -177,11 +186,11 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
             PP_JUROS: 0,
             PP_ESTADO: tipoPgm?.TP_CODIGO == 0 ? 3 : 1, // 3 é pago 1 em aberto
             PP_PF: codPedFat,
-            PP_TP: tipoPgm!.TP_CODIGO,
+            PP_TP: tipoPgm?.TP_CODIGO ?? 0,
             PP_VALOR: valorParcela!,
             PP_VALORPG: tipoPgm?.TP_CODIGO == 0 ? valorParcela! : 0,
-            PP_VENCIMENTO: vencimento,
-            DescricaoTipoPgm: tipoPgm!.TP_DESCRICAO
+            PP_VENCIMENTO: dtVenc,
+            DescricaoTipoPgm: tipoPgm?.TP_DESCRICAO ?? ''
         }
         if (numParcelasRestantes === 1) {
             setValorDescontavel(valorDescontavel);
@@ -190,169 +199,287 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
         }
         setNumParcelasRestantes(numParcelasRestantes - 1);
         setListaPFParcela(old => [...old, pfParcela])
-        setVencimento(new Date(vencimento.setDate(vencimento.getDate() + 30)))
+        const proxVenc = new Date(dtVenc);
+        proxVenc.setDate(proxVenc.getDate() + 30);
+        setVencimentoStr(formatDataInput(proxVenc));
         setParcela(nparcela);
         edtTipoPgm?.focus();
     }
 
     const finalizarFaturamento = async () => {
+        if (isFinishing) return;
+        setIsFinishing(true);
         try {
-            toastMixin.fire('Aguarde...', 'finalizando faturamento', 'info');
+            toastMixin.fire({
+                title: 'Aguarde...',
+                text: 'finalizando faturamento',
+                icon: 'info'
+            });
+            if (codFatura > 0) (Operacao as any).codFatura = codFatura;
+            if (codPedFat > 0) (Operacao as any).codPedFat = codPedFat;
+            pedFat.PF_CODIGO = codPedFat;
+            pedFat.PF_FAT = codFatura;
             pedFat.PF_COD_CLI = cliFor.CODIGO;
             pedFat.PF_VALOR = valorTotal!;
             pedFat.PF_VALORB = valorTotal!;
             pedFat.PF_VALORPG = vlrEntrada!;
             pedFat.PF_PARCELAS = (vlrEntrada! && numParcelas!) > 0 ? numParcelas! + 1 : numParcelas!;
-            setShowModalSalvar(false)
+            setShowModalSalvar(false);
             await Operacao.insereOperacao(model);
             await Operacao.insereItens(itens);
-            await Operacao.insereItens2(itens2);
+            await Operacao.insereItens2?.(itens2);
             await Operacao.inserePedFat(pedFat!);
             await Operacao.inserePFParcelas(listaPFParcela);
-            toastMixin.fire('Finalizado', 'Faturamento finalizado com sucesso', 'success');
+            toastMixin.fire({
+                title: 'Finalizado',
+                text: 'Faturamento finalizado com sucesso',
+                icon: 'success'
+            });
             setFaturado(true);
-            setShowModal!(false);//fecha ele proprio
+            setShowModal?.(false);
         } catch (error) {
-            toastMixin.fire('Erro ao finalizar faturamento', String(error), 'error')
+            toastMixin.fire({
+                title: 'Erro ao finalizar faturamento',
+                text: String(error),
+                icon: 'error'
+            });
+        } finally {
+            setIsFinishing(false);
         }
     }
 
-    const ModalSalvar = () => {
-        return (
-            <Modal showModal={showModalSalvar} setShowModal={setShowModalSalvar}
-                title="Finalizar Faturamento"
-                showButtonExit={false}
-                body={
-                    <div>
-                        <button
-                            className="bg-red-500 text-white active:bg-red-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                            type="button"
-                            onClick={() => setShowModalSalvar(false)}
-                        >
-                            <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
-                            Cancelar
-                        </button>
-                        <button
-                            className="bg-green-500 text-white active:bg-green-600 font-bold uppercase p-1 text-sm px-2 mx-1 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 flex-3"
-                            type="button"
-                            onClick={finalizarFaturamento}
-                        >
-                            <i className="fa fa-solid fa-floppy-disk text-white p-2"></i>
-                            Confirmar
-                        </button>
-                    </div>
-                }
-            />
-        );
-    }
-
-
     return (
-        <div ref={refDivFatura} className="bg-gray-300 rounded-lg shadow-md m-">
-            <div className="flex flex-col gap-2 bg-white shadow-md rounded-lg">
-                <div className="flex">
-                    <div className="flex flex-col p-2 flex-1">
-                        <label htmlFor="codFatura" className="text-black font-bold text-md">Cód. Fatura</label>
-                        <span className="text-black font-bold text-xl">{codFatura}</span>
+        <div ref={refDivFatura} className="flex flex-col gap-4 font-sans text-ek-text">
+            {/* Bloco 1: Resumo e Dados Iniciais */}
+            <div className="ek-card p-4 sm:p-5 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-ek-rule gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-[6px] bg-brand-soft border border-brand-border flex items-center justify-center text-brand">
+                            <CreditCard className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <span className="text-xs font-medium text-ek-muted block">
+                                Cód. fatura
+                            </span>
+                            <span className="font-mono text-base font-bold text-ek-text tabular-nums">
+                                #{codFatura || '---'}
+                            </span>
+                        </div>
                     </div>
-                    <div className="flex flex-col p-2">
-                        <label htmlFor="codFatura" className="text-red-700 font-bold text-md">Valor Total</label>
-                        <span className="text-red-800 font-bold text-2xl">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(valorTotal!)}</span>
+
+                    <div className="text-left sm:text-right">
+                        <span className="text-xs font-medium text-ek-muted block">
+                            Valor total a faturar
+                        </span>
+                        <span className="text-2xl font-bold text-brand tracking-[-0.02em] tabular-nums">
+                            {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(valorTotal!)}
+                        </span>
                     </div>
                 </div>
-                <div className="sm:flex">
-                    <div className="flex flex-col p-2 w-44">
-                        <label htmlFor="codFatura" className="text-black font-bold text-md">Entrada</label>
-                        <input type="number" placeholder="0" step={0.1} min={0} max={valorTotal!} autoFocus id="edtEntrada" value={vlrEntrada ?? ''} onChange={e => setVlrEntrada(parseFloat(e.target.value))} onKeyDown={keydownEntrada} className="border border-amber-400 p-2 rounded-md" />
+
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:items-end">
+                    <div className="sm:col-span-3">
+                        <label htmlFor="edtEntrada" className="ek-label">
+                            Entrada (R$)
+                        </label>
+                        <input
+                            type="number"
+                            placeholder="0,00"
+                            step={0.1}
+                            min={0}
+                            max={valorTotal!}
+                            autoFocus
+                            id="edtEntrada"
+                            value={vlrEntrada ?? ''}
+                            onChange={e => setVlrEntrada(parseFloat(e.target.value))}
+                            onKeyDown={keydownEntrada}
+                            className="ek-input font-semibold tabular-nums"
+                        />
                     </div>
-                    <div className="flex justify-center items-center">
-                        <span className="text-2xl font-bold">+</span>
+
+                    <div className="hidden sm:flex sm:col-span-1 items-center justify-center pb-2 text-ek-faint font-semibold text-lg">
+                        +
                     </div>
-                    <div className="flex flex-col p-2 w-32">
-                        <label htmlFor="codFatura" className="text-black font-bold text-md">N° Parcela</label>
-                        <input id="edtParcelas" value={numParcelas ?? ''} placeholder="0" onChange={e => setNumParcelas(e.target.value ? parseInt(e.target.value) : 0)} onKeyDown={keyDownParcelas} type="number" min={0} className="border border-amber-400 p-2 rounded-md" />
+
+                    <div className="sm:col-span-3">
+                        <label htmlFor="edtParcelas" className="ek-label">
+                            N° parcelas
+                        </label>
+                        <input
+                            id="edtParcelas"
+                            value={numParcelas ?? ''}
+                            placeholder="0"
+                            onChange={e => setNumParcelas(e.target.value ? parseInt(e.target.value) : 0)}
+                            onKeyDown={keyDownParcelas}
+                            type="number"
+                            min={0}
+                            className="ek-input font-semibold tabular-nums"
+                        />
                     </div>
-                    <div className="flex flex-col p-2 flex-1">
-                        <label htmlFor="codFatura" className="text-black font-bold text-md">Consumidor</label>
-                        <input value={cliFor.NOME ?? ''} readOnly type="text" className="border border-amber-400 p-2 rounded-md" />
+
+                    <div className="sm:col-span-5">
+                        <label className="ek-label">
+                            Cliente / Consumidor
+                        </label>
+                        <input
+                            value={cliFor.NOME ?? ''}
+                            readOnly
+                            type="text"
+                            className="ek-input bg-ek-raised text-ek-muted font-medium cursor-not-allowed truncate"
+                        />
                     </div>
                 </div>
             </div>
-            {showModalSalvar && <ModalSalvar />}
-            <div className="flex flex-col gap-2 bg-white shadow-md w-full rounded-lg mt-2">
-                <h2 className="text-md rounded-t-md font-bold text-black bg-amber-400 p-2">Dados da Fatura</h2>
-                <div className="sm:flex">
-                    <div className="flex flex-col p-2 w-72">
-                        <label htmlFor="codFatura" className="text-black font-bold text-md">Tipo Pgm</label>
-                        <select onKeyDown={keydownTipoPgm} value={codTipoPgm} onChange={e => setCodTipoPgm(e.target.value ? Number(e.target.value) : 0)} name="tipoPgm" id="tipoPgm" className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400">
-                            {listaTipopgm && listaTipopgm!.map(tp => <option key={tp.TP_CODIGO} value={tp.TP_CODIGO}>{tp.TP_DESCRICAO}</option>)}
+
+            <ModalConfirmacao
+                isOpen={showModalSalvar}
+                onClose={() => setShowModalSalvar(false)}
+                onConfirm={finalizarFaturamento}
+                title="Confirmar Faturamento"
+                message={`Deseja confirmar o fechamento desta fatura no valor de ${formatCurrency(valorTotal)} dividida em ${listaPFParcela.length} parcela(s)?`}
+                type="success"
+                confirmText="Confirmar Fechamento"
+                isLoading={isFinishing}
+            />
+
+            {/* Bloco 2: Configuração e Inserção de Parcelas */}
+            <div className="ek-card p-4 sm:p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between pb-3 border-b border-ek-rule">
+                    <div className="flex items-center gap-2.5">
+                        <span className="w-1 h-4 bg-brand rounded-full" aria-hidden="true" />
+                        <h3 className="text-sm font-semibold text-ek-text">
+                            Dados da fatura
+                        </h3>
+                    </div>
+                    {numParcelasRestantes > 0 && (
+                        <span className="text-xs font-medium px-2.5 py-0.5 rounded-[6px] bg-brand-soft text-brand border border-brand-border tabular-nums">
+                            {numParcelasRestantes} {numParcelasRestantes === 1 ? 'parcela restante' : 'parcelas restantes'}
+                        </span>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:items-end">
+                    <div className="sm:col-span-4">
+                        <label htmlFor="tipoPgm" className="ek-label">
+                            Tipo de pagamento
+                        </label>
+                        <select
+                            onKeyDown={keydownTipoPgm}
+                            value={codTipoPgm}
+                            onChange={e => setCodTipoPgm(e.target.value ? Number(e.target.value) : 0)}
+                            name="tipoPgm"
+                            id="tipoPgm"
+                            className="ek-select uppercase"
+                        >
+                            {listaTipopgm && listaTipopgm.map(tp => (
+                                <option key={tp.TP_CODIGO} value={tp.TP_CODIGO}>
+                                    {tp.TP_DESCRICAO}
+                                </option>
+                            ))}
                         </select>
                     </div>
-                    <div className="flex flex-col p-2">
-                        <label htmlFor="codFatura" className="text-red-700 font-bold text-md">Vencimento</label>
-                        <input type="date" id="edtVencimento" onKeyDown={keydownVencimento} value={Intl.DateTimeFormat("fr-CA", { year: "numeric", month: "2-digit", day: "2-digit" }).format(vencimento)} onChange={e => setVencimento(e.target.value ? new Date(e.target.value) : new Date())} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" />
+
+                    <div className="sm:col-span-3">
+                        <label htmlFor="edtVencimento" className="ek-label">
+                            Vencimento
+                        </label>
+                        <input
+                            type="date"
+                            id="edtVencimento"
+                            onKeyDown={keydownVencimento}
+                            value={vencimentoStr}
+                            onChange={e => setVencimentoStr(e.target.value)}
+                            className="ek-input tabular-nums"
+                        />
                     </div>
-                    <div className="flex flex-col p-2 w-44">
-                        <label htmlFor="codFatura" className="text-black font-bold text-md">Valor</label>
-                        <input id="edtValorParcela" step={0.1} onKeyDown={keydownValorParcela} value={valorParcela ?? ''} placeholder="0" onChange={e => setValorParcela(e.target.value ? parseFloat(e.target.value) : 0)} type="number" min={0} className="border border-amber-400 p-1 rounded-md" />
+
+                    <div className="sm:col-span-3">
+                        <label htmlFor="edtValorParcela" className="ek-label">
+                            Valor da parcela
+                        </label>
+                        <input
+                            id="edtValorParcela"
+                            step={0.1}
+                            onKeyDown={keydownValorParcela}
+                            value={valorParcela ?? ''}
+                            placeholder="0,00"
+                            onChange={e => setValorParcela(e.target.value ? parseFloat(e.target.value) : 0)}
+                            type="number"
+                            min={0}
+                            className="ek-input font-semibold tabular-nums"
+                        />
                     </div>
-                    <div className="flex flex-col justify-center items-center">
-                        <button onClick={e => salvarParcela(parcela + 1)}
+
+                    <div className="sm:col-span-2">
+                        <button
+                            onClick={() => salvarParcela(parcela + 1)}
                             id="btnSalvar"
+                            type="button"
                             disabled={(numParcelasRestantes === 0)}
-                            className={`rounded-md ${(numParcelasRestantes === 0) ? 'bg-gray-400' : 'bg-black'} text-white h-16 w-24 mr-2`}
+                            className="ek-btn-primary w-full justify-center disabled:opacity-45 disabled:cursor-not-allowed"
                         >
-                            Salvar
+                            <PlusCircle className="w-4 h-4" />
+                            <span>Adicionar</span>
                         </button>
                     </div>
                 </div>
-                <div className="flex items-center justify-center">
-                    <table className="w-full flex sm:flex-col flex-nowrap sm:bg-white rounded-lg overflow-hidden sm:shadow-lg my-5">
-                        <thead className="text-white">
-                            {divWidthFatura > 600 ? (
-                                <tr className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                    <th className="p-3 text-left sm:w-[30%]">Duplicata</th>
-                                    <th className="p-3 text-left">Vencimento</th>
-                                    <th className="p-3 text-left w-full">Tipo Pgm</th>
-                                    <th className="p-3 text-left">Juros</th>
-                                    <th className="p-3 text-left">Descontos</th>
-                                    <th className="p-3 text-left">Valor</th>
-                                </tr>
-                            ) :
-                                listaPFParcela.map(item =>
-                                    <tr key={item.PP_CODIGO} className="bg-amber-400 flex flex-col flex-no wrap sm:table-row rounded-l-lg sm:rounded-none mb-2 sm:mb-0">
-                                        <th className="p-3 text-left">Duplicata</th>
-                                        <th className="p-3 text-left">Vencimento</th>
-                                        <th className="p-3 text-left">Tipo Pgm</th>
-                                        <th className="p-3 text-left">Juros</th>
-                                        <th className="p-3 text-left">Descontos</th>
-                                        <th className="p-3 text-left">Valor</th>
-                                    </tr>
-                                )
-                            }
 
-                        </thead>
-                        <tbody className="flex-1 sm:flex-none">
-                            {listaPFParcela.map((item) =>
-                                <tr key={item.PP_DUPLICATA} className="flex flex-col flex-nowrap sm:table-row mb-2 sm:mb-0">
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 sm:w-[30%]">{item.PP_DUPLICATA}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', formatMatcher: 'basic' }).format(item.PP_VENCIMENTO)}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3 w-full">{item.DescricaoTipoPgm}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.PP_JUROS}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-3">{item.PP_DESCONTOS}</td>
-                                    <td className="border-grey-light border hover:bg-gray-100 p-2 sm:p-3 text-amber-500">{Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.PP_VALOR)}</td>
+                {/* Tabela de Parcelas */}
+                <div className="w-full rounded-[6px] border border-ek-border bg-ek-surface overflow-hidden mt-1">
+                    <div className="overflow-x-auto max-h-[220px]">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-ek-raised border-b border-ek-border text-ek-muted text-xs font-semibold sticky top-0 z-10">
+                                    <th className="py-2.5 px-3">Duplicata</th>
+                                    <th className="py-2.5 px-3">Vencimento</th>
+                                    <th className="py-2.5 px-3">Tipo pagto</th>
+                                    <th className="py-2.5 px-3 text-center">Juros</th>
+                                    <th className="py-2.5 px-3 text-center">Descontos</th>
+                                    <th className="py-2.5 px-3 text-right">Valor</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-ek-rule text-xs sm:text-[13px]">
+                                {listaPFParcela.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="py-6 text-center text-ek-faint">
+                                            Nenhuma parcela gerada ainda. Preencha os campos e pressione Enter.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    listaPFParcela.map((item) => (
+                                        <tr key={item.PP_DUPLICATA} className="hover:bg-ek-raised/80 transition-colors">
+                                            <td className="py-2.5 px-3 font-medium text-ek-text tabular-nums">{item.PP_DUPLICATA}</td>
+                                            <td className="py-2.5 px-3 text-ek-muted tabular-nums">
+                                                {Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', formatMatcher: 'basic' }).format(item.PP_VENCIMENTO)}
+                                            </td>
+                                            <td className="py-2.5 px-3 text-ek-text font-medium">{item.DescricaoTipoPgm}</td>
+                                            <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">{item.PP_JUROS}</td>
+                                            <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">{item.PP_DESCONTOS}</td>
+                                            <td className="py-2.5 px-3 text-right font-semibold text-brand tabular-nums">
+                                                {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.PP_VALOR)}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div className="flex flex-col justify-center items-center p-2">
+
+                {/* Botão Finalizar */}
+                <div className="pt-1">
                     <button
-                        disabled={(numParcelasRestantes != 0)}
-                        className={`rounded-md ${(numParcelasRestantes === 0) && (listaPFParcela.length > 0) ? 'bg-green-700' : 'bg-gray-400'} text-white h-16 p-2 w-full`}
-                        onClick={e => setShowModalSalvar(true)}
+                        type="button"
+                        disabled={(numParcelasRestantes !== 0) || (listaPFParcela.length === 0) || isFinishing}
+                        className="ek-btn-primary w-full h-11 text-sm font-semibold justify-center disabled:opacity-45 disabled:cursor-not-allowed"
+                        onClick={() => setShowModalSalvar(true)}
                     >
-                        Finalizar
+                        {isFinishing ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <CheckCircle className="w-4 h-4" />
+                        )}
+                        <span>{isFinishing ? "Finalizando..." : "Finalizar faturamento"}</span>
                     </button>
                 </div>
             </div>

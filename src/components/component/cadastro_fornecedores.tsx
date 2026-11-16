@@ -136,180 +136,230 @@ export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarForn
   }
 
   return (
-    <div className="overflow-scroll">
-      <div className="p-4 sm:w-[800px] sm:h-96">
-        <div className="border rounded-md p-4 space-y-4">
-          <h2 className="text-xl font-bold">Cadastro de Fornecedores</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <h3 className="text-lg font-semibold">Dados Gerais</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="codigo">Código</Label>
-                  <Input id="codigo" disabled={true} value={fornecedor.CODIGO} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tipo">Tipo</Label>
-                  <Select value={fornecedor.TIPO} onValueChange={(e) => setFornecedor({ ...fornecedor, TIPO: e })} >
-                    <SelectTrigger id="tipo">
-                      <SelectValue placeholder="Jurídica" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={TipoPessoa.FISICA}>Física</SelectItem>
-                      <SelectItem value={TipoPessoa.JURIDICA}>Jurídica</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cpf_cnpj">CPF/CNPJ</Label>
-                  <Input ref={ehCpf ? inputRefCpf : inputRefCnpj}
-                    placeholder={ehCpf ? 'Digite seu CPF' : 'Digite seu CNPJ'}
-                    value={fornecedor.CPF_CNPJ}
-                    onChange={(e) => setFornecedor({ ...fornecedor, CPF_CNPJ: e.target.value.toUpperCase() })}
-                  />
-                  <div className="space-y-2">
-                    <Label htmlFor="data_cadastro">Data Cadastro</Label>
-                    <Input disabled={true} id="data_cadastro" type="text" value={dataCadastro ?? ''} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="nome_fantasia">{ehCpf ? 'Nome' : 'Nome (Fantasia)'}</Label>
-                  <Input id="nome_fantasia" className="uppercase" value={fornecedor.NOME} onInput={(e) => e.currentTarget.value = e.currentTarget.value.toUpperCase()}
-                    onChange={(e) => setFornecedor({ ...fornecedor, NOME: e.target.value })} />
-                </div>
-                <>
-                  {ehCpf ?
-                    <></> :
-                    <div className="space-y-2">
-                      <Label htmlFor="razao_social">Razão Social</Label>
-                      <Input id="razao_social" className="uppercase" value={fornecedor.RAZAOSOCIAL} onInput={(e) => e.currentTarget.value = e.currentTarget.value.toUpperCase()}
-                        onChange={(e) => setFornecedor({ ...fornecedor, RAZAOSOCIAL: e.target.value })} />
-                    </div>
-                  }
-                </>
-                <div className="space-y-2">
-                  <Label htmlFor="endereco">Endereço</Label>
-                  <Input id="endereco" value={fornecedor.ENDERECO} onInput={(e) => e.currentTarget.value = e.currentTarget.value.toUpperCase()}
-                    onChange={(e) => setFornecedor({ ...fornecedor, ENDERECO: e.target.value.toUpperCase() })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endereco">Número</Label>
-                  <Input id="endereco" type="number" value={fornecedor.END_NUMERO} onInput={(e) => e.currentTarget.value = e.currentTarget.value}
-                    onChange={(e) => setFornecedor({ ...fornecedor, END_NUMERO: Number(e.target.value) })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bairro">Bairro</Label>
-                  <Input className="uppercase" id="bairro" value={fornecedor.BAIRRO} onInput={(e) => e.currentTarget.value = e.currentTarget.value.toUpperCase()}
-                    onChange={(e) => setFornecedor({ ...fornecedor, BAIRRO: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cidade">Cidade</Label>
-                  <div>
-                    <Input
-                      type="text"
-                      value={queryCity}
-                      className="uppercase"
-                      onChange={e => setQueryCity(e.target.value)}
-                      placeholder="Search..."
-                    />
-                    {loadingCity && <div>Loading...</div>}
-                    <ul>
-                      {
-                        optionsCity.map((option, index) => (
-                          <li className="cursor-pointer" onClick={e => escolheCidade(option)} key={option.CID_CODIGO}>{option.DESCRICAO}</li>
-                        ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cep">CEP</Label>
-                  <Input ref={inputRefCep}
-                    value={fornecedor.CEP}
-                    onChange={(e) => setFornecedor({ ...fornecedor, CEP: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fone">Fone</Label>
-                  <Input ref={inputRefFone}
-                    value={fornecedor.FONE}
-                    onChange={(e) => setFornecedor({ ...fornecedor, FONE: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="limite">EMAIL</Label>
-                  <Input id="email" value={fornecedor.EMAIL} onChange={e => setFornecedor({ ...fornecedor, EMAIL: e.target.value.toUpperCase() })} className="uppercase p-1 border rounded-md border-spacing-1 border-amber-400" type="text" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ind_insc_estadual">Indicador da Insc. Estadual</Label>
-                  <Select value={fornecedor.INDICEIE} onValueChange={(e) => setFornecedor({ ...fornecedor, INDICEIE: e })}>
-                    <SelectTrigger id="ind_insc_estadual">
-                      <SelectValue placeholder="9" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 - Contribuinte do ICMS</SelectItem>
-                      <SelectItem value="2">2 - Contribuinte Isento de Inscrição no Cadastro de Contribuintes do ICMS</SelectItem>
-                      <SelectItem value="9">9 - Não Contribuinte, pode ou não possuir IE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="insc_estadual">Inscr. Estadual</Label>
-                  <Input id="insc_estadual" value={fornecedor.INSCRICAOESTADUAL}
-                    onChange={(e) => setFornecedor({ ...fornecedor, INSCRICAOESTADUAL: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="insc_municipal">Inscr. Munic.</Label>
-                  <Input id="insc_municipal" value={fornecedor.INSCRICAOMUNICIPAL}
-                    onChange={(e) => setFornecedor({ ...fornecedor, INSCRICAOMUNICIPAL: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="latitude">Latitude</Label>
-                  <Input id="latitude" value={fornecedor.LATITUDE}
-                    onChange={(e) => setFornecedor({ ...fornecedor, LATITUDE: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="longitude">Longitude</Label>
-                  <Input id="longitude" value={fornecedor.LONGITUDE}
-                    onChange={(e) => setFornecedor({ ...fornecedor, LONGITUDE: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label> Certifique que os dados estão corretos</Label>
-                  <Button onClick={insereLatLongEndereco}> Inserir LatLong pelo endereço </Button>
-                </div>
-              </div>
+    <div className="w-full space-y-4">
+      <div className="ek-card p-4 sm:p-5 space-y-5">
+        <div className="flex items-center gap-2.5 border-b border-ek-rule pb-3">
+          <div className="w-1 h-4 bg-brand shrink-0" />
+          <h2 className="text-base font-semibold text-ek-text tracking-tight">Cadastro de Fornecedores</h2>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-ek-text">Dados Gerais</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            <div className="space-y-1.5">
+              <Label htmlFor="codigo">Código</Label>
+              <Input id="codigo" disabled={true} value={fornecedor.CODIGO} />
             </div>
-          </div>
-          <div className="border-t pt-4">
-            <h3 className="text-lg font-semibold">Dados Adicionais</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="celular">Celular</Label>
-                <Input ref={inputRefCel}
-                  value={fornecedor.CELULAR}
-                  onChange={(e) => setFornecedor({ ...fornecedor, CELULAR: e.target.value })}
+            <div className="space-y-1.5">
+              <Label htmlFor="tipo">Tipo</Label>
+              <Select value={fornecedor.TIPO} onValueChange={(e) => setFornecedor({ ...fornecedor, TIPO: e })}>
+                <SelectTrigger id="tipo">
+                  <SelectValue placeholder="Jurídica" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={TipoPessoa.FISICA}>Física</SelectItem>
+                  <SelectItem value={TipoPessoa.JURIDICA}>Jurídica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="cpf_cnpj">CPF/CNPJ</Label>
+              <Input
+                ref={ehCpf ? inputRefCpf : inputRefCnpj}
+                placeholder={ehCpf ? "Digite seu CPF" : "Digite seu CNPJ"}
+                value={fornecedor.CPF_CNPJ}
+                onChange={(e) => setFornecedor({ ...fornecedor, CPF_CNPJ: e.target.value.toUpperCase() })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="data_cadastro">Data Cadastro</Label>
+              <Input disabled={true} id="data_cadastro" type="text" value={dataCadastro ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="nome_fantasia">{ehCpf ? "Nome" : "Nome (Fantasia)"}</Label>
+              <Input
+                id="nome_fantasia"
+                className="uppercase"
+                value={fornecedor.NOME}
+                onInput={(e) => (e.currentTarget.value = e.currentTarget.value.toUpperCase())}
+                onChange={(e) => setFornecedor({ ...fornecedor, NOME: e.target.value })}
+              />
+            </div>
+            {!ehCpf && (
+              <div className="space-y-1.5">
+                <Label htmlFor="razao_social">Razão Social</Label>
+                <Input
+                  id="razao_social"
+                  className="uppercase"
+                  value={fornecedor.RAZAOSOCIAL}
+                  onInput={(e) => (e.currentTarget.value = e.currentTarget.value.toUpperCase())}
+                  onChange={(e) => setFornecedor({ ...fornecedor, RAZAOSOCIAL: e.target.value })}
                 />
               </div>
-              <div className="col-span-3 space-y-2">
-                <Label htmlFor="observacao">Observação</Label>
-                <Textarea id="observacao" value={fornecedor.OBS} onChange={(e) =>
-                  setFornecedor({ ...fornecedor, OBS: e.target.value })} />
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="endereco">Endereço</Label>
+              <Input
+                id="endereco"
+                value={fornecedor.ENDERECO}
+                onInput={(e) => (e.currentTarget.value = e.currentTarget.value.toUpperCase())}
+                onChange={(e) => setFornecedor({ ...fornecedor, ENDERECO: e.target.value.toUpperCase() })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="endereco_num">Número</Label>
+              <Input
+                id="endereco_num"
+                type="number"
+                value={fornecedor.END_NUMERO}
+                onInput={(e) => (e.currentTarget.value = e.currentTarget.value)}
+                onChange={(e) => setFornecedor({ ...fornecedor, END_NUMERO: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="bairro">Bairro</Label>
+              <Input
+                className="uppercase"
+                id="bairro"
+                value={fornecedor.BAIRRO}
+                onInput={(e) => (e.currentTarget.value = e.currentTarget.value.toUpperCase())}
+                onChange={(e) => setFornecedor({ ...fornecedor, BAIRRO: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5 relative">
+              <Label htmlFor="cidade">Cidade</Label>
+              <div>
+                <Input
+                  type="text"
+                  value={queryCity}
+                  className="uppercase"
+                  onChange={(e) => setQueryCity(e.target.value)}
+                  placeholder="Pesquisar cidade..."
+                />
+                {loadingCity && <div className="text-xs text-ek-muted mt-1">Carregando...</div>}
+                {optionsCity.length > 0 && (
+                  <ul className="mt-1 max-h-40 overflow-y-auto border border-ek-border bg-ek-surface rounded-[6px] divide-y divide-ek-rule text-xs">
+                    {optionsCity.map((option) => (
+                      <li
+                        className="px-3 py-1.5 cursor-pointer hover:bg-brand-soft text-ek-text transition-colors"
+                        onClick={() => escolheCidade(option)}
+                        key={option.CID_CODIGO}
+                      >
+                        {option.DESCRICAO}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="cep">CEP</Label>
+              <Input
+                ref={inputRefCep}
+                value={fornecedor.CEP}
+                onChange={(e) => setFornecedor({ ...fornecedor, CEP: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="fone">Fone</Label>
+              <Input
+                ref={inputRefFone}
+                value={fornecedor.FONE}
+                onChange={(e) => setFornecedor({ ...fornecedor, FONE: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                value={fornecedor.EMAIL}
+                onChange={(e) => setFornecedor({ ...fornecedor, EMAIL: e.target.value.toUpperCase() })}
+                className="uppercase"
+                type="text"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ind_insc_estadual">Indicador da Insc. Estadual</Label>
+              <Select value={fornecedor.INDICEIE} onValueChange={(e) => setFornecedor({ ...fornecedor, INDICEIE: e })}>
+                <SelectTrigger id="ind_insc_estadual">
+                  <SelectValue placeholder="9" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 - Contribuinte do ICMS</SelectItem>
+                  <SelectItem value="2">2 - Contribuinte Isento de Inscrição no Cadastro de Contribuintes do ICMS</SelectItem>
+                  <SelectItem value="9">9 - Não Contribuinte, pode ou não possuir IE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="insc_estadual">Inscr. Estadual</Label>
+              <Input
+                id="insc_estadual"
+                value={fornecedor.INSCRICAOESTADUAL}
+                onChange={(e) => setFornecedor({ ...fornecedor, INSCRICAOESTADUAL: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="insc_municipal">Inscr. Munic.</Label>
+              <Input
+                id="insc_municipal"
+                value={fornecedor.INSCRICAOMUNICIPAL}
+                onChange={(e) => setFornecedor({ ...fornecedor, INSCRICAOMUNICIPAL: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="latitude">Latitude</Label>
+              <Input
+                id="latitude"
+                value={fornecedor.LATITUDE}
+                onChange={(e) => setFornecedor({ ...fornecedor, LATITUDE: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="longitude">Longitude</Label>
+              <Input
+                id="longitude"
+                value={fornecedor.LONGITUDE}
+                onChange={(e) => setFornecedor({ ...fornecedor, LONGITUDE: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2 lg:col-span-1 flex flex-col justify-end">
+              <Label className="mb-1">Coordenadas pelo endereço</Label>
+              <Button variant="outline" onClick={insereLatLongEndereco}>
+                Inserir LatLong pelo endereço
+              </Button>
             </div>
           </div>
         </div>
-        <div className="text-sm mt-4">
-          <p>
-            <div className="bg-white shadow-lg p-4">
-              <div className="flex justify-around space-x-2">
-                <Button variant="default" className="flex-1" onClick={salvaFornecedor} >
-                  {novoFornecedor ? 'Cadastrar' : 'Alterar'}
-                </Button>
-              </div>
+
+        <div className="border-t border-ek-rule pt-4 space-y-3">
+          <h3 className="text-sm font-semibold text-ek-text">Dados Adicionais</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="space-y-1.5">
+              <Label htmlFor="celular">Celular</Label>
+              <Input
+                ref={inputRefCel}
+                value={fornecedor.CELULAR}
+                onChange={(e) => setFornecedor({ ...fornecedor, CELULAR: e.target.value })}
+              />
             </div>
-          </p>
+            <div className="sm:col-span-3 space-y-1.5">
+              <Label htmlFor="observacao">Observação</Label>
+              <Textarea
+                id="observacao"
+                value={fornecedor.OBS}
+                onChange={(e) => setFornecedor({ ...fornecedor, OBS: e.target.value })}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-3 border-t border-ek-rule">
+          <Button variant="default" onClick={salvaFornecedor}>
+            {novoFornecedor ? "Cadastrar" : "Alterar"}
+          </Button>
         </div>
       </div>
-
     </div>
-  )
+  );
 }

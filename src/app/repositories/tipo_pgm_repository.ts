@@ -1,4 +1,5 @@
 import api from "../services/api";
+import TipoPgmModel from "../models/tipo_pgm_model";
 
 export default class TipoPgmRepository{
     async buscaTipoPgm(tipo: string): Promise<TipoPgmModel[]>{

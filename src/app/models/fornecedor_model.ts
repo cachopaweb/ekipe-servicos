@@ -19,10 +19,16 @@ export enum TipoPessoa {
     BLOQUEADO = 'Bloqueado'
   }
   
+export type EstadoFornecedor = "ATIVO" | "INATIVO";
+
+export function isFornecedorAtivo(estado?: string | null): boolean {
+  return (estado ?? "").trim().toUpperCase() !== "INATIVO";
+}
+
 export class FornecedorModel {
     CODIGO: number;
     NOME: string;
-    ESTADO?:string;
+    ESTADO?: EstadoFornecedor | string;
     RAZAOSOCIAL?: string;
     TIPO?: TipoPessoa | string;
     CPF_CNPJ?: string;

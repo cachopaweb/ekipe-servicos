@@ -1,18 +1,20 @@
 "use client";
 
-import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
-import { Search, X, Loader2, Building2, Plus, MapPin, Eye, Check } from "lucide-react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Search, X, Loader2, Building2, Plus, MapPin, Eye, Check, Power, PowerOff } from "lucide-react";
 import dynamic from "next/dynamic";
-import { FornecedorModel } from "../models/fornecedor_model";
+import { EstadoFornecedor, FornecedorModel, isFornecedorAtivo } from "../models/fornecedor_model";
 import FornecedorRepository from "../repositories/fornecedor_repository";
 import { Cadastro_fornecedores } from "@/components/component/cadastro_fornecedores";
 import CidadeModel from "../models/cidade_model";
 import CidadeRepository from "../repositories/cidade_repository";
 import { toastMixin } from "../functions/utils";
+import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 
 const Mapa = dynamic(() => import("../mapa/index").then((mod) => mod.Mapa), { ssr: false });
 
 type FiltroTipo = "nome" | "fantasia" | "cidade" | "observacoes";
+type FiltroStatus = "todos" | "ativos" | "inativos";
 
 type PesquisaFornecedorParams = {
   showModal?: boolean;
@@ -38,6 +40,7 @@ export default function PesquisaFornecedor({
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [filtro, setFiltro] = useState<FiltroTipo>("nome");
+  const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("todos");
   const [queryCity, setQueryCity] = useState("");
   const [loadingCity, setLoadingCity] = useState(false);
   const [optionsCity, setOptionsCity] = useState<CidadeModel[]>([]);
@@ -47,6 +50,17 @@ export default function PesquisaFornecedor({
   const [visualizarMapa, setVisualizarMapa] = useState(false);
   const [cadastrarFornecedor, setCadastrarFornecedor] = useState(false);
   const [idCadastraFornecedor, setIdCadastraFornecedor] = useState(0);
+
+  const [confirmAlterarEstado, setConfirmAlterarEstado] = useState<{
+    isOpen: boolean;
+    fornecedor: FornecedorModel | null;
+    novoEstado: EstadoFornecedor;
+  }>({
+    isOpen: false,
+    fornecedor: null,
+    novoEstado: "INATIVO",
+  });
+  const [atualizandoEstado, setAtualizandoEstado] = useState(false);
 
   const inputBuscaRef = useRef<HTMLInputElement>(null);
   const inputCityRef = useRef<HTMLInputElement>(null);
@@ -189,31 +203,121 @@ export default function PesquisaFornecedor({
     setCadastrarFornecedor(true);
   };
 
+  const fornecedoresFiltrados = useMemo(() => {
+    if (filtroStatus === "ativos") {
+      return fornecedores.filter((item) => isFornecedorAtivo(item.ESTADO));
+    }
+    if (filtroStatus === "inativos") {
+      return fornecedores.filter((item) => !isFornecedorAtivo(item.ESTADO));
+    }
+    return fornecedores;
+  }, [fornecedores, filtroStatus]);
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [filtroStatus]);
+
+  useEffect(() => {
+    setSelectedIndex((prev) =>
+      fornecedoresFiltrados.length === 0 ? 0 : Math.min(prev, fornecedoresFiltrados.length - 1)
+    );
+  }, [fornecedoresFiltrados.length]);
+
   const selecionarFornecedor = useCallback(
     (model: FornecedorModel) => {
+      if (!isFornecedorAtivo(model.ESTADO)) {
+        toastMixin.fire({
+          title: "Parceiro inativo",
+          text: `O parceiro "${model.NOME}" está inativo. Ative-o antes de selecioná-lo.`,
+          icon: "warning",
+          timer: 2000,
+        });
+        return;
+      }
       setFornecedorSelecionado(model);
       handleClose();
     },
     [setFornecedorSelecionado, handleClose]
   );
 
+  const solicitarAlteracaoEstado = (model: FornecedorModel) => {
+    const ativoAtual = isFornecedorAtivo(model.ESTADO);
+    setConfirmAlterarEstado({
+      isOpen: true,
+      fornecedor: model,
+      novoEstado: ativoAtual ? "INATIVO" : "ATIVO",
+    });
+  };
+
+  const handleConfirmAlterarEstado = async () => {
+    const { fornecedor, novoEstado } = confirmAlterarEstado;
+    if (!fornecedor || atualizandoEstado) return;
+
+    setAtualizandoEstado(true);
+    try {
+      const repository = new FornecedorRepository();
+      const sucesso = await repository.setEstadoFornecedor(fornecedor.CODIGO, novoEstado);
+      if (!sucesso) {
+        throw new Error("Não foi possível atualizar o status do parceiro.");
+      }
+
+      setFornecedores((prev) =>
+        prev.map((item) =>
+          item.CODIGO === fornecedor.CODIGO ? { ...item, ESTADO: novoEstado } : item
+        )
+      );
+      setConfirmAlterarEstado({ isOpen: false, fornecedor: null, novoEstado: "INATIVO" });
+
+      toastMixin.fire({
+        title: novoEstado === "INATIVO" ? "Parceiro Inativado" : "Parceiro Ativado",
+        text: `O parceiro "${fornecedor.NOME}" foi ${
+          novoEstado === "INATIVO" ? "inativado" : "ativado"
+        } com sucesso.`,
+        icon: "success",
+        timer: 1500,
+      });
+    } catch (error) {
+      toastMixin.fire({
+        title: "Erro ao alterar status",
+        text: String(error),
+        icon: "error",
+      });
+    } finally {
+      setAtualizandoEstado(false);
+    }
+  };
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (confirmAlterarEstado.isOpen || cadastrarFornecedor || visualizarMapa) {
+        return;
+      }
+
       if (e.key === "Escape") {
         e.preventDefault();
         handleClose();
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex((prev) => Math.min(prev + 1, fornecedores.length - 1));
+        setSelectedIndex((prev) =>
+          Math.min(prev + 1, Math.max(fornecedoresFiltrados.length - 1, 0))
+        );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex((prev) => Math.max(prev - 1, 0));
-      } else if (e.key === "Enter" && fornecedores[selectedIndex]) {
+      } else if (e.key === "Enter" && fornecedoresFiltrados[selectedIndex]) {
         e.preventDefault();
-        selecionarFornecedor(fornecedores[selectedIndex]);
+        selecionarFornecedor(fornecedoresFiltrados[selectedIndex]);
       }
     },
-    [fornecedores, selectedIndex, selecionarFornecedor, handleClose]
+    [
+      confirmAlterarEstado.isOpen,
+      cadastrarFornecedor,
+      visualizarMapa,
+      fornecedoresFiltrados,
+      selectedIndex,
+      selecionarFornecedor,
+      handleClose,
+    ]
   );
 
   if (!activeIsOpen) return null;
@@ -270,52 +374,77 @@ export default function PesquisaFornecedor({
 
           {/* Filtros e Barra de Pesquisa */}
           <div className="p-4 border-b border-ek-border bg-ek-surface flex flex-col gap-3 shrink-0">
-            {/* Seletor de Tipo de Filtro (Segmented Control) */}
-            <div className="flex flex-wrap items-center gap-1 bg-ek-raised border border-ek-border p-1 rounded-[6px] w-fit text-xs font-medium text-ek-muted">
-              <button
-                type="button"
-                onClick={() => setFiltro("nome")}
-                className={`px-3 py-1 rounded-[4px] transition-colors ${
-                  filtro === "nome"
-                    ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
-                    : "hover:text-ek-text"
-                }`}
-              >
-                Nome
-              </button>
-              <button
-                type="button"
-                onClick={() => setFiltro("fantasia")}
-                className={`px-3 py-1 rounded-[4px] transition-colors ${
-                  filtro === "fantasia"
-                    ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
-                    : "hover:text-ek-text"
-                }`}
-              >
-                Nome Fantasia
-              </button>
-              <button
-                type="button"
-                onClick={() => setFiltro("cidade")}
-                className={`px-3 py-1 rounded-[4px] transition-colors ${
-                  filtro === "cidade"
-                    ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
-                    : "hover:text-ek-text"
-                }`}
-              >
-                Cidade
-              </button>
-              <button
-                type="button"
-                onClick={() => setFiltro("observacoes")}
-                className={`px-3 py-1 rounded-[4px] transition-colors ${
-                  filtro === "observacoes"
-                    ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
-                    : "hover:text-ek-text"
-                }`}
-              >
-                Observações
-              </button>
+            {/* Seletores de Tipo de Filtro e Status */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-1 bg-ek-raised border border-ek-border p-1 rounded-[6px] w-fit text-xs font-medium text-ek-muted">
+                <button
+                  type="button"
+                  onClick={() => setFiltro("nome")}
+                  className={`px-3 py-1 rounded-[4px] transition-colors ${
+                    filtro === "nome"
+                      ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                      : "hover:text-ek-text"
+                  }`}
+                >
+                  Nome
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltro("fantasia")}
+                  className={`px-3 py-1 rounded-[4px] transition-colors ${
+                    filtro === "fantasia"
+                      ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                      : "hover:text-ek-text"
+                  }`}
+                >
+                  Nome Fantasia
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltro("cidade")}
+                  className={`px-3 py-1 rounded-[4px] transition-colors ${
+                    filtro === "cidade"
+                      ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                      : "hover:text-ek-text"
+                  }`}
+                >
+                  Cidade
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltro("observacoes")}
+                  className={`px-3 py-1 rounded-[4px] transition-colors ${
+                    filtro === "observacoes"
+                      ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                      : "hover:text-ek-text"
+                  }`}
+                >
+                  Observações
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1 bg-ek-raised border border-ek-border p-1 rounded-[6px] w-fit text-xs font-medium text-ek-muted">
+                {(
+                  [
+                    { value: "todos", label: "Todos" },
+                    { value: "ativos", label: "Ativos" },
+                    { value: "inativos", label: "Inativos" },
+                  ] as const
+                ).map((opcao) => (
+                  <button
+                    key={opcao.value}
+                    type="button"
+                    onClick={() => setFiltroStatus(opcao.value)}
+                    className={`px-3 py-1 rounded-[4px] transition-colors ${
+                      filtroStatus === opcao.value
+                        ? "bg-ek-surface text-ek-text border border-ek-border font-semibold"
+                        : "hover:text-ek-text"
+                    }`}
+                  >
+                    {opcao.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Input de Busca */}
@@ -377,7 +506,7 @@ export default function PesquisaFornecedor({
                 <Loader2 className="w-6 h-6 animate-spin text-brand" />
                 <span className="text-xs font-medium">Buscando fornecedores...</span>
               </div>
-            ) : fornecedores.length === 0 ? (
+            ) : fornecedoresFiltrados.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-ek-muted gap-2">
                 <Building2 className="w-8 h-8 text-ek-faint" />
                 <span className="text-sm font-medium text-ek-text">Nenhum fornecedor encontrado.</span>
@@ -391,24 +520,54 @@ export default function PesquisaFornecedor({
                     <th className="p-3">Nome / Razão Social</th>
                     <th className="p-3 whitespace-nowrap w-48">CNPJ / CPF</th>
                     <th className="p-3 whitespace-nowrap w-40">Telefone</th>
-                    <th className="p-3 text-center w-24 whitespace-nowrap">Ações</th>
+                    <th className="p-3 text-center w-28 whitespace-nowrap">Status</th>
+                    <th className="p-3 text-center w-44 whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ek-rule">
-                  {fornecedores.map((item, idx) => {
+                  {fornecedoresFiltrados.map((item, idx) => {
                     const isSelected = idx === selectedIndex;
+                    const ativo = isFornecedorAtivo(item.ESTADO);
                     return (
                       <tr
                         key={item.CODIGO}
                         onClick={() => selecionarFornecedor(item)}
                         className={`cursor-pointer transition-colors text-sm ${
-                          isSelected ? "bg-brand-soft font-semibold text-ek-text" : "hover:bg-ek-raised text-ek-text"
+                          isSelected
+                            ? "bg-brand-soft font-semibold text-ek-text"
+                            : ativo
+                            ? "hover:bg-ek-raised text-ek-text"
+                            : "bg-ek-raised/40 hover:bg-ek-raised text-ek-muted"
                         }`}
                       >
-                        <td className="p-3 font-mono font-medium text-ek-text text-center whitespace-nowrap tabular-nums">{item.CODIGO}</td>
-                        <td className="p-3 font-medium text-ek-text">{item.NOME}</td>
-                        <td className="p-3 font-mono text-ek-muted whitespace-nowrap tabular-nums">{item.CPF_CNPJ || "—"}</td>
-                        <td className="p-3 text-ek-muted whitespace-nowrap tabular-nums">{item.FONE || "—"}</td>
+                        <td className="p-3 font-mono font-medium text-center whitespace-nowrap tabular-nums">
+                          {item.CODIGO}
+                        </td>
+                        <td className={`p-3 font-medium ${ativo ? "text-ek-text" : "text-ek-muted"}`}>
+                          {item.NOME}
+                        </td>
+                        <td className="p-3 font-mono text-ek-muted whitespace-nowrap tabular-nums">
+                          {item.CPF_CNPJ || "—"}
+                        </td>
+                        <td className="p-3 text-ek-muted whitespace-nowrap tabular-nums">
+                          {item.FONE || "—"}
+                        </td>
+                        <td className="p-3 text-center whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-xs font-semibold border ${
+                              ativo
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-rose-50 text-rose-700 border-rose-200"
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                                ativo ? "bg-emerald-500" : "bg-rose-500"
+                              }`}
+                            />
+                            {ativo ? "ATIVO" : "INATIVO"}
+                          </span>
+                        </td>
                         <td className="p-3 text-center whitespace-nowrap">
                           <div
                             className="inline-flex items-center justify-center gap-1.5"
@@ -425,13 +584,49 @@ export default function PesquisaFornecedor({
                             </button>
                             <button
                               type="button"
+                              disabled={!ativo}
                               onClick={() => selecionarFornecedor(item)}
-                              title="Selecionar este fornecedor"
-                              aria-label="Selecionar este fornecedor"
-                              className="p-1.5 text-brand hover:text-brand-hover bg-brand-soft hover:bg-brand-soft border border-brand-border rounded-[6px] transition-colors"
+                              title={
+                                ativo
+                                  ? "Selecionar este fornecedor"
+                                  : "Fornecedor inativo — ative para selecionar"
+                              }
+                              aria-label={
+                                ativo
+                                  ? "Selecionar este fornecedor"
+                                  : "Fornecedor inativo — ative para selecionar"
+                              }
+                              className={`p-1.5 border rounded-[6px] transition-colors ${
+                                ativo
+                                  ? "text-brand hover:text-brand-hover bg-brand-soft hover:bg-brand-soft border-brand-border"
+                                  : "text-ek-faint bg-ek-raised border-ek-border opacity-50 cursor-not-allowed"
+                              }`}
                             >
                               <Check className="w-4 h-4" />
                             </button>
+                            {ativo ? (
+                              <button
+                                type="button"
+                                onClick={() => solicitarAlteracaoEstado(item)}
+                                title="Inativar parceiro"
+                                aria-label="Inativar parceiro"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-[6px] transition-colors"
+                              >
+                                <PowerOff className="w-3.5 h-3.5" />
+                                <span>Inativar</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => solicitarAlteracaoEstado(item)}
+                                title="Ativar parceiro"
+                                aria-label="Ativar parceiro"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-[6px] transition-colors"
+                              >
+                                <Power className="w-3.5 h-3.5" />
+                                <span>Ativar</span>
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -445,8 +640,8 @@ export default function PesquisaFornecedor({
           {/* Footer */}
           <div className="flex items-center justify-between px-6 py-3.5 border-t border-ek-border bg-ek-raised shrink-0">
             <span className="text-xs text-ek-muted tabular-nums">
-              {fornecedores.length}{" "}
-              {fornecedores.length === 1 ? "fornecedor encontrado" : "fornecedores encontrados"}
+              {fornecedoresFiltrados.length}{" "}
+              {fornecedoresFiltrados.length === 1 ? "fornecedor encontrado" : "fornecedores encontrados"}
             </span>
             <button
               type="button"
@@ -458,6 +653,33 @@ export default function PesquisaFornecedor({
           </div>
         </div>
       </div>
+
+      {/* Confirmação de Ativação / Inativação */}
+      <ModalConfirmacao
+        isOpen={confirmAlterarEstado.isOpen}
+        onClose={() => {
+          if (!atualizandoEstado) {
+            setConfirmAlterarEstado({ isOpen: false, fornecedor: null, novoEstado: "INATIVO" });
+          }
+        }}
+        onConfirm={handleConfirmAlterarEstado}
+        title={
+          confirmAlterarEstado.novoEstado === "INATIVO"
+            ? "Inativar Parceiro"
+            : "Ativar Parceiro"
+        }
+        message={
+          confirmAlterarEstado.novoEstado === "INATIVO"
+            ? `Deseja realmente inativar o parceiro "${confirmAlterarEstado.fornecedor?.NOME}"?`
+            : `Deseja realmente ativar o parceiro "${confirmAlterarEstado.fornecedor?.NOME}"?`
+        }
+        type={confirmAlterarEstado.novoEstado === "INATIVO" ? "danger" : "success"}
+        confirmText={
+          confirmAlterarEstado.novoEstado === "INATIVO" ? "Sim, Inativar" : "Sim, Ativar"
+        }
+        cancelText="Cancelar"
+        isLoading={atualizandoEstado}
+      />
 
       {/* Sub-modal: Mapa */}
       {visualizarMapa && (

@@ -1,6 +1,6 @@
 import MovimentacoesModel from "../models/movimentacoes_model";
 import api from "../services/api";
-import { FormatDate } from '@/app/functions/utils'
+import { escapeSql, FormatDate } from '@/app/functions/utils'
 
 export default class MovimentacoesRepository{
     async getMovimentacoes(data1: Date, data2: Date): Promise<MovimentacoesModel[]>{
@@ -19,9 +19,9 @@ export default class MovimentacoesRepository{
         try {            
             const response = await api.post('/dataset', {
                 'sql': `EXECUTE PROCEDURE INSERE_MOVIMENTACAO(${movimentacao.MOV_CODIGO}, ${movimentacao.MOV_CREDITO}, ${movimentacao.MOV_DEBITO}, 
-                       '${movimentacao.MOV_DESCRICAO}', '${movimentacao.MOV_TIPO}', '${FormatDate(movimentacao.MOV_DATA)}', ${movimentacao.MOV_CON}, 
-                       '${FormatDate(movimentacao.MOV_DATAHORA)}', '${movimentacao.MOV_PLANO}',  '${movimentacao.MOV_NOME}', ${movimentacao.MOV_CAI}, 
-                        ${movimentacao.MOV_TROCO}, '${movimentacao.PDV}')`
+                       '${escapeSql(movimentacao.MOV_DESCRICAO)}', '${escapeSql(movimentacao.MOV_TIPO)}', '${FormatDate(movimentacao.MOV_DATA)}', ${movimentacao.MOV_CON}, 
+                       '${FormatDate(movimentacao.MOV_DATAHORA)}', '${escapeSql(movimentacao.MOV_PLANO)}',  '${escapeSql(movimentacao.MOV_NOME)}', ${movimentacao.MOV_CAI}, 
+                        ${movimentacao.MOV_TROCO}, '${escapeSql(movimentacao.PDV)}')`
             })
             return response.status === 200;
         } catch (e) {

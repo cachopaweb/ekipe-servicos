@@ -32,6 +32,7 @@ interface PainelTotaisProps {
   onRetryTotalPago?: () => void;
   isDirty?: boolean;
   onFaturar: () => void;
+  onAbrirRecebimentos?: () => void;
   onAbrirEmpreitadas: () => void;
   onAbrirArquivos: () => void;
   onImprimir: () => void;
@@ -56,6 +57,7 @@ export default function PainelTotais({
   onRetryTotalPago,
   isDirty,
   onFaturar,
+  onAbrirRecebimentos,
   onAbrirEmpreitadas,
   onAbrirArquivos,
   onImprimir,
@@ -328,7 +330,7 @@ export default function PainelTotais({
                   type="text"
                   value={inputDescontoReais}
                   onChange={handleDescontoReaisChange}
-                  placeholder="0,00"
+                  placeholder="R$ 0,00"
                   className="ek-input text-right font-medium text-red-700 tabular-nums"
                 />
               </div>
@@ -366,6 +368,24 @@ export default function PainelTotais({
               <CheckCircle2 className="w-4 h-4" />
               <span>{isFaturado ? "Ordem Faturada" : "Faturar Ordem"}</span>
             </button>
+
+            {isFaturado && onAbrirRecebimentos && (
+              <button
+                type="button"
+                onClick={onAbrirRecebimentos}
+                className={`w-full mt-2 h-9 px-3 rounded-[6px] font-medium text-xs flex items-center justify-center gap-2 border transition-colors ${
+                  saldoAPagar > 0
+                    ? "bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300"
+                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200"
+                }`}
+                title="Visualizar parcelas da fatura e registrar baixas de pagamento"
+              >
+                <Coins className="w-4 h-4" />
+                <span>
+                  {saldoAPagar > 0 ? "Recebimentos / Dar Baixa" : "Recebimentos da Fatura"}
+                </span>
+              </button>
+            )}
 
             {isFaturado && onImprimirCompleto && (
               <button

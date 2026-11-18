@@ -44,6 +44,7 @@ import PrintOrcamentos from "@/app/print/orcamento/page";
 import PrintOSCompleta from "@/components/component/print_os_completa";
 import { ModalListarArquivos } from "@/components/component/files";
 import Modal from "@/components/component/modal";
+import ModalRecebimentos from "./components/modal_recebimentos";
 
 // Subcomponentes Modulares da Página
 import HeaderOrcamento from "./components/header_orcamento";
@@ -155,6 +156,7 @@ function OrcamentosContent() {
   const [showModalEmpreitadas, setShowModalEmpreitadas] = useState<boolean>(false);
   const [showModalListaArquivos, setShowModalListaArquivos] = useState<boolean>(false);
   const [showFaturamento, setShowFaturamento] = useState<boolean>(false);
+  const [showModalRecebimentos, setShowModalRecebimentos] = useState<boolean>(false);
   const [showModalPrintOSCompleta, setShowModalPrintOSCompleta] = useState<boolean>(false);
   const [showModalPosFaturamento, setShowModalPosFaturamento] = useState<boolean>(false);
 
@@ -422,6 +424,7 @@ function OrcamentosContent() {
   // Re-busca ordem quando faturada e disponibiliza emissão de PDF Completo (D07 / A22)
   useEffect(() => {
     if (foiFaturado) {
+      setFoiFaturado(false);
       buscaOrdemServidor();
       setShowModalPosFaturamento(true);
     }
@@ -640,6 +643,7 @@ function OrcamentosContent() {
     setStatusOrdem(novoStatus);
     setNfs("");
     setCodFatura(0);
+    setFoiFaturado(false);
     setSolicitacao("");
     setObs("");
     setObs_adm("");
@@ -1003,6 +1007,7 @@ function OrcamentosContent() {
     }
     const salvou = await salvaOrdem();
     if (!salvou) return;
+    setFoiFaturado(false);
     setShowFaturamento(true);
   };
 
@@ -1045,12 +1050,6 @@ function OrcamentosContent() {
               setIsDirty(true);
             }}
             listaStatus={listaStatusDisponiveis}
-            nfs={nfs}
-            setNfs={(n) => {
-              setNfs(n);
-              setIsDirty(true);
-            }}
-            codFatura={codFatura}
             nomeFuncionario={ordem?.FUN_NOME || nomeFuncionario}
             solicitacao={solicitacao}
             setSolicitacao={(s) => {
@@ -1189,6 +1188,7 @@ function OrcamentosContent() {
             onRetryTotalPago={() => carregaTotalPagoOS(codigoOrdem)}
             isDirty={isDirty}
             onFaturar={handleFaturamento}
+            onAbrirRecebimentos={() => setShowModalRecebimentos(true)}
             onAbrirEmpreitadas={() => setShowModalEmpreitadas(true)}
             onAbrirArquivos={() => setShowModalListaArquivos(true)}
             onImprimir={handleImprimir}
@@ -1314,7 +1314,7 @@ function OrcamentosContent() {
         <Modal
           showModal={showModalimprimir}
           setShowModal={setShowModalImprimir}
-          title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
+          title={codFatura > 0 ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
           showButtonExit={false}
           body={<PrintOrcamentos />}
         />
@@ -1358,6 +1358,32 @@ function OrcamentosContent() {
               setFaturado={setFoiFaturado}
               cliFor={clienteSelecionado}
               valorTotal={totalProdutos + totalServicos - (valorDesconto || 0)}
+              showDadosFiscais
+              nfs={nfs}
+              setNfs={(n) => {
+                setNfs(n);
+                setIsDirty(true);
+              }}
+            />
+          }
+        />
+      )}
+
+      {/* Modal de Recebimentos e Baixas da Fatura */}
+      {showModalRecebimentos && codFatura > 0 && (
+        <Modal
+          title={`Recebimentos & Baixas • Fatura #${codFatura}`}
+          showModal={showModalRecebimentos}
+          setShowModal={setShowModalRecebimentos}
+          showButtonExit={false}
+          body={
+            <ModalRecebimentos
+              codFatura={codFatura}
+              codigoOrdem={codigoOrdem}
+              clienteNome={clienteSelecionado.NOME}
+              funCodigo={idFuncionario || 1}
+              onBaixaConcluida={() => carregaTotalPagoOS(codigoOrdem)}
+              onClose={() => setShowModalRecebimentos(false)}
             />
           }
         />

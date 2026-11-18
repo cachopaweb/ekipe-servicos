@@ -234,6 +234,7 @@ export default class OrdemRepository {
                   AND PF.PF_TABELA = 'ORDENS'
               )
             )
+            AND REC.REC_ESTADO = 3
             AND (REC.REC_SITUACAO IS NULL OR REC.REC_SITUACAO <> -1)
         ), 0) AS TOTAL_PAGO
         FROM RDB$DATABASE

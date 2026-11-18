@@ -5,11 +5,11 @@ import PedFatModel from "../models/ped_fat_model";
 import PFParcelaModel from "../models/pf_parcela_model";
 import TipoPgmModel from "../models/tipo_pgm_model";
 import TipoPgmRepository from "../repositories/tipo_pgm_repository";
-import { IncrementaGenerator, keyBoardInputEvent, keyBoardSelectEvent, toastMixin, formatCurrency, formatDataInput, parseDataCalendario } from "../functions/utils";
+import { IncrementaGenerator, keyBoardInputEvent, keyBoardSelectEvent, toastMixin, formatCurrency, formatDataInput, parseDataCalendario, mascaraMoeda, mascaraMoedaEvent, maskRealToNumber } from "../functions/utils";
 import CliForModel from "../models/cli_for_model";
 import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 import OperacoesStrategy from "./contracts/operacoes_interfaces";
-import { CheckCircle, AlertCircle, PlusCircle, CreditCard, Loader2 } from "lucide-react";
+import { CheckCircle, AlertCircle, PlusCircle, CreditCard, Loader2, Receipt } from "lucide-react";
 
 interface FaturamentoProps {
     valorTotal: number;
@@ -22,9 +22,12 @@ interface FaturamentoProps {
     pedFat: PedFatModel;
     setFaturado: Dispatch<SetStateAction<boolean>>;
     tipoRecPag: string;
+    showDadosFiscais?: boolean;
+    nfs?: string;
+    setNfs?: (nfs: string) => void;
 }
 
-export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: 'GENERICO' }, setShowModal, Operacao, model, itens, itens2, pedFat, setFaturado, tipoRecPag }: FaturamentoProps) {
+export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: 'GENERICO' }, setShowModal, Operacao, model, itens, itens2, pedFat, setFaturado, tipoRecPag, showDadosFiscais = false, nfs = "", setNfs }: FaturamentoProps) {
     const refDivFatura = useRef<HTMLDivElement>(null);
     const [divWidthFatura, setDivWidthFatura] = useState<number>(0);
     useEffect(() => {
@@ -35,8 +38,10 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     const [listaPFParcela, setListaPFParcela] = useState<PFParcelaModel[]>([]);
     const [listaTipopgm, setListaTipoPgm] = useState<TipoPgmModel[]>([]);
     const [vlrEntrada, setVlrEntrada] = useState<number>(0);
+    const [vlrEntradaStr, setVlrEntradaStr] = useState<string>(() => mascaraMoeda(0));
     const [numParcelas, setNumParcelas] = useState<number | null>(null);
     const [valorParcela, setValorParcela] = useState<number | null>(null);
+    const [valorParcelaStr, setValorParcelaStr] = useState<string>(() => mascaraMoeda(0));
     const [valorDescontavel, setValorDescontavel] = useState(0);
     const [numParcelasRestantes, setNumParcelasRestantes] = useState(0);
     const [parcela, setParcela] = useState(0);
@@ -44,6 +49,19 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     const [isFinishing, setIsFinishing] = useState(false);
     const [codTipoPgm, setCodTipoPgm] = useState(0);
     const [vencimentoStr, setVencimentoStr] = useState(() => formatDataInput(new Date()));
+    const [nfsLocal, setNfsLocal] = useState(nfs);
+
+    useEffect(() => {
+        setNfsLocal(nfs);
+    }, [nfs]);
+
+    const handleNfsChange = (val: string) => {
+        setNfsLocal(val);
+        setNfs?.(val);
+        if (model && typeof model === "object" && "ORD_NFS" in model) {
+            (model as { ORD_NFS?: string }).ORD_NFS = val;
+        }
+    };
 
     useEffect(() => {
         if (numParcelas && (numParcelas > 0))
@@ -51,8 +69,10 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
     }, [valorTotal])
 
     useEffect(() => {
-        if (valorDescontavel > 0)
-            setValorParcela(valorDescontavel)
+        if (valorDescontavel > 0) {
+            setValorParcela(valorDescontavel);
+            setValorParcelaStr(mascaraMoeda(valorDescontavel));
+        }
     }, [valorDescontavel])
 
     useEffect(() => {
@@ -102,6 +122,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
         if (e.key === 'Enter') {
             if (!vlrEntrada) {
                 setVlrEntrada(0);
+                setVlrEntradaStr(mascaraMoeda(0));
             }
             setParcela(0);
             setVencimentoStr(formatDataInput(new Date()));
@@ -224,6 +245,9 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
             pedFat.PF_VALORB = valorTotal!;
             pedFat.PF_VALORPG = vlrEntrada!;
             pedFat.PF_PARCELAS = (vlrEntrada! && numParcelas!) > 0 ? numParcelas! + 1 : numParcelas!;
+            if (showDadosFiscais && model && typeof model === "object") {
+                (model as { ORD_NFS?: string }).ORD_NFS = nfsLocal;
+            }
             setShowModalSalvar(false);
             await Operacao.insereOperacao(model);
             await Operacao.insereItens(itens);
@@ -283,17 +307,18 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                             Entrada (R$)
                         </label>
                         <input
-                            type="number"
-                            placeholder="0,00"
-                            step={0.1}
-                            min={0}
-                            max={valorTotal!}
+                            type="text"
+                            placeholder="R$ 0,00"
                             autoFocus
                             id="edtEntrada"
-                            value={vlrEntrada ?? ''}
-                            onChange={e => setVlrEntrada(parseFloat(e.target.value))}
+                            value={vlrEntradaStr}
+                            onChange={e => {
+                                mascaraMoedaEvent(e);
+                                setVlrEntradaStr(e.target.value);
+                                setVlrEntrada(maskRealToNumber(e.target.value));
+                            }}
                             onKeyDown={keydownEntrada}
-                            className="ek-input font-semibold tabular-nums"
+                            className="ek-input font-semibold text-right tabular-nums"
                         />
                     </div>
 
@@ -329,6 +354,42 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                         />
                     </div>
                 </div>
+
+                {showDadosFiscais && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-ek-rule">
+                        <div>
+                            <label htmlFor="edtNfServico" className="ek-label flex items-center gap-1">
+                                <Receipt className="w-3.5 h-3.5 text-ek-faint" />
+                                <span>NF Serviço</span>
+                            </label>
+                            <input
+                                id="edtNfServico"
+                                type="text"
+                                value={nfsLocal}
+                                onChange={(e) => handleNfsChange(e.target.value.toUpperCase())}
+                                placeholder="Nº DA NOTA FISCAL"
+                                className="ek-input uppercase"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="ek-label flex items-center gap-1">
+                                <Receipt className="w-3.5 h-3.5 text-ek-faint" />
+                                <span>Fatura Vinculada</span>
+                            </label>
+                            <input
+                                type="text"
+                                readOnly
+                                value={codFatura > 0 ? `Fatura Vinculada #${codFatura}` : "Não faturado"}
+                                className={`ek-input font-medium ${
+                                    codFatura > 0
+                                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                        : "bg-white text-ek-faint"
+                                }`}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
 
             <ModalConfirmacao
@@ -399,14 +460,16 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                         </label>
                         <input
                             id="edtValorParcela"
-                            step={0.1}
                             onKeyDown={keydownValorParcela}
-                            value={valorParcela ?? ''}
-                            placeholder="0,00"
-                            onChange={e => setValorParcela(e.target.value ? parseFloat(e.target.value) : 0)}
-                            type="number"
-                            min={0}
-                            className="ek-input font-semibold tabular-nums"
+                            value={valorParcelaStr}
+                            placeholder="R$ 0,00"
+                            onChange={e => {
+                                mascaraMoedaEvent(e);
+                                setValorParcelaStr(e.target.value);
+                                setValorParcela(maskRealToNumber(e.target.value));
+                            }}
+                            type="text"
+                            className="ek-input font-semibold text-right tabular-nums"
                         />
                     </div>
 
@@ -453,8 +516,8 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                                                 {Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', formatMatcher: 'basic' }).format(item.PP_VENCIMENTO)}
                                             </td>
                                             <td className="py-2.5 px-3 text-ek-text font-medium">{item.DescricaoTipoPgm}</td>
-                                            <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">{item.PP_JUROS}</td>
-                                            <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">{item.PP_DESCONTOS}</td>
+                                            <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">{formatCurrency(item.PP_JUROS)}</td>
+                                            <td className="py-2.5 px-3 text-center text-ek-muted tabular-nums">{formatCurrency(item.PP_DESCONTOS)}</td>
                                             <td className="py-2.5 px-3 text-right font-semibold text-brand tabular-nums">
                                                 {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(item.PP_VALOR)}
                                             </td>

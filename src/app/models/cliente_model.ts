@@ -19,6 +19,12 @@ export enum Situacao {
 }
 
 
+export type EstadoCliente = "ATIVO" | "INATIVO";
+
+export function isClienteAtivo(estado?: string | null): boolean {
+  return (estado ?? "").trim().toUpperCase() !== "INATIVO";
+}
+
 export class ClienteModel {
   CODIGO: number;
   NOME: string;
@@ -47,7 +53,7 @@ export class ClienteModel {
   INSCRICAOESTADUAL?:string;
   INSCRICAOMUNICIPAL?:string;
   SUFRAMA?: string;
-  ESTADO?:string;
+  ESTADO?: EstadoCliente | string;
   DATACADASTRO?:string;
   EMAIL?:string;
   OBS?:string;

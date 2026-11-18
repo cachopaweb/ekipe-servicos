@@ -109,7 +109,11 @@ export function Cadastro_clientes({ id, setCadastrarCliente, setListarCliente }:
     var dataCadastroAux = new Date(cliAux.DATACADASTRO ? cliAux.DATACADASTRO : '');
     dataCadastroAux.setDate(dataCadastroAux.getDate() + 1)
 
-    setCliente({ ...cliAux, DATACADASTRO: dataFormatadaHojeDotValueInput(dataCadastroAux) });
+    setCliente({
+      ...cliAux,
+      ESTADO: cliAux.ESTADO || 'ATIVO',
+      DATACADASTRO: dataFormatadaHojeDotValueInput(dataCadastroAux),
+    });
     if (cliAux.CODCIDADE != null) {
       let cidadeAux = await repCidade.getCidadeDescricao(cliAux.CODCIDADE ?? 0);
       setQueryCity(cidadeAux.DESCRICAO ?? '');

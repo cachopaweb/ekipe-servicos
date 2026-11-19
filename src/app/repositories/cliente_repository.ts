@@ -1,4 +1,4 @@
-import { FormatDate } from "../functions/utils";
+import { escapeSql, FormatDate } from "../functions/utils";
 import { ClienteModel, EstadoCliente } from "../models/cliente_model";
 import api from "../services/api";
 
@@ -15,7 +15,7 @@ export default class ClientRepository{
               : "";
           let SQL = `SELECT FIRST 50 CLI_CODIGO AS CODIGO, CLI_NOME AS NOME, CLI_CNPJ_CPF AS CPF_CNPJ, CLI_RG AS RG, 
           CLI_FONE AS FONE, CLI_CELULAR AS CELULAR, CLI_ENDERECO AS ENDERECO, CLI_SITUACAO, CLI_PLANO, 
-          CLI_NOTA, CLI_ESTADO AS ESTADO FROM CLIENTES WHERE (CLI_NOME LIKE '%${busca.toUpperCase()}%')${clausulaEstado}`
+          CLI_NOTA, CLI_ESTADO AS ESTADO FROM CLIENTES WHERE (CLI_NOME LIKE '%${escapeSql(busca.toUpperCase())}%')${clausulaEstado}`
           const response = await api.post('/dataset', {
             'sql': SQL
           });

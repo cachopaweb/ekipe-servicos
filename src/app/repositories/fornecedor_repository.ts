@@ -1,4 +1,4 @@
-import { FormatDate } from "../functions/utils";
+import { escapeSql, FormatDate } from "../functions/utils";
 
 import { EstadoFornecedor, FornecedorModel } from "../models/fornecedor_model";
 import api from "../services/api";
@@ -65,7 +65,7 @@ export default class FornecedorRepository {
   }
 
   async getFornecedoresPorObs(busca: string): Promise<FornecedorModel[]> {
-    const sql = `SELECT ${CAMPOS_LISTAGEM_FORNECEDOR} FROM FORNECEDORES WHERE (FOR_OBS LIKE '%${busca.toUpperCase()}%')`;
+    const sql = `SELECT ${CAMPOS_LISTAGEM_FORNECEDOR} FROM FORNECEDORES WHERE (FOR_OBS LIKE '%${escapeSql(busca.toUpperCase())}%')`;
     return this.executarConsultaLista(sql, "erro ao buscar Fornecedores");
   }
 
@@ -75,12 +75,12 @@ export default class FornecedorRepository {
   }
 
   async getFornecedoresPorNomeFantasia(busca: string): Promise<FornecedorModel[]> {
-    const sql = `SELECT ${CAMPOS_LISTAGEM_FORNECEDOR} FROM FORNECEDORES WHERE (FOR_FANTASIA LIKE '%${busca.toUpperCase()}%')`;
+    const sql = `SELECT ${CAMPOS_LISTAGEM_FORNECEDOR} FROM FORNECEDORES WHERE (FOR_FANTASIA LIKE '%${escapeSql(busca.toUpperCase())}%')`;
     return this.executarConsultaLista(sql, "erro ao buscar Fornecedores");
   }
 
   async getFornecedoresPorNome(busca: string): Promise<FornecedorModel[]> {
-    const sql = `SELECT ${CAMPOS_LISTAGEM_FORNECEDOR} FROM FORNECEDORES WHERE (FOR_NOME LIKE '%${busca.toUpperCase()}%')`;
+    const sql = `SELECT ${CAMPOS_LISTAGEM_FORNECEDOR} FROM FORNECEDORES WHERE (FOR_NOME LIKE '%${escapeSql(busca.toUpperCase())}%')`;
     return this.executarConsultaLista(sql, "erro ao buscar Fornecedores");
   }
 

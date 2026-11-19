@@ -1,4 +1,4 @@
-import { FormatDate, horaFormatadaDB } from "../functions/utils";
+import { escapeSql, FormatDate, horaFormatadaDB } from "../functions/utils";
 import OrdEstModel from "../models/ord_est_model";
 import OrdSerModel from "../models/ord_ser_model";
 import OrdemModel from "../models/ordem_model";
@@ -164,20 +164,23 @@ export default class OrdemRepository {
                    ORD_SOLICITANTE_ID, ORD_SOLICITANTE_NOME
                    FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO LEFT JOIN FORNECEDORES FORN ON ORD_FORNECEDOR = FORN.FOR_CODIGO  WHERE 1=1 [PERIODO][STATUS][BUSCA] 
                    ORDER BY [ORDEM]`;
-      if (textoBusca != "") {
+      const termoLimpo = textoBusca.trim();
+      const termoEscapado = escapeSql(termoLimpo);
+      if (termoLimpo !== "") {
         switch (tipoBusca) {
           case "Nome": {
-            SQL = SQL.replace("[BUSCA]", ` AND CLI_NOME LIKE '%${textoBusca}%'`);
+            SQL = SQL.replace("[BUSCA]", ` AND CLI_NOME LIKE '%${termoEscapado}%'`);
             break;
           }
           case "Codigo": {
-            SQL = SQL.replace("[BUSCA]", ` AND ORD_CODIGO LIKE '%${textoBusca}%'`);
+            if (!/^\d+$/.test(termoLimpo)) return [];
+            SQL = SQL.replace("[BUSCA]", ` AND ORD_CODIGO = ${parseInt(termoLimpo, 10)}`);
             break;
           }
           case "Solicitacao": {
             SQL = SQL.replace(
               "[BUSCA]",
-              ` AND ORD_SOLICITACAO LIKE '%${textoBusca}%'`
+              ` AND ORD_SOLICITACAO LIKE '%${termoEscapado}%'`
             );
             break;
           }
@@ -194,9 +197,14 @@ export default class OrdemRepository {
         }
       }
       SQL = SQL.replace("[PERIODO]", filtroPeriodo);
-      if (status != "" && status != "TODOS")
-        SQL = SQL.replace("[STATUS]", ` AND ORD_ESTADO = '${status}'`);
-      else SQL = SQL.replace("[STATUS]", "");
+      if (status != "" && status != "TODOS") {
+        // Legado desktop gravava "CANCELADA" além de "CANCELADO"
+        const filtroStatus =
+          status === "CANCELADO"
+            ? ` AND ORD_ESTADO IN ('CANCELADO', 'CANCELADA')`
+            : ` AND ORD_ESTADO = '${escapeSql(status)}'`;
+        SQL = SQL.replace("[STATUS]", filtroStatus);
+      } else SQL = SQL.replace("[STATUS]", "");
       SQL = SQL.replace("[ORDEM]", "ORD_CODIGO DESC");
       console.log(SQL);
       const response = await api.post("/dataset", { sql: SQL });

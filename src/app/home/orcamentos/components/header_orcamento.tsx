@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, Search, Plus, Save, Printer, AlertTriangle } from "lucide-react";
+import { formatStatusOrdemLabel } from "@/app/functions/utils";
 
 interface HeaderOrcamentoProps {
   codigoOrdem: number;
@@ -36,6 +37,7 @@ export default function HeaderOrcamento({
       case "FINALIZADO":
         return "bg-emerald-50 text-emerald-800 border border-emerald-200";
       case "CANCELADO":
+      case "CANCELADA":
         return "bg-red-50 text-red-800 border border-red-200";
       default:
         return "bg-ek-raised text-ek-muted border border-ek-border";
@@ -55,7 +57,7 @@ export default function HeaderOrcamento({
               statusOrdem
             )}`}
           >
-            {statusOrdem || "ABERTO"}
+            {formatStatusOrdemLabel(statusOrdem)}
           </span>
           {isAtrasada && (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">

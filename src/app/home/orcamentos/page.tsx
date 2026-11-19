@@ -61,12 +61,14 @@ import ModalConfirmacao from "./components/modal_confirmacao";
 import ModalCadastroSolicitante from "./components/modal_cadastro_solicitante";
 
 // Ícones Profissionais
-import { Wrench, Package, CheckCircle2, FileText, Printer } from "lucide-react";
+import { Wrench, Package, CheckCircle2, FileText, Printer, Loader2 } from "lucide-react";
 
 function OrcamentosContent() {
     const searchParams = useSearchParams();
     const { setOrdemCtx, OrdemCtx, setTemAlteracoesPendentes } = useAppData();
     const lastOrdemParamRef = useRef<string | null>(null);
+    const loadRequestIdRef = useRef<number>(0);
+    const skipNextLoadRef = useRef<boolean>(false);
 
   // Filas de exclusão pendente (E02: persistem apenas ao salvar com sucesso)
   const [servicosParaExcluir, setServicosParaExcluir] = useState<number[]>([]);
@@ -88,6 +90,7 @@ function OrcamentosContent() {
   const [codFatura, setCodFatura] = useState<number>(0);
   const [foiFaturado, setFoiFaturado] = useState<boolean>(false);
   const [buscouOrdem, setBuscouOrdem] = useState<boolean>(false);
+  const [carregandoOrdem, setCarregandoOrdem] = useState<boolean>(false);
 
   // Observações
   const [solicitacao, setSolicitacao] = useState<string>("");
@@ -178,11 +181,17 @@ function OrcamentosContent() {
     onConfirm: () => {},
   });
 
-  // Lista de Status Disponíveis
+  // Lista de Status Disponíveis (inclui status legado da OS carregada, ex.: CANCELADA, para o select não cair em ABERTO)
   const listaStatusDisponiveis = useMemo(() => {
-    const list = Object.values(Status).filter((v) => isNaN(Number(v)));
-    return list.map((v) => v.toString().toUpperCase());
-  }, []);
+    const list = Object.values(Status)
+      .filter((v) => isNaN(Number(v)))
+      .map((v) => v.toString().toUpperCase());
+    const atual = (statusOrdem || "").trim().toUpperCase();
+    if (atual && !list.includes(atual)) {
+      list.push(atual);
+    }
+    return list;
+  }, [statusOrdem]);
 
   const makeOrcamentoSnapshot = useCallback(
     (params: {
@@ -509,6 +518,9 @@ function OrcamentosContent() {
       setTotalPago(0);
       setErroTotalPago(false);
       setCarregandoTotalPago(false);
+      setCarregandoOrdem(false);
+    } else if (skipNextLoadRef.current) {
+      skipNextLoadRef.current = false;
     } else {
       // Limpa resíduos da OS anterior imediatamente ao trocar para outra OS
       setTotalPago(0);
@@ -523,16 +535,19 @@ function OrcamentosContent() {
 
   // Buscar Ordem no Servidor
   const buscaOrdemServidor = async () => {
+    const reqId = ++loadRequestIdRef.current;
     try {
       if (codigoOrdem === 0) {
         serParceiroSelecionado({ CODIGO: 0, NOME: "" });
         return;
       }
 
+      setCarregandoOrdem(true);
       const fornecedorRepository = new FornecedorRepository();
       const cliRepository = new ClientRepository();
       const repository = new OrdemRepository();
       const ord = await repository.buscaOrdem(codigoOrdem);
+      if (reqId !== loadRequestIdRef.current) return;
 
       if (!ord) {
         toastMixin.fire("Atenção", "Ordem não encontrada!", "warning");
@@ -563,16 +578,20 @@ function OrcamentosContent() {
       setSolicitanteNome(ord.ORD_SOLICITANTE_NOME || "");
 
       const parceiro = await fornecedorRepository.getFornecedorById(ord.ORD_FORNECEDOR ?? 0);
+      if (reqId !== loadRequestIdRef.current) return;
       serParceiroSelecionado(parceiro || { CODIGO: 0, NOME: "" });
 
       const cli = await cliRepository.getClienteById(ord.ORD_CLI);
+      if (reqId !== loadRequestIdRef.current) return;
       setClienteSelecionado(cli || { CODIGO: 1, NOME: "CONSUMIDOR" });
 
       // Busca Produtos e Serviços
       const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
+      if (reqId !== loadRequestIdRef.current) return;
       setListaProdutosInseridos(Array.isArray(produtos) ? produtos : []);
 
       const servicos = await repository.buscaServicosOrdem(codigoOrdem);
+      if (reqId !== loadRequestIdRef.current) return;
       setListaServicosInseridos(Array.isArray(servicos) ? servicos : []);
 
       ord.itensOrdEst = Array.isArray(produtos) ? produtos : [];
@@ -584,6 +603,7 @@ function OrcamentosContent() {
 
       // E06: Carrega total pago acumulado nas empreitadas da OS
       await carregaTotalPagoOS(codigoOrdem);
+      if (reqId !== loadRequestIdRef.current) return;
 
       // Ordem carregada do servidor: atualiza snapshot salvo e limpa filas de exclusão (R03)
       const dataParsed = parseDataCalendario(ord.ORD_DATA);
@@ -622,7 +642,13 @@ function OrcamentosContent() {
         timer: 1500,
       });
     } catch (error) {
-      toastMixin.fire("Erro", String(error), "error");
+      if (reqId === loadRequestIdRef.current) {
+        toastMixin.fire("Erro", String(error), "error");
+      }
+    } finally {
+      if (reqId === loadRequestIdRef.current) {
+        setCarregandoOrdem(false);
+      }
     }
   };
 
@@ -704,6 +730,10 @@ function OrcamentosContent() {
     }
     if (listaProdutosInseridos.length === 0 && listaServicosInseridos.length === 0) {
       toastMixin.fire("Atenção", "Insira ao menos um produto ou serviço na ordem.", "warning");
+      return false;
+    }
+    if (isOrdemAtrasada(statusOrdem, dataPrevisaoConclusao) && !justificativaAtraso.trim()) {
+      toastMixin.fire("Atenção", "Informe a justificativa do atraso antes de salvar a OS.", "warning");
       return false;
     }
 
@@ -794,7 +824,10 @@ function OrcamentosContent() {
         }
       }
 
-      setCodigoOrdem(codigo);
+      if (codigo !== codigoOrdem) {
+        skipNextLoadRef.current = true;
+        setCodigoOrdem(codigo);
+      }
       setOrdem(ord);
       setOrdemCtx(ord);
       setBuscouOrdem(true);
@@ -1015,13 +1048,20 @@ function OrcamentosContent() {
         codigoOrdem={codigoOrdem}
         statusOrdem={statusOrdem}
         isAtrasada={isOrdemAtrasada(statusOrdem, dataPrevisaoConclusao)}
-        canSave={totalItens > 0}
+        canSave={totalItens > 0 && !carregandoOrdem}
         onOpenPesquisaOS={() => executeWithDirtyCheck(() => setShowModalPesquisaOS(true))}
         onNovoOrcamento={() => executeWithDirtyCheck(handleNovoOrcamento)}
         onSalvar={salvaOrdem}
         onImprimir={handleImprimir}
         onImprimirCompleto={handleImprimirCompleto}
       />
+
+      {carregandoOrdem && (
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-[6px] border border-brand-border bg-brand-soft text-brand text-xs font-medium">
+          <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+          <span>Carregando dados da OS #{codigoOrdem}...</span>
+        </div>
+      )}
 
       {/* 2. Grid de Conteúdo: Coluna Principal (75%) e Lateral (25%) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 items-start">
@@ -1192,7 +1232,7 @@ function OrcamentosContent() {
             onImprimir={handleImprimir}
             onImprimirCompleto={handleImprimirCompleto}
             onSalvar={salvaOrdem}
-            canSave={totalItens > 0}
+            canSave={totalItens > 0 && !carregandoOrdem}
           />
         </div>
       </div>

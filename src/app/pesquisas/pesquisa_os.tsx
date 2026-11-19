@@ -6,7 +6,7 @@ import OrdemRepository from "../repositories/ordem_repository";
 import OrdemModel from "../models/ordem_model";
 import OrdEstModel from "../models/ord_est_model";
 import OrdSerModel from "../models/ord_ser_model";
-import { formatCurrency, Status, toastMixin, converterDataFormato, formatDataInput, parseDataCalendario, isOrdemAtrasada } from "../functions/utils";
+import { formatCurrency, Status, toastMixin, converterDataFormato, formatDataInput, parseDataCalendario, isOrdemAtrasada, formatStatusOrdemLabel } from "../functions/utils";
 
 // --- SUB-COMPONENTE MODAL DE DETALHES DESACOPLADO E MODERNO ---
 interface ModalDetalhesOSProps {
@@ -295,13 +295,6 @@ export default function PesquisaOrdem({
     return ["TODOS", "ATRASADAS", ...mapped];
   }, []);
 
-  // Mantém "ENVIADO" no value/consulta ao Firebird (ORDENS.ORD_ESTADO), exibindo "FALTA PEDIDO" apenas neste modal conforme pedido do usuário
-  const formatStatusLabel = (status?: string | null) => {
-    const normalized = (status || "").trim().toUpperCase();
-    if (!normalized) return "ABERTO";
-    return normalized === "ENVIADO" ? "FALTA PEDIDO" : normalized;
-  };
-
   // Foco inicial
   useEffect(() => {
     if (activeIsOpen) {
@@ -400,7 +393,7 @@ export default function PesquisaOrdem({
         handleClose();
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex((prev) => Math.min(prev + 1, ordems.length - 1));
+        setSelectedIndex((prev) => Math.min(prev + 1, Math.max(ordems.length - 1, 0)));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex((prev) => Math.max(prev - 1, 0));
@@ -483,7 +476,7 @@ export default function PesquisaOrdem({
                 >
                   {listaStatus().map((status) => (
                     <option key={status} value={status}>
-                      Status: {formatStatusLabel(status)}
+                      Status: {formatStatusOrdemLabel(status)}
                     </option>
                   ))}
                 </select>
@@ -592,7 +585,7 @@ export default function PesquisaOrdem({
                                   : "bg-ek-raised text-ek-muted border border-ek-border"
                               }`}
                             >
-                              {formatStatusLabel(item.ORD_ESTADO)}
+                              {formatStatusOrdemLabel(item.ORD_ESTADO)}
                             </span>
                             {checkOrdemAtrasada(item) && (
                               <span

@@ -356,5 +356,12 @@ function isOrdemAtrasada(estado?: string | null, previsao?: Date | string | null
   return prevStr < formatDataInput(new Date());
 }
 
-export { parseDataCalendario, formatDataInput, normalizarDataPrevisao, isOrdemAtrasada, horaFormatadaDB, dataHoraFormatadaDB, GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
+// Mantém "ENVIADO" persistido no Firebird (ORDENS.ORD_ESTADO), exibindo "FALTA PEDIDO" na UI
+function formatStatusOrdemLabel(status?: string | null): string {
+  const normalized = (status || "").trim().toUpperCase();
+  if (!normalized) return "ABERTO";
+  return normalized === "ENVIADO" ? "FALTA PEDIDO" : normalized;
+}
+
+export { parseDataCalendario, formatDataInput, normalizarDataPrevisao, isOrdemAtrasada, formatStatusOrdemLabel, horaFormatadaDB, dataHoraFormatadaDB, GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
   converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput, formatNumber, parseFloatFromString, escapeSql };

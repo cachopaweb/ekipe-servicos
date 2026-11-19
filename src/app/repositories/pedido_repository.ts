@@ -1,4 +1,4 @@
-import { FormatDate } from "../functions/utils";
+import { escapeSql, FormatDate } from "../functions/utils";
 import { PedEstModel } from "../models/ped_est_model";
 import { PedidoModel } from "../models/pedido_model";
 import api from "../services/api";
@@ -64,7 +64,7 @@ export default class PedidoRepository {
         const codigo = parseInt(busca) || 0;
         whereClause = `P.PED_CODIGO = ${codigo}`;
       } else {
-        whereClause = `C.CLI_NOME LIKE '%${busca.toUpperCase()}%'`;
+        whereClause = `C.CLI_NOME LIKE '%${escapeSql(busca.toUpperCase())}%'`;
       }
 
       // JOIN com Clientes e Funcionários para pegar os nomes

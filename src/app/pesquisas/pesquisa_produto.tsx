@@ -84,7 +84,7 @@ export default function PesquisaProduto({
         handleClose();
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex((prev) => Math.min(prev + 1, produtos.length - 1));
+        setSelectedIndex((prev) => Math.min(prev + 1, Math.max(produtos.length - 1, 0)));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex((prev) => Math.max(prev - 1, 0));

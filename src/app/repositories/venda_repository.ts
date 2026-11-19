@@ -1,4 +1,4 @@
-import { converterDataPontoParaTraco, FormatDate, horaFormatadaDB } from "../functions/utils";
+import { converterDataPontoParaTraco, escapeSql, FormatDate, horaFormatadaDB } from "../functions/utils";
 import { VenEstModel } from "../models/ven_est_model";
 import { VendaModel } from "../models/venda_model";
 import api from "../services/api";
@@ -83,7 +83,7 @@ export default class VendaRepository {
         const codigo = parseInt(busca) || 0;
         whereClause = `V.VEN_CODIGO = ${codigo}`;
       } else {
-        whereClause = `C.CLI_NOME LIKE '%${busca.toUpperCase()}%'`;
+        whereClause = `C.CLI_NOME LIKE '%${escapeSql(busca.toUpperCase())}%'`;
       }
 
       // JOIN com Clientes e Funcionários para pegar os nomes

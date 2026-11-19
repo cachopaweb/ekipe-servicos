@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { parseDataCalendario, formatDataInput, isOrdemAtrasada } from "@/app/functions/utils";
+import { parseDataCalendario, formatDataInput, isOrdemAtrasada, formatStatusOrdemLabel } from "@/app/functions/utils";
 import { ClienteModel } from "@/app/models/cliente_model";
 import { FornecedorModel } from "@/app/models/fornecedor_model";
 import { SolicitanteModel } from "@/app/models/solicitante_model";
@@ -301,7 +301,7 @@ export default function FormIdentificacao({
           >
             {listaStatus.map((st) => (
               <option key={st} value={st}>
-                {st}
+                {formatStatusOrdemLabel(st)}
               </option>
             ))}
           </select>

@@ -23,7 +23,7 @@ import mapItemVendaParaItemPedido, { PedEstModel } from "@/app/models/ped_est_mo
 import { useAppData } from "@/app/contexts/app_context";
 import Modal from "@/components/component/modal";
 import OperacaoVenda from "@/app/faturamentos/implementations/operacao_venda";
-import { IncrementaGenerator, horaFormatadaDB, FormatDate, toastMixin } from "@/app/functions/utils";
+import { IncrementaGenerator, horaFormatadaDB, FormatDate, toastMixin, mascaraMoedaEvent, maskRealToNumber } from "@/app/functions/utils";
 import { PedidoModel } from "@/app/models/pedido_model";
 import PedidoRepository from "@/app/repositories/pedido_repository";
 import ModalBuscarVenda from "./components/modal_buscar_venda";
@@ -535,7 +535,8 @@ export default function Vendas() {
         }
     };
 
-    const troco = parseFloat(valorPago.replace(',', '.') || '0') > totalFinal ? parseFloat(valorPago.replace(',', '.') || '0') - totalFinal : 0;
+    const valorPagoNum = maskRealToNumber(valorPago);
+    const troco = valorPagoNum > totalFinal ? valorPagoNum - totalFinal : 0;
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -996,7 +997,7 @@ export default function Vendas() {
                                         </span>
                                         <input
                                             type="text"
-                                            placeholder="0,00"
+                                            placeholder="R$ 0,00"
                                             value={descontoReais}
                                             onChange={handleDescontoReais}
                                             className="ek-input font-semibold text-right text-rose-700 tabular-nums"
@@ -1027,9 +1028,12 @@ export default function Vendas() {
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="0,00"
+                                    placeholder="R$ 0,00"
                                     value={valorPago}
-                                    onChange={e => setValorPago(e.target.value.replaceAll(',', '.'))}
+                                    onChange={e => {
+                                        mascaraMoedaEvent(e);
+                                        setValorPago(e.target.value);
+                                    }}
                                     className="ek-input h-10 text-base font-bold text-right text-emerald-700 bg-emerald-50/40 border-emerald-300 focus:border-emerald-600 tabular-nums"
                                 />
                             </div>

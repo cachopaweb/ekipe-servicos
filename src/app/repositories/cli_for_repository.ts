@@ -1,3 +1,4 @@
+import { escapeSql } from "../functions/utils";
 import CliForModel from "../models/cli_for_model";
 import api from "../services/api";
 
@@ -9,7 +10,7 @@ export default class CliForRepository{
             CF_FONE AS FONE, CF_CELULAR AS CELULAR, CF_ENDERECO AS ENDERECO, CF_BAIRRO AS BAIRRO, CF_INSC_ESTADUAL AS INSC_ESTADUAL,
             CID_NOME AS CIDADE, CID_UF AS UF,
             CF_RAZAO_SOCIAL AS RAZAO_SOCIAL FROM CLIENTES_FORNECEDORES
-            JOIN CIDADES ON CID_CODIGO = CF_CID WHERE (CF_NOME LIKE '%${busca.toUpperCase()}%')`
+            JOIN CIDADES ON CID_CODIGO = CF_CID WHERE (CF_NOME LIKE '%${escapeSql(busca.toUpperCase())}%')`
           });
           const clients = response.data as CliForModel[];
           return clients;

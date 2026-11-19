@@ -62,11 +62,11 @@ export default class OperacaoOrdens implements OperacoesStrategy {
             if (ordem.itensOrdEst.length > 0){
                 const repositoryDAV = new DAVRepository();
                 this.codDAV = await IncrementaGenerator('GEN_DAV');
-                repositoryDAV.insereDAV({
+                await repositoryDAV.insereDAV({
                     DAV_CODIGO: this.codDAV,
                     DAV_CLI: ordem.ORD_CLI,
-                    DAV_CLIENTE: ordem.CLI_NOME,
-                    DAV_CPF_CNPJ: ordem.CLI_CNPJ_CPF,
+                    DAV_CLIENTE: ordem.CLI_NOME || '',
+                    DAV_CPF_CNPJ: ordem.CLI_CNPJ_CPF || '',
                     DAV_DATA: FormatDate(new Date()),
                     DAV_ESTADO: 2,
                     DAV_FATURA: this.codFatura,
@@ -100,45 +100,46 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                     //insere historico
                     const produtoRepository = new ProdutoRepository();
                     const produto = await produtoRepository.getProdutoPorCodigo(ordEst.ORE_PRO);
+                    const qtdItem = Number(ordEst.ORE_QUANTIDADE) || 0;
                     const hisProRepository = new HisProRepository();
-                    hisProRepository.insereHisPro({
+                    await hisProRepository.insereHisPro({
                         HP_CODIGO: await IncrementaGenerator('GEN_HP'),
                         HP_DATA: FormatDate(new Date()),
                         HP_DOC: ordEst.ORE_ORD.toString(),
-                        HP_ORIGEM: `OS - ${this.nomeCliente}`,
+                        HP_ORIGEM: `OS - ${this.nomeCliente || ''}`,
                         HP_PRO: ordEst.ORE_PRO,
-                        HP_QUANTIDADE: ordEst.ORE_QUANTIDADE,
-                        HP_QUANTIDADEA: produto.PRO_QUANTIDADE!,
+                        HP_QUANTIDADE: qtdItem,
+                        HP_QUANTIDADEA: Number(produto?.PRO_QUANTIDADE) || 0,
                         HP_TIPO: 'S',
                         HP_TIPO2: 7,
-                        HP_VALORC: produto.PRO_VALORC! * ordEst.ORE_QUANTIDADE,
-                        HP_VALORCM: produto.PRO_VALORCM! * ordEst.ORE_QUANTIDADE,
-                        HP_VALORM: produto.PRO_VALORF! * ordEst.ORE_QUANTIDADE,
-                        HP_VALOROP: produto.PRO_VALORL! * ordEst.ORE_QUANTIDADE,
-                        HP_VALORV: produto.PRO_VALORV!,
+                        HP_VALORC: (Number(produto?.PRO_VALORC) || 0) * qtdItem,
+                        HP_VALORCM: (Number(produto?.PRO_VALORCM) || 0) * qtdItem,
+                        HP_VALORM: (Number(produto?.PRO_VALORF) || 0) * qtdItem,
+                        HP_VALOROP: (Number(produto?.PRO_VALORL) || 0) * qtdItem,
+                        HP_VALORV: Number(produto?.PRO_VALORV ?? ordEst.ORE_VALOR) || 0,
                     });
                     //insere DAVPro
                     const repositoryDAV = new DAVRepository();
-                    repositoryDAV.insereDAVPro({
+                    await repositoryDAV.insereDAVPro({
                         DP_CODIGO: await IncrementaGenerator('GEN_DP'),
                         DP_DATA: FormatDate(new Date()),
                         DP_ACRESCIMO: 0,
-                        DP_ALIQICMS: ordEst.ORE_ALIQICMS!,
+                        DP_ALIQICMS: ordEst.ORE_ALIQICMS ?? '0',
                         DP_CANCELADO: 'N',
                         DP_DAV: this.codDAV,
                         DP_DESCONTO: 0,
-                        DP_EMBALAGEM: ordEst.ORE_EMBALAGEM,
+                        DP_EMBALAGEM: ordEst.ORE_EMBALAGEM || 'UN',
                         DP_GTIN: '',
                         DP_LUCRO: 0,
                         DP_NITEM: i++,
-                        DP_NOME: ordEst.ORE_NOME,
+                        DP_NOME: ordEst.ORE_NOME || '',
                         DP_PRO: ordEst.ORE_PRO,
-                        DP_QUANTIDADE: ordEst.ORE_QUANTIDADE,
+                        DP_QUANTIDADE: qtdItem,
                         DP_SIT_TRIB: '',
-                        DP_VALOR: ordEst.ORE_VALOR,
-                        DP_VALORF: ordEst.ORE_VALORF!,
-                        DP_VALORL: ordEst.ORE_VALORL!,
-                        DP_VALORR: ordEst.ORE_VALORR!,
+                        DP_VALOR: Number(ordEst.ORE_VALOR) || 0,
+                        DP_VALORF: Number(ordEst.ORE_VALORF) || 0,
+                        DP_VALORL: Number(ordEst.ORE_VALORL) || 0,
+                        DP_VALORR: Number(ordEst.ORE_VALORR ?? ordEst.ORE_VALOR) || 0,
                     });
                 }
             }
@@ -171,13 +172,13 @@ export default class OperacaoOrdens implements OperacoesStrategy {
             const repository = new PedFatRepository();
             model.PF_CODIGO = this.codPedFat;
             model.PF_FAT = this.codFatura;                        
-            const result = repository.inserePedFat(model);
+            const result = await repository.inserePedFat(model);
             //ultima venda cli
             const clienteRepository = new ClientRepository();
-            clienteRepository.setUltimaVendaCliente(FormatDate(new Date()), model.PF_COD_CLI);
+            await clienteRepository.setUltimaVendaCliente(FormatDate(new Date()), model.PF_COD_CLI);
             //faturamento
             const faturamentosRepository = new FaturamentosRepository();            
-            faturamentosRepository.insereFaturamentos({
+            await faturamentosRepository.insereFaturamentos({
                 FAT_CODIGO: this.codFatura,
                 FAT_CLI: model.PF_COD_CLI,
                 FAT_DATA: FormatDate(new Date()),

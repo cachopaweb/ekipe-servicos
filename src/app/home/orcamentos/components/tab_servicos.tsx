@@ -176,7 +176,7 @@ export default function TabServicos({
               setValorUnitarioStr(e.target.value);
             }}
             onKeyDown={handleValorKeyDown}
-            placeholder="0,00"
+            placeholder="R$ 0,00"
             className="ek-input text-right font-medium tabular-nums"
           />
         </div>

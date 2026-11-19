@@ -1,4 +1,4 @@
-import { FormatDate, horaFormatadaDB } from "../functions/utils";
+import { escapeSql, FormatDate, horaFormatadaDB } from "../functions/utils";
 import OrdEstModel from "../models/ord_est_model";
 import OrdSerModel from "../models/ord_ser_model";
 import OrdemModel from "../models/ordem_model";
@@ -154,8 +154,8 @@ export default class OrdemRepository {
     tipoBusca: string,
     porPeriodo: boolean,
     status: string,
-    data1: Date,
-    data2: Date
+    data1?: Date | null,
+    data2?: Date | null
   ): Promise<OrdemModel[]> {
     try {
       let SQL = `SELECT FIRST 50 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
@@ -164,34 +164,47 @@ export default class OrdemRepository {
                    ORD_SOLICITANTE_ID, ORD_SOLICITANTE_NOME
                    FROM ORDENS JOIN CLIENTES ON ORD_CLI = CLI_CODIGO LEFT JOIN FORNECEDORES FORN ON ORD_FORNECEDOR = FORN.FOR_CODIGO  WHERE 1=1 [PERIODO][STATUS][BUSCA] 
                    ORDER BY [ORDEM]`;
-      if (textoBusca != "") {
+      const termoLimpo = textoBusca.trim();
+      const termoEscapado = escapeSql(termoLimpo);
+      if (termoLimpo !== "") {
         switch (tipoBusca) {
           case "Nome": {
-            SQL = SQL.replace("[BUSCA]", ` AND CLI_NOME LIKE '%${textoBusca}%'`);
+            SQL = SQL.replace("[BUSCA]", ` AND CLI_NOME LIKE '%${termoEscapado}%'`);
             break;
           }
           case "Codigo": {
-            SQL = SQL.replace("[BUSCA]", ` AND ORD_CODIGO LIKE '%${textoBusca}%'`);
+            if (!/^\d+$/.test(termoLimpo)) return [];
+            SQL = SQL.replace("[BUSCA]", ` AND ORD_CODIGO = ${parseInt(termoLimpo, 10)}`);
             break;
           }
           case "Solicitacao": {
             SQL = SQL.replace(
               "[BUSCA]",
-              ` AND ORD_SOLICITACAO LIKE '%${textoBusca}%'`
+              ` AND ORD_SOLICITACAO LIKE '%${termoEscapado}%'`
             );
             break;
           }
         }
       } else SQL = SQL.replace("[BUSCA]", "");
-      if (porPeriodo)
-        SQL = SQL.replace(
-          "[PERIODO]",
-          ` AND ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`
-        );
-      else SQL = SQL.replace("[PERIODO]", "");
-      if (status != "" && status != "TODOS")
-        SQL = SQL.replace("[STATUS]", ` AND ORD_ESTADO = '${status}'`);
-      else SQL = SQL.replace("[STATUS]", "");
+      let filtroPeriodo = "";
+      if (porPeriodo) {
+        if (data1 && data2) {
+          filtroPeriodo = ` AND ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`;
+        } else if (data1) {
+          filtroPeriodo = ` AND ORD_DATA >= '${FormatDate(data1)}'`;
+        } else if (data2) {
+          filtroPeriodo = ` AND ORD_DATA <= '${FormatDate(data2)}'`;
+        }
+      }
+      SQL = SQL.replace("[PERIODO]", filtroPeriodo);
+      if (status != "" && status != "TODOS") {
+        // Legado desktop gravava "CANCELADA" além de "CANCELADO"
+        const filtroStatus =
+          status === "CANCELADO"
+            ? ` AND ORD_ESTADO IN ('CANCELADO', 'CANCELADA')`
+            : ` AND ORD_ESTADO = '${escapeSql(status)}'`;
+        SQL = SQL.replace("[STATUS]", filtroStatus);
+      } else SQL = SQL.replace("[STATUS]", "");
       SQL = SQL.replace("[ORDEM]", "ORD_CODIGO DESC");
       console.log(SQL);
       const response = await api.post("/dataset", { sql: SQL });
@@ -234,6 +247,7 @@ export default class OrdemRepository {
                   AND PF.PF_TABELA = 'ORDENS'
               )
             )
+            AND REC.REC_ESTADO = 3
             AND (REC.REC_SITUACAO IS NULL OR REC.REC_SITUACAO <> -1)
         ), 0) AS TOTAL_PAGO
         FROM RDB$DATABASE

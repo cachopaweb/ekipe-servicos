@@ -6,7 +6,7 @@ import OrdemRepository from "../repositories/ordem_repository";
 import OrdemModel from "../models/ordem_model";
 import OrdEstModel from "../models/ord_est_model";
 import OrdSerModel from "../models/ord_ser_model";
-import { formatCurrency, Status, toastMixin, converterDataFormato, formatDataInput, parseDataCalendario } from "../functions/utils";
+import { formatCurrency, Status, toastMixin, converterDataFormato, formatDataInput, parseDataCalendario, isOrdemAtrasada, formatStatusOrdemLabel } from "../functions/utils";
 
 // --- SUB-COMPONENTE MODAL DE DETALHES DESACOPLADO E MODERNO ---
 interface ModalDetalhesOSProps {
@@ -261,12 +261,15 @@ export default function PesquisaOrdem({
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const [data1Str, setData1Str] = useState(() => formatDataInput(new Date()));
+  const [data1Str, setData1Str] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return formatDataInput(d);
+  });
   const [data2Str, setData2Str] = useState(() => formatDataInput(new Date()));
   const [statusOrdem, setStatusOrdem] = useState("TODOS");
   const [tipoBusca, setTipoBusca] = useState("Nome");
   const [textoBusca, setTextoBusca] = useState("");
-  const [porPeriodo, setPorPeriodo] = useState(false);
 
   const [listaProdutosInseridos, setListaProdutosInseridos] = useState<OrdEstModel[]>([]);
   const [listaServicosInseridos, setListaServicosInseridos] = useState<OrdSerModel[]>([]);
@@ -274,20 +277,17 @@ export default function PesquisaOrdem({
   const [showModalDetalhes, setShowModalDetalhes] = useState(false);
 
   const inputBuscaRef = useRef<HTMLInputElement>(null);
+  const searchReqIdRef = useRef(0);
 
   const handleClose = useCallback(() => {
     setShowModal(false);
     if (onClose) onClose();
   }, [setShowModal, onClose]);
 
-  // Função auxiliar para verificar se a OS aprovada está com prazo estourado
-  const isOrdemAtrasada = useCallback((item: OrdemModel): boolean => {
-    if (item.ORD_ESTADO !== "APROVADO" || !item.ORD_PREVISAO_CONCLUSAO) return false;
-    const prevStr = formatDataInput(parseDataCalendario(item.ORD_PREVISAO_CONCLUSAO));
-    if (!prevStr || prevStr === "1900-01-01") return false;
-    const hojeStr = formatDataInput(new Date());
-    return prevStr < hojeStr;
-  }, []);
+  const checkOrdemAtrasada = useCallback(
+    (item: OrdemModel): boolean => isOrdemAtrasada(item.ORD_ESTADO, item.ORD_PREVISAO_CONCLUSAO),
+    []
+  );
 
   // Lista de status dinâmicos (incluindo filtro rápido para ATRASADAS)
   const listaStatus = useCallback(() => {
@@ -306,40 +306,50 @@ export default function PesquisaOrdem({
 
   // Buscar ordens
   const buscarOrdemModel = useCallback(async () => {
-    if (!porPeriodo && textoBusca.trim() === "") {
+    const d1 = data1Str ? parseDataCalendario(data1Str) : null;
+    const d2 = data2Str ? parseDataCalendario(data2Str) : null;
+    const temPeriodo = Boolean(d1 || d2);
+
+    if (!temPeriodo && textoBusca.trim() === "" && statusOrdem === "TODOS") {
+      ++searchReqIdRef.current;
       setOrdems([]);
+      setLoading(false);
       return;
     }
 
+    const reqId = ++searchReqIdRef.current;
     setLoading(true);
     try {
       const repository = new OrdemRepository();
-      const d1 = data1Str ? parseDataCalendario(data1Str) : new Date();
-      const d2 = data2Str ? parseDataCalendario(data2Str) : new Date();
       const statusParam = statusOrdem === "ATRASADAS" ? "APROVADO" : statusOrdem;
       const listaOrdems = await repository.pesquisaOrdem(
         textoBusca.toUpperCase(),
         tipoBusca,
-        porPeriodo,
+        temPeriodo,
         statusParam,
         d1,
         d2
       );
+      if (reqId !== searchReqIdRef.current) return;
       const resultadoFinal = statusOrdem === "ATRASADAS"
-        ? (listaOrdems || []).filter(isOrdemAtrasada)
+        ? (listaOrdems || []).filter(checkOrdemAtrasada)
         : (listaOrdems || []);
       setOrdems(resultadoFinal);
       setSelectedIndex(0);
     } catch (error) {
-      toastMixin.fire({
-        title: "Erro ao pesquisar ordens",
-        text: String(error),
-        icon: "error",
-      });
+      if (reqId === searchReqIdRef.current) {
+        toastMixin.fire({
+          title: "Erro ao pesquisar ordens",
+          text: String(error),
+          icon: "error",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (reqId === searchReqIdRef.current) {
+        setLoading(false);
+      }
     }
-  }, [textoBusca, tipoBusca, porPeriodo, statusOrdem, data1Str, data2Str, isOrdemAtrasada]);
+  }, [textoBusca, tipoBusca, statusOrdem, data1Str, data2Str, checkOrdemAtrasada]);
 
   // Debounce na busca
   useEffect(() => {
@@ -392,7 +402,7 @@ export default function PesquisaOrdem({
         handleClose();
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex((prev) => Math.min(prev + 1, ordems.length - 1));
+        setSelectedIndex((prev) => Math.min(prev + 1, Math.max(ordems.length - 1, 0)));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex((prev) => Math.max(prev - 1, 0));
@@ -475,45 +485,36 @@ export default function PesquisaOrdem({
                 >
                   {listaStatus().map((status) => (
                     <option key={status} value={status}>
-                      Status: {status}
+                      Status: {formatStatusOrdemLabel(status)}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* Linha Secundária: Período de Datas */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-ek-rule">
-              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-ek-text select-none">
-                <input
-                  type="checkbox"
-                  checked={porPeriodo}
-                  onChange={(e) => setPorPeriodo(e.target.checked)}
-                  className="w-4 h-4 accent-[#312783] rounded border-ek-control"
-                />
-                <span>Filtrar por Período de Abertura</span>
-              </label>
+            {/* Linha Secundária: Período de Abertura */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-ek-rule text-xs">
+              <span className="text-ek-muted font-medium flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-brand" />
+                Período de abertura (padrão: últimos 30 dias)
+              </span>
 
-              {porPeriodo && (
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-ek-muted flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" /> De:
-                  </span>
-                  <input
-                    type="date"
-                    value={data1Str}
-                    onChange={(e) => setData1Str(e.target.value)}
-                    className="ek-input h-8 w-auto px-2.5 text-xs"
-                  />
-                  <span className="text-ek-muted">Até:</span>
-                  <input
-                    type="date"
-                    value={data2Str}
-                    onChange={(e) => setData2Str(e.target.value)}
-                    className="ek-input h-8 w-auto px-2.5 text-xs"
-                  />
-                </div>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-ek-muted">De:</span>
+                <input
+                  type="date"
+                  value={data1Str}
+                  onChange={(e) => setData1Str(e.target.value)}
+                  className="ek-input h-8 w-auto px-2.5 text-xs"
+                />
+                <span className="text-ek-muted">Até:</span>
+                <input
+                  type="date"
+                  value={data2Str}
+                  onChange={(e) => setData2Str(e.target.value)}
+                  className="ek-input h-8 w-auto px-2.5 text-xs"
+                />
+              </div>
             </div>
           </div>
 
@@ -529,8 +530,8 @@ export default function PesquisaOrdem({
                 <FileText className="w-8 h-8 text-ek-faint" />
                 <span className="text-sm font-medium text-ek-text">Nenhuma ordem de serviço encontrada.</span>
                 <span className="text-xs text-ek-muted">
-                  {textoBusca.trim() === "" && !porPeriodo
-                    ? "Digite um termo de pesquisa ou selecione um período de busca."
+                  {textoBusca.trim() === "" && !data1Str && !data2Str && statusOrdem === "TODOS"
+                    ? "Digite um termo de pesquisa ou informe um período de busca."
                     : "Verifique os filtros selecionados ou digite outro termo."}
                 </span>
               </div>
@@ -593,9 +594,9 @@ export default function PesquisaOrdem({
                                   : "bg-ek-raised text-ek-muted border border-ek-border"
                               }`}
                             >
-                              {item.ORD_ESTADO || "ABERTO"}
+                              {formatStatusOrdemLabel(item.ORD_ESTADO)}
                             </span>
-                            {isOrdemAtrasada(item) && (
+                            {checkOrdemAtrasada(item) && (
                               <span
                                 title={
                                   item.ORD_JUSTIFICATIVA_ATRASO

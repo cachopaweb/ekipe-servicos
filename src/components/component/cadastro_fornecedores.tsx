@@ -103,7 +103,11 @@ export function Cadastro_fornecedores({ id, setCadastraFornecedor, setListarForn
     var dataCadastroAux = new Date(forAux.DATACADASTRO ? forAux.DATACADASTRO : '');
     dataCadastroAux.setDate(dataCadastroAux.getDate() + 1)
 
-    setFornecedor({ ...forAux, DATACADASTRO: dataFormatadaHojeDotValueInput(dataCadastroAux) });
+    setFornecedor({
+      ...forAux,
+      ESTADO: forAux.ESTADO || 'ATIVO',
+      DATACADASTRO: dataFormatadaHojeDotValueInput(dataCadastroAux),
+    });
     if (forAux.CODCIDADE != null) {
       let cidadeAux = await repCidade.getCidadeDescricao(forAux.CODCIDADE ?? 0);
       setQueryCity(cidadeAux.DESCRICAO ?? '');

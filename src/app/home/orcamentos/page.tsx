@@ -11,6 +11,8 @@ import {
   converterDataPontoParaTraco,
   parseDataCalendario,
   formatDataInput,
+  normalizarDataPrevisao,
+  isOrdemAtrasada,
 } from "@/app/functions/utils";
 
 // Modelos
@@ -44,6 +46,7 @@ import PrintOrcamentos from "@/app/print/orcamento/page";
 import PrintOSCompleta from "@/components/component/print_os_completa";
 import { ModalListarArquivos } from "@/components/component/files";
 import Modal from "@/components/component/modal";
+import ModalRecebimentos from "./components/modal_recebimentos";
 
 // Subcomponentes Modulares da Página
 import HeaderOrcamento from "./components/header_orcamento";
@@ -58,12 +61,14 @@ import ModalConfirmacao from "./components/modal_confirmacao";
 import ModalCadastroSolicitante from "./components/modal_cadastro_solicitante";
 
 // Ícones Profissionais
-import { Wrench, Package, CheckCircle2, FileText, Printer } from "lucide-react";
+import { Wrench, Package, CheckCircle2, FileText, Printer, Loader2 } from "lucide-react";
 
 function OrcamentosContent() {
     const searchParams = useSearchParams();
     const { setOrdemCtx, OrdemCtx, setTemAlteracoesPendentes } = useAppData();
     const lastOrdemParamRef = useRef<string | null>(null);
+    const loadRequestIdRef = useRef<number>(0);
+    const skipNextLoadRef = useRef<boolean>(false);
 
   // Filas de exclusão pendente (E02: persistem apenas ao salvar com sucesso)
   const [servicosParaExcluir, setServicosParaExcluir] = useState<number[]>([]);
@@ -85,6 +90,7 @@ function OrcamentosContent() {
   const [codFatura, setCodFatura] = useState<number>(0);
   const [foiFaturado, setFoiFaturado] = useState<boolean>(false);
   const [buscouOrdem, setBuscouOrdem] = useState<boolean>(false);
+  const [carregandoOrdem, setCarregandoOrdem] = useState<boolean>(false);
 
   // Observações
   const [solicitacao, setSolicitacao] = useState<string>("");
@@ -155,6 +161,7 @@ function OrcamentosContent() {
   const [showModalEmpreitadas, setShowModalEmpreitadas] = useState<boolean>(false);
   const [showModalListaArquivos, setShowModalListaArquivos] = useState<boolean>(false);
   const [showFaturamento, setShowFaturamento] = useState<boolean>(false);
+  const [showModalRecebimentos, setShowModalRecebimentos] = useState<boolean>(false);
   const [showModalPrintOSCompleta, setShowModalPrintOSCompleta] = useState<boolean>(false);
   const [showModalPosFaturamento, setShowModalPosFaturamento] = useState<boolean>(false);
 
@@ -174,11 +181,17 @@ function OrcamentosContent() {
     onConfirm: () => {},
   });
 
-  // Lista de Status Disponíveis
+  // Lista de Status Disponíveis (inclui status legado da OS carregada, ex.: CANCELADA, para o select não cair em ABERTO)
   const listaStatusDisponiveis = useMemo(() => {
-    const list = Object.values(Status).filter((v) => isNaN(Number(v)));
-    return list.map((v) => v.toString().toUpperCase());
-  }, []);
+    const list = Object.values(Status)
+      .filter((v) => isNaN(Number(v)))
+      .map((v) => v.toString().toUpperCase());
+    const atual = (statusOrdem || "").trim().toUpperCase();
+    if (atual && !list.includes(atual)) {
+      list.push(atual);
+    }
+    return list;
+  }, [statusOrdem]);
 
   const makeOrcamentoSnapshot = useCallback(
     (params: {
@@ -422,6 +435,7 @@ function OrcamentosContent() {
   // Re-busca ordem quando faturada e disponibiliza emissão de PDF Completo (D07 / A22)
   useEffect(() => {
     if (foiFaturado) {
+      setFoiFaturado(false);
       buscaOrdemServidor();
       setShowModalPosFaturamento(true);
     }
@@ -498,59 +512,57 @@ function OrcamentosContent() {
     }
   };
 
-  // Debounce para busca de ordem quando o código é alterado
+  // Carrega a ordem ao alterar o código
   useEffect(() => {
     if (codigoOrdem <= 0) {
       setTotalPago(0);
       setErroTotalPago(false);
       setCarregandoTotalPago(false);
+      setCarregandoOrdem(false);
+    } else if (skipNextLoadRef.current) {
+      skipNextLoadRef.current = false;
     } else {
-      // Limpa total pago imediatamente ao trocar de OS para não exibir resíduo da OS anterior
+      // Limpa resíduos da OS anterior imediatamente ao trocar para outra OS
       setTotalPago(0);
       setErroTotalPago(false);
-    }
-
-    const timeout = setTimeout(() => {
-      if (codigoOrdem > 0) {
-        buscaOrdemServidor();
+      if (ordem?.ORD_CODIGO !== codigoOrdem) {
+        setObs("");
+        setObs_adm("");
       }
-    }, 1000);
-    return () => clearTimeout(timeout);
+      buscaOrdemServidor();
+    }
   }, [codigoOrdem]);
 
   // Buscar Ordem no Servidor
   const buscaOrdemServidor = async () => {
+    const reqId = ++loadRequestIdRef.current;
     try {
       if (codigoOrdem === 0) {
         serParceiroSelecionado({ CODIGO: 0, NOME: "" });
         return;
       }
 
+      setCarregandoOrdem(true);
       const fornecedorRepository = new FornecedorRepository();
       const cliRepository = new ClientRepository();
       const repository = new OrdemRepository();
       const ord = await repository.buscaOrdem(codigoOrdem);
+      if (reqId !== loadRequestIdRef.current) return;
 
       if (!ord) {
         toastMixin.fire("Atenção", "Ordem não encontrada!", "warning");
         return;
       }
 
-      const parceiro = await fornecedorRepository.getFornecedorById(ord.ORD_FORNECEDOR ?? 0);
-      serParceiroSelecionado(parceiro || { CODIGO: 0, NOME: "" });
+      const statusNormalizado = (ord.ORD_ESTADO || Status[0]).trim().toUpperCase();
+      const previsaoFormatada = normalizarDataPrevisao(ord.ORD_PREVISAO_CONCLUSAO);
 
       setDataAbertura(parseDataCalendario(ord.ORD_DATA));
-
-
-
-      const cli = await cliRepository.getClienteById(ord.ORD_CLI);
-      setClienteSelecionado(cli || { CODIGO: 1, NOME: "CONSUMIDOR" });
-
       setNfs(ord.ORD_NFS ?? "");
       setObs(ord.ORD_OBS ?? "");
       setObs_adm(ord.ORD_OBS_ADM ?? "");
       setSolicitacao(ord.ORD_SOLICITACAO ?? "");
-      setStatusOrdem(ord.ORD_ESTADO || Status[0].toUpperCase());
+      setStatusOrdem(statusNormalizado);
       setCodFatura(ord.ORD_FAT ?? 0);
       setValorPorcentagemDesconto(ord.ORD_PORCENTAGEM_DESCONTO ?? 0);
       setValorDesconto(ord.ORD_VALOR_DESCONTO ?? 0);
@@ -558,9 +570,6 @@ function OrcamentosContent() {
       // Carrega campos operacionais de OS Aprovada
       setOm(ord.ORD_OM || "");
       setPedidoCompra(ord.ORD_PEDIDO_COMPRA || "");
-      const previsaoFormatada = ord.ORD_PREVISAO_CONCLUSAO && ord.ORD_PREVISAO_CONCLUSAO !== "1900-01-01"
-        ? formatDataInput(parseDataCalendario(ord.ORD_PREVISAO_CONCLUSAO))
-        : "";
       setDataPrevisaoConclusao(previsaoFormatada);
       setJustificativaAtraso(ord.ORD_JUSTIFICATIVA_ATRASO || "");
 
@@ -568,11 +577,21 @@ function OrcamentosContent() {
       setSolicitanteId(ord.ORD_SOLICITANTE_ID ?? 0);
       setSolicitanteNome(ord.ORD_SOLICITANTE_NOME || "");
 
+      const parceiro = await fornecedorRepository.getFornecedorById(ord.ORD_FORNECEDOR ?? 0);
+      if (reqId !== loadRequestIdRef.current) return;
+      serParceiroSelecionado(parceiro || { CODIGO: 0, NOME: "" });
+
+      const cli = await cliRepository.getClienteById(ord.ORD_CLI);
+      if (reqId !== loadRequestIdRef.current) return;
+      setClienteSelecionado(cli || { CODIGO: 1, NOME: "CONSUMIDOR" });
+
       // Busca Produtos e Serviços
       const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
+      if (reqId !== loadRequestIdRef.current) return;
       setListaProdutosInseridos(Array.isArray(produtos) ? produtos : []);
 
       const servicos = await repository.buscaServicosOrdem(codigoOrdem);
+      if (reqId !== loadRequestIdRef.current) return;
       setListaServicosInseridos(Array.isArray(servicos) ? servicos : []);
 
       ord.itensOrdEst = Array.isArray(produtos) ? produtos : [];
@@ -584,6 +603,7 @@ function OrcamentosContent() {
 
       // E06: Carrega total pago acumulado nas empreitadas da OS
       await carregaTotalPagoOS(codigoOrdem);
+      if (reqId !== loadRequestIdRef.current) return;
 
       // Ordem carregada do servidor: atualiza snapshot salvo e limpa filas de exclusão (R03)
       const dataParsed = parseDataCalendario(ord.ORD_DATA);
@@ -596,7 +616,7 @@ function OrcamentosContent() {
         cliCod: cliLoaded.CODIGO,
         parcCod: parcLoaded.CODIGO,
         dataStr: formatDataInput(dataParsed),
-        status: ord.ORD_ESTADO || Status[0].toUpperCase(),
+        status: statusNormalizado,
         nfsVal: ord.ORD_NFS ?? "",
         solic: ord.ORD_SOLICITACAO ?? "",
         obsVal: ord.ORD_OBS ?? "",
@@ -622,7 +642,13 @@ function OrcamentosContent() {
         timer: 1500,
       });
     } catch (error) {
-      toastMixin.fire("Erro", String(error), "error");
+      if (reqId === loadRequestIdRef.current) {
+        toastMixin.fire("Erro", String(error), "error");
+      }
+    } finally {
+      if (reqId === loadRequestIdRef.current) {
+        setCarregandoOrdem(false);
+      }
     }
   };
 
@@ -640,6 +666,7 @@ function OrcamentosContent() {
     setStatusOrdem(novoStatus);
     setNfs("");
     setCodFatura(0);
+    setFoiFaturado(false);
     setSolicitacao("");
     setObs("");
     setObs_adm("");
@@ -703,6 +730,10 @@ function OrcamentosContent() {
     }
     if (listaProdutosInseridos.length === 0 && listaServicosInseridos.length === 0) {
       toastMixin.fire("Atenção", "Insira ao menos um produto ou serviço na ordem.", "warning");
+      return false;
+    }
+    if (isOrdemAtrasada(statusOrdem, dataPrevisaoConclusao) && !justificativaAtraso.trim()) {
+      toastMixin.fire("Atenção", "Informe a justificativa do atraso antes de salvar a OS.", "warning");
       return false;
     }
 
@@ -793,7 +824,10 @@ function OrcamentosContent() {
         }
       }
 
-      setCodigoOrdem(codigo);
+      if (codigo !== codigoOrdem) {
+        skipNextLoadRef.current = true;
+        setCodigoOrdem(codigo);
+      }
       setOrdem(ord);
       setOrdemCtx(ord);
       setBuscouOrdem(true);
@@ -1003,6 +1037,7 @@ function OrcamentosContent() {
     }
     const salvou = await salvaOrdem();
     if (!salvou) return;
+    setFoiFaturado(false);
     setShowFaturamento(true);
   };
 
@@ -1012,13 +1047,21 @@ function OrcamentosContent() {
       <HeaderOrcamento
         codigoOrdem={codigoOrdem}
         statusOrdem={statusOrdem}
-        canSave={totalItens > 0}
+        isAtrasada={isOrdemAtrasada(statusOrdem, dataPrevisaoConclusao)}
+        canSave={totalItens > 0 && !carregandoOrdem}
         onOpenPesquisaOS={() => executeWithDirtyCheck(() => setShowModalPesquisaOS(true))}
         onNovoOrcamento={() => executeWithDirtyCheck(handleNovoOrcamento)}
         onSalvar={salvaOrdem}
         onImprimir={handleImprimir}
         onImprimirCompleto={handleImprimirCompleto}
       />
+
+      {carregandoOrdem && (
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-[6px] border border-brand-border bg-brand-soft text-brand text-xs font-medium">
+          <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+          <span>Carregando dados da OS #{codigoOrdem}...</span>
+        </div>
+      )}
 
       {/* 2. Grid de Conteúdo: Coluna Principal (75%) e Lateral (25%) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 items-start">
@@ -1045,12 +1088,6 @@ function OrcamentosContent() {
               setIsDirty(true);
             }}
             listaStatus={listaStatusDisponiveis}
-            nfs={nfs}
-            setNfs={(n) => {
-              setNfs(n);
-              setIsDirty(true);
-            }}
-            codFatura={codFatura}
             nomeFuncionario={ordem?.FUN_NOME || nomeFuncionario}
             solicitacao={solicitacao}
             setSolicitacao={(s) => {
@@ -1189,12 +1226,13 @@ function OrcamentosContent() {
             onRetryTotalPago={() => carregaTotalPagoOS(codigoOrdem)}
             isDirty={isDirty}
             onFaturar={handleFaturamento}
+            onAbrirRecebimentos={() => setShowModalRecebimentos(true)}
             onAbrirEmpreitadas={() => setShowModalEmpreitadas(true)}
             onAbrirArquivos={() => setShowModalListaArquivos(true)}
             onImprimir={handleImprimir}
             onImprimirCompleto={handleImprimirCompleto}
             onSalvar={salvaOrdem}
-            canSave={totalItens > 0}
+            canSave={totalItens > 0 && !carregandoOrdem}
           />
         </div>
       </div>
@@ -1205,7 +1243,14 @@ function OrcamentosContent() {
       {showModalPesquisaOS && (
         <PesquisaOrdem
           OrdemSelecionado={codigoOrdem}
-          setOrdemSelecionado={setCodigoOrdem}
+          setOrdemSelecionado={(val) => {
+            const nextCod = typeof val === "function" ? val(codigoOrdem) : val;
+            if (nextCod === codigoOrdem && nextCod > 0) {
+              buscaOrdemServidor();
+            } else {
+              setCodigoOrdem(nextCod);
+            }
+          }}
           showModal={showModalPesquisaOS}
           setShowModal={setShowModalPesquisaOS}
           setBuscouOrdem={setBuscouOrdem}
@@ -1314,7 +1359,7 @@ function OrcamentosContent() {
         <Modal
           showModal={showModalimprimir}
           setShowModal={setShowModalImprimir}
-          title={foiFaturado ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
+          title={codFatura > 0 ? "Impressão de Ordem de Serviço" : "Impressão de Orçamento"}
           showButtonExit={false}
           body={<PrintOrcamentos />}
         />
@@ -1358,6 +1403,32 @@ function OrcamentosContent() {
               setFaturado={setFoiFaturado}
               cliFor={clienteSelecionado}
               valorTotal={totalProdutos + totalServicos - (valorDesconto || 0)}
+              showDadosFiscais
+              nfs={nfs}
+              setNfs={(n) => {
+                setNfs(n);
+                setIsDirty(true);
+              }}
+            />
+          }
+        />
+      )}
+
+      {/* Modal de Recebimentos e Baixas da Fatura */}
+      {showModalRecebimentos && codFatura > 0 && (
+        <Modal
+          title={`Recebimentos & Baixas • Fatura #${codFatura}`}
+          showModal={showModalRecebimentos}
+          setShowModal={setShowModalRecebimentos}
+          showButtonExit={false}
+          body={
+            <ModalRecebimentos
+              codFatura={codFatura}
+              codigoOrdem={codigoOrdem}
+              clienteNome={clienteSelecionado.NOME}
+              funCodigo={idFuncionario || 1}
+              onBaixaConcluida={() => carregaTotalPagoOS(codigoOrdem)}
+              onClose={() => setShowModalRecebimentos(false)}
             />
           }
         />

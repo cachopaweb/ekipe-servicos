@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { parseDataCalendario, formatDataInput } from "@/app/functions/utils";
+import { useMemo } from "react";
+import { parseDataCalendario, formatDataInput, isOrdemAtrasada, formatStatusOrdemLabel } from "@/app/functions/utils";
 import { ClienteModel } from "@/app/models/cliente_model";
 import { FornecedorModel } from "@/app/models/fornecedor_model";
 import { SolicitanteModel } from "@/app/models/solicitante_model";
@@ -11,7 +11,6 @@ import {
   Building2,
   Calendar,
   FileCheck,
-  Receipt,
   UserCheck,
   X,
   Plus,
@@ -19,8 +18,6 @@ import {
   MapPin,
   CreditCard,
   MessageSquare,
-  ChevronDown,
-  ChevronUp,
   Hash,
   ShoppingCart,
   Clock,
@@ -39,9 +36,6 @@ interface FormIdentificacaoProps {
   statusOrdem: string;
   setStatusOrdem: (s: string) => void;
   listaStatus: string[];
-  nfs: string;
-  setNfs: (n: string) => void;
-  codFatura: number;
   nomeFuncionario: string;
   solicitacao: string;
   setSolicitacao: (s: string) => void;
@@ -72,9 +66,6 @@ export default function FormIdentificacao({
   statusOrdem,
   setStatusOrdem,
   listaStatus,
-  nfs,
-  setNfs,
-  codFatura,
   nomeFuncionario,
   solicitacao,
   setSolicitacao,
@@ -93,15 +84,8 @@ export default function FormIdentificacao({
   solicitantes = [],
   onOpenNovoSolicitante,
 }: FormIdentificacaoProps) {
-  // Controle de exibição dos dados fiscais secundários
-  const [showFiscal, setShowFiscal] = useState<boolean>(codFatura > 0 || Boolean(nfs));
-
   // Verifica se a OS aprovada está com prazo estourado (atrasada)
-  const isAtrasada = useMemo(() => {
-    if (statusOrdem !== "APROVADO" || !dataPrevisaoConclusao) return false;
-    const hojeStr = formatDataInput(new Date());
-    return dataPrevisaoConclusao < hojeStr;
-  }, [statusOrdem, dataPrevisaoConclusao]);
+  const isAtrasada = isOrdemAtrasada(statusOrdem, dataPrevisaoConclusao);
 
   // Solicitante selecionado atualmente
   const solicitanteSelecionado = useMemo(() => {
@@ -317,7 +301,7 @@ export default function FormIdentificacao({
           >
             {listaStatus.map((st) => (
               <option key={st} value={st}>
-                {st}
+                {formatStatusOrdemLabel(st)}
               </option>
             ))}
           </select>
@@ -468,58 +452,6 @@ export default function FormIdentificacao({
               : ""
           }`}
         />
-      </div>
-
-      {/* 4. Detalhes Fiscais & Faturamento (Seção Recolhível) */}
-      <div className="pt-2 border-t border-ek-rule">
-        <button
-          type="button"
-          onClick={() => setShowFiscal(!showFiscal)}
-          className="flex items-center gap-1.5 text-xs font-medium text-ek-muted hover:text-ek-text transition-colors py-1"
-        >
-          {showFiscal ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          <span>Dados Fiscais & Fatura Vinculada</span>
-          {codFatura > 0 && (
-            <span className="ml-1.5 px-2 py-0.5 text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full tabular-nums">
-              Faturado #{codFatura}
-            </span>
-          )}
-        </button>
-
-        {showFiscal && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2.5 p-3 bg-ek-raised rounded-[6px] border border-ek-border">
-            <div>
-              <label className="ek-label flex items-center gap-1">
-                <Receipt className="w-3.5 h-3.5 text-ek-faint" />
-                <span>NF Serviço</span>
-              </label>
-              <input
-                type="text"
-                value={nfs}
-                onChange={(e) => setNfs(e.target.value.toUpperCase())}
-                placeholder="Nº DA NOTA FISCAL"
-                className="ek-input uppercase"
-              />
-            </div>
-
-            <div>
-              <label className="ek-label flex items-center gap-1">
-                <Receipt className="w-3.5 h-3.5 text-ek-faint" />
-                <span>Fatura Vinculada</span>
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={codFatura > 0 ? `Fatura Vinculada #${codFatura}` : "Não faturado"}
-                className={`ek-input font-medium ${
-                  codFatura > 0
-                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                    : "bg-white text-ek-faint"
-                }`}
-              />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { escapeSql } from "../functions/utils";
 import { ProdutoModel } from "../models/produto_model";
 import api from "../services/api";
 
@@ -15,7 +16,7 @@ export default class ProdutoRepository {
                         PRO_NCM 
                         FROM PRODUTOS 
                         WHERE PRO_ESTADO = 'ATIVO' 
-                        AND PRO_NOME LIKE '%${busca.toUpperCase()}%'`
+                        AND PRO_NOME LIKE '%${escapeSql(busca.toUpperCase())}%'`
             })
 
             // Tratamento para garantir que retorne sempre um array, mesmo se vier 1 objeto ou vazio

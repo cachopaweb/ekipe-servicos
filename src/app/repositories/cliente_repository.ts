@@ -1,23 +1,36 @@
-import { FormatDate } from "../functions/utils";
-import { ClienteModel } from "../models/cliente_model";
+import { escapeSql, FormatDate } from "../functions/utils";
+import { ClienteModel, EstadoCliente } from "../models/cliente_model";
 import api from "../services/api";
 
+export type FiltroEstadoCliente = "todos" | "ativos" | "inativos";
+
 export default class ClientRepository{
-    async getClientes(busca: string): Promise<ClienteModel[]>{
+    async getClientes(busca: string, filtroEstado: FiltroEstadoCliente = "ativos"): Promise<ClienteModel[]>{
         try {
+          const clausulaEstado =
+            filtroEstado === "ativos"
+              ? " AND UPPER(TRIM(COALESCE(CLI_ESTADO, ''))) <> 'INATIVO'"
+              : filtroEstado === "inativos"
+              ? " AND UPPER(TRIM(COALESCE(CLI_ESTADO, ''))) = 'INATIVO'"
+              : "";
           let SQL = `SELECT FIRST 50 CLI_CODIGO AS CODIGO, CLI_NOME AS NOME, CLI_CNPJ_CPF AS CPF_CNPJ, CLI_RG AS RG, 
           CLI_FONE AS FONE, CLI_CELULAR AS CELULAR, CLI_ENDERECO AS ENDERECO, CLI_SITUACAO, CLI_PLANO, 
-          CLI_NOTA FROM CLIENTES WHERE (CLI_NOME LIKE '%${busca.toUpperCase()}%') AND CLI_ESTADO = 'ATIVO'`
+          CLI_NOTA, CLI_ESTADO AS ESTADO FROM CLIENTES WHERE (CLI_NOME LIKE '%${escapeSql(busca.toUpperCase())}%')${clausulaEstado}`
           const response = await api.post('/dataset', {
             'sql': SQL
           });
-          let data = [];
-          if (response.data instanceof Array){
-              data = response.data;
-          }else{
-              data = [response.data];
-          }
-          return data;
+          const raw = response.data;
+          const lista = Array.isArray(raw) ? raw : raw ? [raw] : [];
+          return lista.filter(
+            (item): item is ClienteModel =>
+              Boolean(
+                item &&
+                  typeof item === "object" &&
+                  "CODIGO" in item &&
+                  item.CODIGO !== undefined &&
+                  item.CODIGO !== null
+              )
+          );
         } catch (error) {
             throw new Error('erro ao buscar clientes');
         }
@@ -30,7 +43,7 @@ export default class ClientRepository{
           CLI_CIDADE AS CIDADE, CLI_CID AS CODCIDADE, CLI_CEP AS CEP, CLI_FIDELIDADE AS FIDELIDADE, CLI_INADIMPLENCIA AS INADIPLENCIA, CLI_DESCONTO AS DESCONTO,
           CLI_SITUACAO AS SITUACAO, CLI_LIMITE AS LIMITE, CLI_DATANASC AS DATANASCIMENTO, CLI_PAI AS PAI, CLI_MAE AS MAE, CLI_CONJUGE AS CONJUGE,
           CLI_INDIC_IE AS INDICEIE, CLI_INSC_ESTADUAL AS INSCRICAOESTADUAL, CLI_INSC_MUNICIPAL AS INSCRICAOMUNICIPAL, CLI_SUFRAMA AS SUFRAMA, CLI_LATITUDE AS LATITUDE, CLI_LONGITUDE AS LONGITUDE,
-          CLI_ESTADO AS ESTADO, CLI_DATAC AS DATACADASTRO, CLI_EMAIL AS EMAIL, CLI_OBS AS OBS FROM CLIENTES WHERE CLI_CODIGO = '${id}' AND CLI_ESTADO = 'ATIVO'`
+          CLI_ESTADO AS ESTADO, CLI_DATAC AS DATACADASTRO, CLI_EMAIL AS EMAIL, CLI_OBS AS OBS FROM CLIENTES WHERE CLI_CODIGO = '${id}'`
         const response = await api.post('/dataset', {
           'sql': SQL
         });
@@ -67,7 +80,7 @@ export default class ClientRepository{
           '${cliente.CIDADE??''}', '${cliente.CODCIDADE??''}', '${cliente.CEP??''}', '${cliente.FIDELIDADE}', ${cliente.INADIPLENCIA??0}, ${cliente.DESCONTO??0},
           '${cliente.SITUACAO??''}', ${cliente.LIMITE??0}, '${cliente.PAI??''}', '${cliente.MAE??''}', '${cliente.CONJUGE??''}',
           '${cliente.INDICEIE??''}', '${cliente.INSCRICAOESTADUAL??''}', '${cliente.INSCRICAOMUNICIPAL??''}', '${cliente.SUFRAMA??''}',
-          '${cliente.ESTADO??''}', '${cliente.EMAIL??''}', '${cliente.OBS??''}', '${cliente.LATITUDE??''}', '${cliente.LONGITUDE??''}')
+          '${cliente.ESTADO??'ATIVO'}', '${cliente.EMAIL??''}', '${cliente.OBS??''}', '${cliente.LATITUDE??''}', '${cliente.LONGITUDE??''}')
           matching (CLI_CODIGO)`;
       const response = await api.post('/dataset', {
         'sql': sql
@@ -79,18 +92,21 @@ export default class ClientRepository{
 }
 
 
-  async desabilitaCliente(cliente:ClienteModel): Promise<boolean>{
+  async setEstadoCliente(codigo: number, novoEstado: EstadoCliente): Promise<boolean>{
     try {
-      const sql = `UPDATE CLIENTES SET CLI_ESTADO = 'INATIVO' WHERE CLI_CODIGO = ${cliente.CODIGO}`;
-    
+      const sql = `UPDATE CLIENTES SET CLI_ESTADO = '${novoEstado}' WHERE CLI_CODIGO = ${codigo}`;
       const response = await api.post('/dataset', {
         'sql': sql
-      });          
+      });
       return response.status === 200;
     } catch (error) {
-        throw new Error('erro ao salvar cliente.\n'+String(error));
+        throw new Error('erro ao alterar status do cliente.\n'+String(error));
     }
-}
+  }
+
+  async desabilitaCliente(cliente:ClienteModel): Promise<boolean>{
+    return this.setEstadoCliente(cliente.CODIGO, 'INATIVO');
+  }
 
   async setCliente(cliente:ClienteModel): Promise<boolean>{
     try {
@@ -103,7 +119,7 @@ export default class ClientRepository{
           '${cliente.CIDADE??''}', '${cliente.CODCIDADE??''}', '${cliente.CEP??''}', '${cliente.FIDELIDADE}', ${cliente.INADIPLENCIA??0}, ${cliente.DESCONTO??0},
           '${cliente.SITUACAO??''}', ${cliente.LIMITE??0}, '${cliente.PAI??''}', '${cliente.MAE??''}', '${cliente.CONJUGE??''}',
           '${cliente.INDICEIE??''}', '${cliente.INSCRICAOESTADUAL??''}', '${cliente.INSCRICAOMUNICIPAL??''}', '${cliente.SUFRAMA??''}',
-          '${cliente.ESTADO??''}', '${cliente.DATACADASTRO??''}', '${cliente.EMAIL??''}', '${cliente.OBS??''}', '${cliente.LATITUDE??''}', '${cliente.LONGITUDE??''}')
+          '${cliente.ESTADO??'ATIVO'}', '${cliente.DATACADASTRO??''}', '${cliente.EMAIL??''}', '${cliente.OBS??''}', '${cliente.LATITUDE??''}', '${cliente.LONGITUDE??''}')
           matching (CLI_CODIGO)`; 
       const response = await api.post('/dataset', {
         'sql': sql

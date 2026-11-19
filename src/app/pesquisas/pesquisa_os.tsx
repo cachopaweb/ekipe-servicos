@@ -277,6 +277,7 @@ export default function PesquisaOrdem({
   const [showModalDetalhes, setShowModalDetalhes] = useState(false);
 
   const inputBuscaRef = useRef<HTMLInputElement>(null);
+  const searchReqIdRef = useRef(0);
 
   const handleClose = useCallback(() => {
     setShowModal(false);
@@ -309,11 +310,14 @@ export default function PesquisaOrdem({
     const d2 = data2Str ? parseDataCalendario(data2Str) : null;
     const temPeriodo = Boolean(d1 || d2);
 
-    if (!temPeriodo && textoBusca.trim() === "") {
+    if (!temPeriodo && textoBusca.trim() === "" && statusOrdem === "TODOS") {
+      ++searchReqIdRef.current;
       setOrdems([]);
+      setLoading(false);
       return;
     }
 
+    const reqId = ++searchReqIdRef.current;
     setLoading(true);
     try {
       const repository = new OrdemRepository();
@@ -326,19 +330,24 @@ export default function PesquisaOrdem({
         d1,
         d2
       );
+      if (reqId !== searchReqIdRef.current) return;
       const resultadoFinal = statusOrdem === "ATRASADAS"
         ? (listaOrdems || []).filter(checkOrdemAtrasada)
         : (listaOrdems || []);
       setOrdems(resultadoFinal);
       setSelectedIndex(0);
     } catch (error) {
-      toastMixin.fire({
-        title: "Erro ao pesquisar ordens",
-        text: String(error),
-        icon: "error",
-      });
+      if (reqId === searchReqIdRef.current) {
+        toastMixin.fire({
+          title: "Erro ao pesquisar ordens",
+          text: String(error),
+          icon: "error",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (reqId === searchReqIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [textoBusca, tipoBusca, statusOrdem, data1Str, data2Str, checkOrdemAtrasada]);
 
@@ -521,7 +530,7 @@ export default function PesquisaOrdem({
                 <FileText className="w-8 h-8 text-ek-faint" />
                 <span className="text-sm font-medium text-ek-text">Nenhuma ordem de serviço encontrada.</span>
                 <span className="text-xs text-ek-muted">
-                  {textoBusca.trim() === "" && !data1Str && !data2Str
+                  {textoBusca.trim() === "" && !data1Str && !data2Str && statusOrdem === "TODOS"
                     ? "Digite um termo de pesquisa ou informe um período de busca."
                     : "Verifique os filtros selecionados ou digite outro termo."}
                 </span>

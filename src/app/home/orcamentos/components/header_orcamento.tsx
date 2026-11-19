@@ -1,10 +1,11 @@
 "use client";
 
-import { FileText, Search, Plus, Save, Printer } from "lucide-react";
+import { FileText, Search, Plus, Save, Printer, AlertTriangle } from "lucide-react";
 
 interface HeaderOrcamentoProps {
   codigoOrdem: number;
   statusOrdem: string;
+  isAtrasada?: boolean;
   canSave: boolean;
   onOpenPesquisaOS: () => void;
   onNovoOrcamento: () => void;
@@ -16,6 +17,7 @@ interface HeaderOrcamentoProps {
 export default function HeaderOrcamento({
   codigoOrdem,
   statusOrdem,
+  isAtrasada = false,
   canSave,
   onOpenPesquisaOS,
   onNovoOrcamento,
@@ -55,6 +57,12 @@ export default function HeaderOrcamento({
           >
             {statusOrdem || "ABERTO"}
           </span>
+          {isAtrasada && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+              <span>Atrasada</span>
+            </span>
+          )}
         </div>
         <p className="text-sm text-ek-muted mt-0.5">
           Gestão comercial e técnica de serviços

@@ -11,6 +11,8 @@ import {
   converterDataPontoParaTraco,
   parseDataCalendario,
   formatDataInput,
+  normalizarDataPrevisao,
+  isOrdemAtrasada,
 } from "@/app/functions/utils";
 
 // Modelos
@@ -501,24 +503,22 @@ function OrcamentosContent() {
     }
   };
 
-  // Debounce para busca de ordem quando o código é alterado
+  // Carrega a ordem ao alterar o código
   useEffect(() => {
     if (codigoOrdem <= 0) {
       setTotalPago(0);
       setErroTotalPago(false);
       setCarregandoTotalPago(false);
     } else {
-      // Limpa total pago imediatamente ao trocar de OS para não exibir resíduo da OS anterior
+      // Limpa resíduos da OS anterior imediatamente ao trocar para outra OS
       setTotalPago(0);
       setErroTotalPago(false);
-    }
-
-    const timeout = setTimeout(() => {
-      if (codigoOrdem > 0) {
-        buscaOrdemServidor();
+      if (ordem?.ORD_CODIGO !== codigoOrdem) {
+        setObs("");
+        setObs_adm("");
       }
-    }, 1000);
-    return () => clearTimeout(timeout);
+      buscaOrdemServidor();
+    }
   }, [codigoOrdem]);
 
   // Buscar Ordem no Servidor
@@ -539,21 +539,15 @@ function OrcamentosContent() {
         return;
       }
 
-      const parceiro = await fornecedorRepository.getFornecedorById(ord.ORD_FORNECEDOR ?? 0);
-      serParceiroSelecionado(parceiro || { CODIGO: 0, NOME: "" });
+      const statusNormalizado = (ord.ORD_ESTADO || Status[0]).trim().toUpperCase();
+      const previsaoFormatada = normalizarDataPrevisao(ord.ORD_PREVISAO_CONCLUSAO);
 
       setDataAbertura(parseDataCalendario(ord.ORD_DATA));
-
-
-
-      const cli = await cliRepository.getClienteById(ord.ORD_CLI);
-      setClienteSelecionado(cli || { CODIGO: 1, NOME: "CONSUMIDOR" });
-
       setNfs(ord.ORD_NFS ?? "");
       setObs(ord.ORD_OBS ?? "");
       setObs_adm(ord.ORD_OBS_ADM ?? "");
       setSolicitacao(ord.ORD_SOLICITACAO ?? "");
-      setStatusOrdem(ord.ORD_ESTADO || Status[0].toUpperCase());
+      setStatusOrdem(statusNormalizado);
       setCodFatura(ord.ORD_FAT ?? 0);
       setValorPorcentagemDesconto(ord.ORD_PORCENTAGEM_DESCONTO ?? 0);
       setValorDesconto(ord.ORD_VALOR_DESCONTO ?? 0);
@@ -561,15 +555,18 @@ function OrcamentosContent() {
       // Carrega campos operacionais de OS Aprovada
       setOm(ord.ORD_OM || "");
       setPedidoCompra(ord.ORD_PEDIDO_COMPRA || "");
-      const previsaoFormatada = ord.ORD_PREVISAO_CONCLUSAO && ord.ORD_PREVISAO_CONCLUSAO !== "1900-01-01"
-        ? formatDataInput(parseDataCalendario(ord.ORD_PREVISAO_CONCLUSAO))
-        : "";
       setDataPrevisaoConclusao(previsaoFormatada);
       setJustificativaAtraso(ord.ORD_JUSTIFICATIVA_ATRASO || "");
 
       // Solicitante (Coordenador que abre/aprova o chamado)
       setSolicitanteId(ord.ORD_SOLICITANTE_ID ?? 0);
       setSolicitanteNome(ord.ORD_SOLICITANTE_NOME || "");
+
+      const parceiro = await fornecedorRepository.getFornecedorById(ord.ORD_FORNECEDOR ?? 0);
+      serParceiroSelecionado(parceiro || { CODIGO: 0, NOME: "" });
+
+      const cli = await cliRepository.getClienteById(ord.ORD_CLI);
+      setClienteSelecionado(cli || { CODIGO: 1, NOME: "CONSUMIDOR" });
 
       // Busca Produtos e Serviços
       const produtos = await repository.buscaProdutosOrdem(codigoOrdem);
@@ -599,7 +596,7 @@ function OrcamentosContent() {
         cliCod: cliLoaded.CODIGO,
         parcCod: parcLoaded.CODIGO,
         dataStr: formatDataInput(dataParsed),
-        status: ord.ORD_ESTADO || Status[0].toUpperCase(),
+        status: statusNormalizado,
         nfsVal: ord.ORD_NFS ?? "",
         solic: ord.ORD_SOLICITACAO ?? "",
         obsVal: ord.ORD_OBS ?? "",
@@ -1017,6 +1014,7 @@ function OrcamentosContent() {
       <HeaderOrcamento
         codigoOrdem={codigoOrdem}
         statusOrdem={statusOrdem}
+        isAtrasada={isOrdemAtrasada(statusOrdem, dataPrevisaoConclusao)}
         canSave={totalItens > 0}
         onOpenPesquisaOS={() => executeWithDirtyCheck(() => setShowModalPesquisaOS(true))}
         onNovoOrcamento={() => executeWithDirtyCheck(handleNovoOrcamento)}
@@ -1205,7 +1203,14 @@ function OrcamentosContent() {
       {showModalPesquisaOS && (
         <PesquisaOrdem
           OrdemSelecionado={codigoOrdem}
-          setOrdemSelecionado={setCodigoOrdem}
+          setOrdemSelecionado={(val) => {
+            const nextCod = typeof val === "function" ? val(codigoOrdem) : val;
+            if (nextCod === codigoOrdem && nextCod > 0) {
+              buscaOrdemServidor();
+            } else {
+              setCodigoOrdem(nextCod);
+            }
+          }}
           showModal={showModalPesquisaOS}
           setShowModal={setShowModalPesquisaOS}
           setBuscouOrdem={setBuscouOrdem}

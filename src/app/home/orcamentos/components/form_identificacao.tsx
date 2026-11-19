@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { parseDataCalendario, formatDataInput } from "@/app/functions/utils";
+import { parseDataCalendario, formatDataInput, isOrdemAtrasada } from "@/app/functions/utils";
 import { ClienteModel } from "@/app/models/cliente_model";
 import { FornecedorModel } from "@/app/models/fornecedor_model";
 import { SolicitanteModel } from "@/app/models/solicitante_model";
@@ -85,11 +85,7 @@ export default function FormIdentificacao({
   onOpenNovoSolicitante,
 }: FormIdentificacaoProps) {
   // Verifica se a OS aprovada está com prazo estourado (atrasada)
-  const isAtrasada = useMemo(() => {
-    if (statusOrdem !== "APROVADO" || !dataPrevisaoConclusao) return false;
-    const hojeStr = formatDataInput(new Date());
-    return dataPrevisaoConclusao < hojeStr;
-  }, [statusOrdem, dataPrevisaoConclusao]);
+  const isAtrasada = isOrdemAtrasada(statusOrdem, dataPrevisaoConclusao);
 
   // Solicitante selecionado atualmente
   const solicitanteSelecionado = useMemo(() => {

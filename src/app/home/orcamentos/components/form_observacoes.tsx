@@ -17,6 +17,8 @@ export default function FormObservacoes({
   setObsAdm,
 }: FormObservacoesProps) {
   const [activeTab, setActiveTab] = useState<"obs" | "obsAdm">("obs");
+  const obsValue = obs ?? "";
+  const obsAdmValue = obsAdm ?? "";
 
   return (
     <div className="ek-card overflow-hidden">
@@ -33,7 +35,7 @@ export default function FormObservacoes({
         >
           <FileText className={`w-4 h-4 ${activeTab === "obs" ? "text-brand" : "text-ek-faint"}`} />
           <span>Condições & Observações Gerais (Impressão)</span>
-          {obs.trim() && (
+          {obsValue.trim() && (
             <span className="w-1.5 h-1.5 rounded-full bg-brand" title="Possui observações preenchidas" />
           )}
         </button>
@@ -49,7 +51,7 @@ export default function FormObservacoes({
         >
           <Lock className={`w-4 h-4 ${activeTab === "obsAdm" ? "text-brand" : "text-ek-faint"}`} />
           <span>Anotações Internas (ADM / Equipe)</span>
-          {obsAdm.trim() && (
+          {obsAdmValue.trim() && (
             <span className="w-1.5 h-1.5 rounded-full bg-brand-gold" title="Possui anotações internas" />
           )}
         </button>
@@ -61,12 +63,12 @@ export default function FormObservacoes({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs text-ek-muted">
               <span>Este texto é impresso no orçamento do cliente.</span>
-              <span className="tabular-nums">{obs.length} caracteres</span>
+              <span className="tabular-nums">{obsValue.length} caracteres</span>
             </div>
             <textarea
               id="obs_impressao_id"
               rows={3}
-              value={obs}
+              value={obsValue}
               onChange={(e) => setObs(e.target.value.toUpperCase())}
               placeholder="Ex: Validade da proposta: 15 dias. Pagamento em 3x no boleto. Garantia de 90 dias nos serviços prestados..."
               className="ek-textarea uppercase resize-y"
@@ -78,12 +80,12 @@ export default function FormObservacoes({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs text-ek-muted">
               <span className="text-brand-goldInk font-medium">Uso restrito da empresa. Não sai na impressão da OS.</span>
-              <span className="tabular-nums">{obsAdm.length} caracteres</span>
+              <span className="tabular-nums">{obsAdmValue.length} caracteres</span>
             </div>
             <textarea
               id="obs_adm_id"
               rows={3}
-              value={obsAdm}
+              value={obsAdmValue}
               onChange={(e) => setObsAdm(e.target.value.toUpperCase())}
               placeholder="Anotações internas, custos operacionais, instruções para os técnicos em campo..."
               className="ek-textarea uppercase resize-y"

@@ -154,8 +154,8 @@ export default class OrdemRepository {
     tipoBusca: string,
     porPeriodo: boolean,
     status: string,
-    data1: Date,
-    data2: Date
+    data1?: Date | null,
+    data2?: Date | null
   ): Promise<OrdemModel[]> {
     try {
       let SQL = `SELECT FIRST 50 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
@@ -183,12 +183,17 @@ export default class OrdemRepository {
           }
         }
       } else SQL = SQL.replace("[BUSCA]", "");
-      if (porPeriodo)
-        SQL = SQL.replace(
-          "[PERIODO]",
-          ` AND ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`
-        );
-      else SQL = SQL.replace("[PERIODO]", "");
+      let filtroPeriodo = "";
+      if (porPeriodo) {
+        if (data1 && data2) {
+          filtroPeriodo = ` AND ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`;
+        } else if (data1) {
+          filtroPeriodo = ` AND ORD_DATA >= '${FormatDate(data1)}'`;
+        } else if (data2) {
+          filtroPeriodo = ` AND ORD_DATA <= '${FormatDate(data2)}'`;
+        }
+      }
+      SQL = SQL.replace("[PERIODO]", filtroPeriodo);
       if (status != "" && status != "TODOS")
         SQL = SQL.replace("[STATUS]", ` AND ORD_ESTADO = '${status}'`);
       else SQL = SQL.replace("[STATUS]", "");

@@ -341,5 +341,20 @@ const parseFloatFromString = (value: string): number => {
   return parseFloat(value.replace(/,/g, ''));
 };
 
-export { parseDataCalendario, formatDataInput, horaFormatadaDB, dataHoraFormatadaDB, GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
+const DATAS_SENTINELA = new Set(["1900-01-01", "1899-12-30"]);
+
+function normalizarDataPrevisao(data?: Date | string | null): string {
+  if (!data) return "";
+  const formatted = formatDataInput(parseDataCalendario(data));
+  return !formatted || DATAS_SENTINELA.has(formatted) ? "" : formatted;
+}
+
+function isOrdemAtrasada(estado?: string | null, previsao?: Date | string | null): boolean {
+  if ((estado || "").trim().toUpperCase() !== "APROVADO") return false;
+  const prevStr = normalizarDataPrevisao(previsao);
+  if (!prevStr) return false;
+  return prevStr < formatDataInput(new Date());
+}
+
+export { parseDataCalendario, formatDataInput, normalizarDataPrevisao, isOrdemAtrasada, horaFormatadaDB, dataHoraFormatadaDB, GeraCodigo, converterDataPontoParaTraco, Status, streamToBlob, mascaraMoedaEvent, mascaraMoeda, FormatDate, IncrementaGenerator, getFileName, toastMixin, formatCurrency, 
   converterDataFormato, DataHoje, converteDoBancoParaString, maskRealToNumber, formatDateDB, dataFormatadaValueInput, dataFormatadaHojeDotValueInput, formatNumber, parseFloatFromString, escapeSql };

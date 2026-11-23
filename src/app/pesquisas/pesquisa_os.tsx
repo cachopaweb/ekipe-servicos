@@ -306,8 +306,9 @@ export default function PesquisaOrdem({
 
   // Buscar ordens
   const buscarOrdemModel = useCallback(async () => {
-    const d1 = data1Str ? parseDataCalendario(data1Str) : null;
-    const d2 = data2Str ? parseDataCalendario(data2Str) : null;
+    const isFiltroAtrasadas = statusOrdem === "ATRASADAS";
+    const d1 = !isFiltroAtrasadas && data1Str ? parseDataCalendario(data1Str) : null;
+    const d2 = !isFiltroAtrasadas && data2Str ? parseDataCalendario(data2Str) : null;
     const temPeriodo = Boolean(d1 || d2);
 
     if (!temPeriodo && textoBusca.trim() === "" && statusOrdem === "TODOS") {
@@ -321,12 +322,11 @@ export default function PesquisaOrdem({
     setLoading(true);
     try {
       const repository = new OrdemRepository();
-      const statusParam = statusOrdem === "ATRASADAS" ? "APROVADO" : statusOrdem;
       const listaOrdems = await repository.pesquisaOrdem(
         textoBusca.toUpperCase(),
         tipoBusca,
         temPeriodo,
-        statusParam,
+        statusOrdem,
         d1,
         d2
       );
@@ -496,7 +496,9 @@ export default function PesquisaOrdem({
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-ek-rule text-xs">
               <span className="text-ek-muted font-medium flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-brand" />
-                Período de abertura (padrão: últimos 30 dias)
+                {statusOrdem === "ATRASADAS"
+                  ? "Período de abertura (desativado para OS atrasadas — exibindo todas)"
+                  : "Período de abertura (padrão: últimos 30 dias)"}
               </span>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -505,14 +507,16 @@ export default function PesquisaOrdem({
                   type="date"
                   value={data1Str}
                   onChange={(e) => setData1Str(e.target.value)}
-                  className="ek-input h-8 w-auto px-2.5 text-xs"
+                  disabled={statusOrdem === "ATRASADAS"}
+                  className="ek-input h-8 w-auto px-2.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span className="text-ek-muted">Até:</span>
                 <input
                   type="date"
                   value={data2Str}
                   onChange={(e) => setData2Str(e.target.value)}
-                  className="ek-input h-8 w-auto px-2.5 text-xs"
+                  disabled={statusOrdem === "ATRASADAS"}
+                  className="ek-input h-8 w-auto px-2.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>

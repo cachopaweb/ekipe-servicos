@@ -158,7 +158,8 @@ export default class OrdemRepository {
     data2?: Date | null
   ): Promise<OrdemModel[]> {
     try {
-      let SQL = `SELECT FIRST 50 ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
+      const limitClause = status === "ATRASADAS" ? "" : "FIRST 50 ";
+      let SQL = `SELECT ${limitClause}ORD_CODIGO, ORD_DATA, ORD_VALOR, ORD_FUN, ORD_CLI, CLI_NOME, ORD_OBS, ORD_ESTADO, 
                    ORD_DESCONTO_P, ORD_DESCONTO_S, ORD_FAT, ORD_DEVOLUCAO_P, ORD_SOLICITACAO, ORD_OBS_ADM, ORD_NFS, FORN.FOR_NOME AS PARCEIRO,
                    ORD_OM, ORD_PEDIDO_COMPRA, ORD_PREVISAO_CONCLUSAO, ORD_JUSTIFICATIVA_ATRASO,
                    ORD_SOLICITANTE_ID, ORD_SOLICITANTE_NOME
@@ -187,7 +188,7 @@ export default class OrdemRepository {
         }
       } else SQL = SQL.replace("[BUSCA]", "");
       let filtroPeriodo = "";
-      if (porPeriodo) {
+      if (porPeriodo && status !== "ATRASADAS") {
         if (data1 && data2) {
           filtroPeriodo = ` AND ORD_DATA BETWEEN '${FormatDate(data1)}' AND '${FormatDate(data2)}'`;
         } else if (data1) {
@@ -202,7 +203,9 @@ export default class OrdemRepository {
         const filtroStatus =
           status === "CANCELADO"
             ? ` AND ORD_ESTADO IN ('CANCELADO', 'CANCELADA')`
-            : ` AND ORD_ESTADO = '${escapeSql(status)}'`;
+            : status === "ATRASADAS"
+              ? ` AND ORD_ESTADO = 'APROVADO' AND ORD_PREVISAO_CONCLUSAO IS NOT NULL AND ORD_PREVISAO_CONCLUSAO > '01.01.1900' AND ORD_PREVISAO_CONCLUSAO < '${FormatDate(new Date())}'`
+              : ` AND ORD_ESTADO = '${escapeSql(status)}'`;
         SQL = SQL.replace("[STATUS]", filtroStatus);
       } else SQL = SQL.replace("[STATUS]", "");
       SQL = SQL.replace("[ORDEM]", "ORD_CODIGO DESC");

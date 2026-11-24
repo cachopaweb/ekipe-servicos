@@ -1278,6 +1278,7 @@ function OrcamentosContent() {
             serParceiroSelecionado(forn);
             setIsDirty(true);
           }}
+          clienteCodigo={clienteSelecionado?.CODIGO}
           showModal={showModalPesquisaFornecedor}
           setShowModal={setShowModalPesquisaFornecedor}
         />

@@ -21,6 +21,7 @@ type PesquisaFornecedorParams = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
   fornecedorSelecionado?: FornecedorModel;
   setFornecedorSelecionado: Dispatch<SetStateAction<FornecedorModel>>;
+  clienteCodigo?: number;
   isOpen?: boolean;
   onClose?: () => void;
 };
@@ -29,6 +30,7 @@ export default function PesquisaFornecedor({
   showModal,
   setShowModal,
   setFornecedorSelecionado,
+  clienteCodigo,
   isOpen,
   onClose,
 }: PesquisaFornecedorParams) {
@@ -706,7 +708,7 @@ export default function PesquisaFornecedor({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-3 min-h-[500px]">
-              <Mapa />
+              <Mapa clienteCodigo={clienteCodigo} />
             </div>
           </div>
         </div>

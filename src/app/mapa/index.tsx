@@ -11,22 +11,26 @@ import { useAppData } from "@/app/contexts/app_context";
 import ClientRepository from "@/app/repositories/cliente_repository";
 import { ClienteModel } from "@/app/models/cliente_model";
 import { Button } from "../../components/ui/button";
-import { FornecedorModel } from "@/app/models/fornecedor_model";
+import { FornecedorModel, isFornecedorAtivo } from "@/app/models/fornecedor_model";
 import FornecedorRepository from "@/app/repositories/fornecedor_repository";
 import { toastMixin } from "../functions/utils";
 
-interface propsMapa {}
+interface propsMapa {
+  clienteCodigo?: number;
+}
 
+const CENTRO_PADRAO: [number, number] = [-23.5505, -46.6333];
 
-
-export function Mapa({}: propsMapa) {
+export function Mapa({ clienteCodigo }: propsMapa) {
   const [carregando, setCarregando] = useState(true);
-  const [centro, setCentro] = useState<[number, number]>([0, 0]); // Posição inicial do mapa
+  const [centro, setCentro] = useState<[number, number]>(CENTRO_PADRAO); // Posição inicial do mapa
   const [cliente, setCliente] = useState<ClienteModel | null>(null);
   const [fornecedores, setFornecedores] = useState<FornecedorModel[]>([]);
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const { OrdemCtx } = useAppData();
+  const codigoClienteAlvo =
+    clienteCodigo && clienteCodigo > 0 ? clienteCodigo : OrdemCtx?.ORD_CLI;
 
   const legalIcon = useMemo(
     () =>
@@ -51,23 +55,34 @@ export function Mapa({}: propsMapa) {
   );
 
   useEffect(() => {
+    let ativo = true;
     async function fetchData() {
-      try {
-        await carregaLatitudelongitude();
-        await carregaFornecedores();
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-      } finally {
+      setCarregando(true);
+      await Promise.all([
+        carregaLatitudelongitude().catch((error) => {
+          console.error("Erro ao carregar localização do cliente:", error);
+        }),
+        carregaFornecedores().catch((error) => {
+          console.error("Erro ao carregar fornecedores:", error);
+        }),
+      ]);
+      if (ativo) {
         setCarregando(false);
       }
     }
     fetchData();
-  }, []);
+    return () => {
+      ativo = false;
+    };
+  }, [codigoClienteAlvo]);
 
   async function carregaFornecedores() {
     const repository = new FornecedorRepository();
     const listaFornecedores = await repository.getAllFornecedores();
-    const invalidos = listaFornecedores.filter(
+    const fornecedoresAtivos = listaFornecedores.filter((fornecedor) =>
+      isFornecedorAtivo(fornecedor.ESTADO)
+    );
+    const invalidos = fornecedoresAtivos.filter(
       (fornecedor) =>
         fornecedor.LATITUDE &&
         fornecedor.LONGITUDE &&
@@ -80,36 +95,55 @@ export function Mapa({}: propsMapa) {
         text: `${invalidos.length} fornecedor(es) possuem coordenadas inválidas e não serão exibidos no mapa.`,
       });
     }
-    setFornecedores(listaFornecedores);
+    setFornecedores(fornecedoresAtivos);
   }
 
   async function carregaLatitudelongitude() {
-    if (OrdemCtx && !isNaN(OrdemCtx.ORD_CLI)) {
-      const repository = new ClientRepository();
-      const cidadeRepository = new CidadeRepository();
-      const clienteAux: ClienteModel = await repository.getClienteById(OrdemCtx.ORD_CLI);
-      setCliente(clienteAux);
+    if (!codigoClienteAlvo || isNaN(codigoClienteAlvo) || codigoClienteAlvo <= 0) {
+      setCliente(null);
+      setLatitude("");
+      setLongitude("");
+      setCentro(CENTRO_PADRAO);
+      return;
+    }
 
-      if (clienteAux.LATITUDE == null || clienteAux.LONGITUDE == null) {
-        const latLog: [number, number] = await cidadeRepository.getLatitudeLongitude({
-          endereco: clienteAux.ENDERECO ?? "",
-          bairro: clienteAux.BAIRRO ?? "",
-          cidadeEstado: clienteAux.CIDADE ?? "",
-        });
-        repository.addLatLong({ ...clienteAux, LATITUDE: String(latLog[0]), LONGITUDE: String(latLog[1]) });
-        setCentro(latLog);
-        setLatitude(String(latLog[0]));
-        setLongitude(String(latLog[1]));
-      } else {
-        setCentro([Number(clienteAux.LATITUDE), Number(clienteAux.LONGITUDE)]);
-        setLatitude(clienteAux.LATITUDE);
-        setLongitude(clienteAux.LONGITUDE);
-      }
+    const repository = new ClientRepository();
+    const cidadeRepository = new CidadeRepository();
+    const clienteRaw = await repository.getClienteById(codigoClienteAlvo);
+    const clienteAux: ClienteModel | null = Array.isArray(clienteRaw)
+      ? (clienteRaw[0] ?? null)
+      : (clienteRaw ?? null);
+
+    if (!clienteAux || !clienteAux.CODIGO) {
+      setCliente(null);
+      return;
+    }
+
+    if (!isConvertibleToNumber(clienteAux.LATITUDE, clienteAux.LONGITUDE)) {
+      const latLog: [number, number] = await cidadeRepository.getLatitudeLongitude({
+        endereco: clienteAux.ENDERECO ?? "",
+        bairro: clienteAux.BAIRRO ?? "",
+        cidadeEstado: clienteAux.CIDADE ?? "",
+      });
+      const latStr = String(latLog[0]);
+      const lonStr = String(latLog[1]);
+      repository.addLatLong({ ...clienteAux, LATITUDE: latStr, LONGITUDE: lonStr });
+      setCliente({ ...clienteAux, LATITUDE: latStr, LONGITUDE: lonStr });
+      setCentro(latLog);
+      setLatitude(latStr);
+      setLongitude(lonStr);
+    } else {
+      setCliente(clienteAux);
+      setCentro([Number(clienteAux.LATITUDE), Number(clienteAux.LONGITUDE)]);
+      setLatitude((clienteAux.LATITUDE ?? "").trim());
+      setLongitude((clienteAux.LONGITUDE ?? "").trim());
     }
   }
 
-  function isConvertibleToNumber(str1: string, str2: string): boolean {
-    return !isNaN(Number(str1)) && !isNaN(Number(str2));
+  function isConvertibleToNumber(str1?: string | null, str2?: string | null): boolean {
+    const s1 = (str1 ?? "").trim();
+    const s2 = (str2 ?? "").trim();
+    return s1 !== "" && s2 !== "" && Number.isFinite(Number(s1)) && Number.isFinite(Number(s2));
   }
 
   function calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -132,6 +166,7 @@ export function Mapa({}: propsMapa) {
     const repository = new ClientRepository();
     if (cliente?.CODIGO !== undefined) {
       repository.addLatLong({ ...cliente, LATITUDE: latitude, LONGITUDE: longitude });
+      setCliente({ ...cliente, LATITUDE: latitude, LONGITUDE: longitude });
     } else {
       console.error("Cliente CODIGO is undefined. Cannot update cliente.");
     }
@@ -139,42 +174,54 @@ export function Mapa({}: propsMapa) {
     setCarregando(false);
   }
 
-  function MarcacaoCliente() {
-    const [draggable, setDraggable] = useState(false)
-    const [position, setPosition] = useState(centro)
-    const markerRef = useRef<L.Marker>(null)
+  function MarcacaoCliente({ initialPosition }: { initialPosition: [number, number] }) {
+    const [draggable, setDraggable] = useState(false);
+    const [position, setPosition] = useState<[number, number]>(initialPosition);
+    const markerRef = useRef<L.Marker>(null);
+
+    useEffect(() => {
+      setPosition(initialPosition);
+    }, [initialPosition]);
 
     const eventHandlers = useMemo(
       () => ({
         dragend() {
-          const marker = markerRef.current
+          const marker = markerRef.current;
           if (marker != null) {
-            setPosition([marker.getLatLng().lat, marker.getLatLng().lng])
+            setPosition([marker.getLatLng().lat, marker.getLatLng().lng]);
           }
         },
       }),
-      [],
-    )
+      []
+    );
     const toggleDraggable = useCallback(() => {
-      setDraggable((d) => !d)
-    }, [])
-  
+      setDraggable((d) => !d);
+    }, []);
+
+    if (!isConvertibleToNumber(latitude || cliente?.LATITUDE, longitude || cliente?.LONGITUDE)) {
+      return null;
+    }
+
     return (
       <div>
-        {carregando? <>carregando</> :  <Marker
-        icon={ClientIcon}
-        eventHandlers={eventHandlers}
-        position={position}
-        ref={markerRef}>
-        <Popup minWidth={90}>
-          <span onClick={toggleDraggable}>
-            {cliente?.NOME??''} <br/>
-          </span>
-        </Popup>
-      </Marker>}
-     
+        {carregando ? (
+          <>carregando</>
+        ) : (
+          <Marker
+            icon={ClientIcon}
+            eventHandlers={eventHandlers}
+            position={position}
+            ref={markerRef}
+          >
+            <Popup minWidth={90}>
+              <span onClick={toggleDraggable}>
+                {cliente?.NOME ?? ""} <br />
+              </span>
+            </Popup>
+          </Marker>
+        )}
       </div>
-    )
+    );
   }
 
   return (
@@ -206,31 +253,43 @@ export function Mapa({}: propsMapa) {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <MarcacaoCliente />
-                {fornecedores.map(
-                  (fornecedor) =>
-                    fornecedor.LATITUDE &&
-                    fornecedor.LONGITUDE &&
-                    isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE) ? (
-                      <Marker
-                        key={fornecedor.CODIGO}
-                        position={[Number(fornecedor.LATITUDE), Number(fornecedor.LONGITUDE)]}
-                        icon={legalIcon}
-                      >
-                        <Popup>
-                          {fornecedor.NOME} <br />
-                          Fica a{" "}
-                          {calcularDistancia(
-                            Number(cliente?.LATITUDE),
-                            Number(cliente?.LONGITUDE),
-                            Number(fornecedor.LATITUDE),
-                            Number(fornecedor.LONGITUDE)
-                          ).toFixed(2)}{" "}
-                          km de distância
-                        </Popup>
-                      </Marker>
-                    ) : null
-                )}
+                <MarcacaoCliente initialPosition={centro} />
+                {fornecedores.map((fornecedor) => {
+                  if (
+                    !fornecedor.LATITUDE ||
+                    !fornecedor.LONGITUDE ||
+                    !isConvertibleToNumber(fornecedor.LATITUDE, fornecedor.LONGITUDE)
+                  ) {
+                    return null;
+                  }
+                  const nomeExibicao =
+                    fornecedor.NOME?.trim() ||
+                    fornecedor.RAZAOSOCIAL?.trim() ||
+                    `Fornecedor #${fornecedor.CODIGO}`;
+                  const latCliente = latitude || cliente?.LATITUDE;
+                  const lonCliente = longitude || cliente?.LONGITUDE;
+                  const temLocalizacaoCliente = isConvertibleToNumber(latCliente, lonCliente);
+
+                  return (
+                    <Marker
+                      key={fornecedor.CODIGO}
+                      position={[Number(fornecedor.LATITUDE), Number(fornecedor.LONGITUDE)]}
+                      icon={legalIcon}
+                    >
+                      <Popup>
+                        {nomeExibicao} <br />
+                        {temLocalizacaoCliente
+                          ? `Fica a ${calcularDistancia(
+                              Number(latCliente),
+                              Number(lonCliente),
+                              Number(fornecedor.LATITUDE),
+                              Number(fornecedor.LONGITUDE)
+                            ).toFixed(2)} km de distância`
+                          : "Localização do cliente não definida"}
+                      </Popup>
+                    </Marker>
+                  );
+                })}
               </MapContainer>
             )}
           </div>

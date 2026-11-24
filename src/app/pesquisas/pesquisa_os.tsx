@@ -261,12 +261,8 @@ export default function PesquisaOrdem({
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const [data1Str, setData1Str] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 30);
-    return formatDataInput(d);
-  });
-  const [data2Str, setData2Str] = useState(() => formatDataInput(new Date()));
+  const [data1Str, setData1Str] = useState("");
+  const [data2Str, setData2Str] = useState("");
   const [statusOrdem, setStatusOrdem] = useState("TODOS");
   const [tipoBusca, setTipoBusca] = useState("Nome");
   const [textoBusca, setTextoBusca] = useState("");
@@ -306,17 +302,9 @@ export default function PesquisaOrdem({
 
   // Buscar ordens
   const buscarOrdemModel = useCallback(async () => {
-    const isFiltroAtrasadas = statusOrdem === "ATRASADAS";
-    const d1 = !isFiltroAtrasadas && data1Str ? parseDataCalendario(data1Str) : null;
-    const d2 = !isFiltroAtrasadas && data2Str ? parseDataCalendario(data2Str) : null;
+    const d1 = data1Str ? parseDataCalendario(data1Str) : null;
+    const d2 = data2Str ? parseDataCalendario(data2Str) : null;
     const temPeriodo = Boolean(d1 || d2);
-
-    if (!temPeriodo && textoBusca.trim() === "" && statusOrdem === "TODOS") {
-      ++searchReqIdRef.current;
-      setOrdems([]);
-      setLoading(false);
-      return;
-    }
 
     const reqId = ++searchReqIdRef.current;
     setLoading(true);
@@ -496,9 +484,7 @@ export default function PesquisaOrdem({
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-ek-rule text-xs">
               <span className="text-ek-muted font-medium flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-brand" />
-                {statusOrdem === "ATRASADAS"
-                  ? "Período de abertura (desativado para OS atrasadas — exibindo todas)"
-                  : "Período de abertura (padrão: últimos 30 dias)"}
+                Período de abertura (opcional — vazio busca todas)
               </span>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -507,16 +493,14 @@ export default function PesquisaOrdem({
                   type="date"
                   value={data1Str}
                   onChange={(e) => setData1Str(e.target.value)}
-                  disabled={statusOrdem === "ATRASADAS"}
-                  className="ek-input h-8 w-auto px-2.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="ek-input h-8 w-auto px-2.5 text-xs"
                 />
                 <span className="text-ek-muted">Até:</span>
                 <input
                   type="date"
                   value={data2Str}
                   onChange={(e) => setData2Str(e.target.value)}
-                  disabled={statusOrdem === "ATRASADAS"}
-                  className="ek-input h-8 w-auto px-2.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="ek-input h-8 w-auto px-2.5 text-xs"
                 />
               </div>
             </div>
@@ -534,9 +518,7 @@ export default function PesquisaOrdem({
                 <FileText className="w-8 h-8 text-ek-faint" />
                 <span className="text-sm font-medium text-ek-text">Nenhuma ordem de serviço encontrada.</span>
                 <span className="text-xs text-ek-muted">
-                  {textoBusca.trim() === "" && !data1Str && !data2Str && statusOrdem === "TODOS"
-                    ? "Digite um termo de pesquisa ou informe um período de busca."
-                    : "Verifique os filtros selecionados ou digite outro termo."}
+                  Verifique os filtros selecionados ou digite outro termo.
                 </span>
               </div>
             ) : (

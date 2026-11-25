@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import OrdEstModel from "@/app/models/ord_est_model";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 import { mascaraMoeda, maskRealToNumber, mascaraMoedaEvent } from "@/app/functions/utils";
 import { Package, X, Save } from "lucide-react";
 
@@ -82,12 +83,26 @@ export default function ModalItemProduto({
         {/* Form Body */}
         <form onSubmit={handleSalvar} className="p-5 space-y-4">
           <div>
-            <label className="ek-label">
-              Descrição do Produto
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="ek-label">
+                Descrição do Produto
+              </label>
+              <span
+                className={`text-xs tabular-nums mb-1 ${
+                  nome.length >= LIMITES_TEXTO_OS.ORE_NOME
+                    ? "text-red-600 font-semibold"
+                    : nome.length >= LIMITES_TEXTO_OS.ORE_NOME * 0.9
+                      ? "text-amber-600 font-medium"
+                      : "text-ek-faint"
+                }`}
+              >
+                {nome.length} / {LIMITES_TEXTO_OS.ORE_NOME}
+              </span>
+            </div>
             <input
               type="text"
               value={nome}
+              maxLength={LIMITES_TEXTO_OS.ORE_NOME}
               onChange={(e) => setNome(e.target.value)}
               required
               className="ek-input font-medium uppercase"

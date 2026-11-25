@@ -38,6 +38,7 @@ import {
 } from "@/app/functions/utils";
 import Modal from "@/components/component/modal";
 import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import EmpreitadasServicosModel from "@/app/models/empreitada_servicos_model";
 import EmpreitadasModel from "@/app/models/empreitadas_model";
@@ -1731,6 +1732,7 @@ export default function EmpreitadaModal({
                       type="text"
                       list="datalist-coordenadores-emp"
                       value={coordenador}
+                      maxLength={LIMITES_TEXTO_OS.EMP_COORDENADOR}
                       disabled={estaFaturada()}
                       onChange={(e) => setCoordenador(e.target.value.toUpperCase())}
                       placeholder="Selecione ou digite o coordenador"
@@ -1751,6 +1753,7 @@ export default function EmpreitadaModal({
                     <input
                       type="text"
                       value={localExecucao}
+                      maxLength={LIMITES_TEXTO_OS.EMP_LOCAL_EXECUCAO}
                       disabled={estaFaturada()}
                       onChange={(e) => setLocalExecucao(e.target.value.toUpperCase())}
                       placeholder="Ex: Pavimento 2, Bessa, João Pessoa-PB"
@@ -2103,10 +2106,24 @@ export default function EmpreitadaModal({
 
               {/* SEÇÃO 5: OBSERVAÇÕES */}
               <div className="ek-card p-4">
-                <label className="ek-label">Observações da empreitada</label>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <label className="ek-label mb-0">Observações da empreitada</label>
+                  <span
+                    className={`text-xs tabular-nums ${
+                      obsEmpreitadas.length >= LIMITES_TEXTO_OS.EMP_OBS
+                        ? "text-red-600 font-semibold"
+                        : obsEmpreitadas.length >= LIMITES_TEXTO_OS.EMP_OBS * 0.9
+                          ? "text-amber-600 font-medium"
+                          : "text-ek-faint"
+                    }`}
+                  >
+                    {obsEmpreitadas.length} / {LIMITES_TEXTO_OS.EMP_OBS} caracteres
+                  </span>
+                </div>
                 <textarea
                   rows={3}
                   value={obsEmpreitadas}
+                  maxLength={LIMITES_TEXTO_OS.EMP_OBS}
                   disabled={estaFaturada()}
                   onChange={(e) => setObsEmpreitadas(e.target.value)}
                   placeholder="Informações adicionais, condições de pagamento, prazos de entrega..."

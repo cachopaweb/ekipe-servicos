@@ -5,6 +5,7 @@ import OrdEstModel from "@/app/models/ord_est_model";
 import { ProdutoModel } from "@/app/models/produto_model";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
 import ProdutoRepository from "@/app/repositories/produto_repository";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 import {
   mascaraMoeda,
   mascaraMoedaEvent,
@@ -184,13 +185,29 @@ export default function TabProdutos({
 
         {/* 2. Descrição do Produto */}
         <div className="col-span-8 sm:col-span-9 md:col-span-4">
-          <label className="ek-label">
-            Descrição do Produto <span className="text-red-600">*</span>
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="ek-label">
+              Descrição do Produto <span className="text-red-600">*</span>
+            </label>
+            {(Number(codProduto) === 1 || nome.length > 0) && (
+              <span
+                className={`text-[11px] tabular-nums mb-1 ${
+                  nome.length >= LIMITES_TEXTO_OS.ORE_NOME
+                    ? "text-red-600 font-semibold"
+                    : nome.length >= LIMITES_TEXTO_OS.ORE_NOME * 0.9
+                      ? "text-amber-600 font-medium"
+                      : "text-ek-faint"
+                }`}
+              >
+                {nome.length}/{LIMITES_TEXTO_OS.ORE_NOME}
+              </span>
+            )}
+          </div>
           <input
             ref={nomeInputRef}
             type="text"
             value={nome}
+            maxLength={LIMITES_TEXTO_OS.ORE_NOME}
             onChange={(e) => setNome(e.target.value)}
             disabled={Number(codProduto) !== 1}
             placeholder="Nome do produto..."

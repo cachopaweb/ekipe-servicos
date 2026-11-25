@@ -13,6 +13,25 @@ function parseListResponse<T>(data: any): T[] {
   return [];
 }
 
+function extrairMensagemErroApi(e: unknown): string {
+  const err = e as {
+    response?: { data?: { error?: string; message?: string } | string };
+  };
+  const data = err?.response?.data;
+  if (typeof data === "string" && data.trim()) {
+    return data.trim();
+  }
+  if (data && typeof data === "object") {
+    if (typeof data.error === "string" && data.error.trim()) {
+      return data.error.trim();
+    }
+    if (typeof data.message === "string" && data.message.trim()) {
+      return data.message.trim();
+    }
+  }
+  return String(e);
+}
+
 export default class OrdemRepository {
   async insereordem(ordem: OrdemModel): Promise<boolean> {
     const dataPrevisaoSql = ordem.ORD_PREVISAO_CONCLUSAO && ordem.ORD_PREVISAO_CONCLUSAO !== "1900-01-01"
@@ -54,7 +73,7 @@ export default class OrdemRepository {
       const response = await api.post("/dataset", sql);
       return response.status === 200;
     } catch (e) {
-      throw new Error("Erro ao inserir Ordem." + String(e));
+      throw new Error("Erro ao inserir Ordem. " + extrairMensagemErroApi(e));
     }
   }
 
@@ -71,7 +90,7 @@ export default class OrdemRepository {
       const response = await api.post("/dataset", obj);
       return response.status === 200;
     } catch (e) {
-      throw new Error("Erro ao inserir Servicos ordem." + String(e));
+      throw new Error("Erro ao inserir Servicos ordem. " + extrairMensagemErroApi(e));
     }
   }
 
@@ -87,8 +106,15 @@ export default class OrdemRepository {
       const response = await api.post("/dataset", obj);
       return response.status === 200;
     } catch (e) {
-      throw new Error("Erro ao inserir Produtos ordem." + String(e));
+      throw new Error("Erro ao inserir Produtos ordem. " + extrairMensagemErroApi(e));
     }
+  }
+
+  async removeOrdemOrfa(codOrdem: number): Promise<void> {
+    if (!codOrdem || codOrdem <= 0) return;
+    await api.post("/dataset", { sql: `DELETE FROM ORD_SER WHERE OS_ORD = ${codOrdem}` });
+    await api.post("/dataset", { sql: `DELETE FROM ORD_EST WHERE ORE_ORD = ${codOrdem}` });
+    await api.post("/dataset", { sql: `DELETE FROM ORDENS WHERE ORD_CODIGO = ${codOrdem}` });
   }
 
   async buscaOrdem(codigo: number): Promise<OrdemModel> {

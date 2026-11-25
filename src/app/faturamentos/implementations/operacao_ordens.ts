@@ -18,6 +18,7 @@ import FaturamentosRepository from "@/app/repositories/faturamentos_repository";
 import RecebimentosRepository from "@/app/repositories/recebimentos_repository";
 import MovimentacoesRepository from "@/app/repositories/movimentacoes_repository";
 import RecPgmRepository from "@/app/repositories/rec_pgm_repository";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 
 export default class OperacaoOrdens implements OperacoesStrategy {
     codFatura = 0;
@@ -132,7 +133,7 @@ export default class OperacaoOrdens implements OperacoesStrategy {
                         DP_GTIN: '',
                         DP_LUCRO: 0,
                         DP_NITEM: i++,
-                        DP_NOME: ordEst.ORE_NOME || '',
+                        DP_NOME: (ordEst.ORE_NOME || '').slice(0, LIMITES_TEXTO_OS.DP_NOME),
                         DP_PRO: ordEst.ORE_PRO,
                         DP_QUANTIDADE: qtdItem,
                         DP_SIT_TRIB: '',

@@ -9,6 +9,7 @@ import { IncrementaGenerator, keyBoardInputEvent, keyBoardSelectEvent, toastMixi
 import CliForModel from "../models/cli_for_model";
 import ModalConfirmacao from "@/app/home/orcamentos/components/modal_confirmacao";
 import OperacoesStrategy from "./contracts/operacoes_interfaces";
+import { LIMITES_TEXTO_OS } from "../constants/limites_texto";
 import { CheckCircle, AlertCircle, PlusCircle, CreditCard, Loader2, Receipt } from "lucide-react";
 
 interface FaturamentoProps {
@@ -366,6 +367,7 @@ export default function Faturamentos({ valorTotal, cliFor = { CODIGO: 1, NOME: '
                                 id="edtNfServico"
                                 type="text"
                                 value={nfsLocal}
+                                maxLength={LIMITES_TEXTO_OS.ORD_NFS}
                                 onChange={(e) => handleNfsChange(e.target.value.toUpperCase())}
                                 placeholder="Nº DA NOTA FISCAL"
                                 className="ek-input uppercase"

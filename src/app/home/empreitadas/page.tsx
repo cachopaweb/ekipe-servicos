@@ -352,6 +352,7 @@ export default function Empreitadas({ ordemServico, onUpdateTotalPago }: Empreit
         <PesquisaFornecedor
           fornecedorSelecionado={fornecedorSelecionado}
           setFornecedorSelecionado={setFornecedorSelecionado}
+          clienteCodigo={ordemServico?.ORD_CLI}
           showModal={showModalPesquisaFornecedor}
           setShowModal={setShowModalPesquisaFornecedor}
         />

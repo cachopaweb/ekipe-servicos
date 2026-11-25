@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import OrdSerModel from "@/app/models/ord_ser_model";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 import {
   mascaraMoedaEvent,
   maskRealToNumber,
@@ -113,18 +114,40 @@ export default function TabServicos({
       >
         {/* 1. Descrição do Serviço (Foco Principal) */}
         <div className="col-span-12 md:col-span-4">
-          <label className="ek-label">
-            Descrição do Serviço <span className="text-red-600">*</span>
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="ek-label">
+              Descrição do Serviço <span className="text-red-600">*</span>
+            </label>
+            <span
+              className={`text-[11px] tabular-nums mb-1 ${
+                nome.length >= LIMITES_TEXTO_OS.OS_NOME
+                  ? "text-red-600 font-semibold"
+                  : nome.length >= LIMITES_TEXTO_OS.OS_NOME * 0.9
+                    ? "text-amber-600 font-medium"
+                    : "text-ek-faint"
+              }`}
+              title={`Limite máximo de ${LIMITES_TEXTO_OS.OS_NOME.toLocaleString("pt-BR")} caracteres`}
+            >
+              {nome.length} / {LIMITES_TEXTO_OS.OS_NOME}
+            </span>
+          </div>
           <input
             ref={nomeInputRef}
             type="text"
             value={nome}
-            onChange={(e) => setNome(e.target.value)}
+            maxLength={LIMITES_TEXTO_OS.OS_NOME}
+            onChange={(e) => setNome(e.target.value.slice(0, LIMITES_TEXTO_OS.OS_NOME))}
             onKeyDown={handleNomeKeyDown}
             placeholder="Ex: Instalação de tubulação, troca de válvula..."
-            className="ek-input font-medium uppercase"
+            className={`ek-input font-medium uppercase ${
+              nome.length >= LIMITES_TEXTO_OS.OS_NOME ? "border-red-400 focus:border-red-500" : ""
+            }`}
           />
+          {nome.length >= LIMITES_TEXTO_OS.OS_NOME && (
+            <p className="mt-1 text-[11px] text-red-600 font-medium">
+              Limite máximo de {LIMITES_TEXTO_OS.OS_NOME.toLocaleString("pt-BR")} caracteres atingido.
+            </p>
+          )}
         </div>
 
         {/* 2. Quantidade */}

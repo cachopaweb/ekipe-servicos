@@ -60,7 +60,7 @@ export default class FornecedorRepository {
   }
 
   async getAllFornecedores(): Promise<FornecedorModel[]> {
-    const sql = `SELECT ${CAMPOS_LISTAGEM_FORNECEDOR}, FOR_LATITUDE AS LATITUDE, FOR_LONGITUDE AS LONGITUDE FROM FORNECEDORES`;
+    const sql = `SELECT ${CAMPOS_LISTAGEM_FORNECEDOR}, FOR_RAZAO_SOCIAL AS RAZAOSOCIAL, FOR_LATITUDE AS LATITUDE, FOR_LONGITUDE AS LONGITUDE FROM FORNECEDORES WHERE UPPER(TRIM(COALESCE(FOR_ESTADO, ''))) <> 'INATIVO'`;
     return this.executarConsultaLista(sql, "erro ao buscar Fornecedores");
   }
 

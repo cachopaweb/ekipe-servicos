@@ -33,6 +33,7 @@ import FornecedorRepository from "@/app/repositories/fornecedor_repository";
 import CidadeRepository from "@/app/repositories/cidade_repository";
 import UnidadeMedidaRepository from "@/app/repositories/unidade_med_repository";
 import SolicitanteRepository from "@/app/repositories/solicitante_repository";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 
 // Modais Externos e Pesquisas
 import Pesquisa_cliente from "../../pesquisas/pesquisa_cliente";
@@ -737,11 +738,78 @@ function OrcamentosContent() {
       return false;
     }
 
+    if (solicitacao.trim().length > LIMITES_TEXTO_OS.ORD_SOLICITACAO) {
+      toastMixin.fire(
+        "Atenção",
+        `A solicitação do cliente excede o limite de ${LIMITES_TEXTO_OS.ORD_SOLICITACAO} caracteres (${solicitacao.trim().length}).`,
+        "warning"
+      );
+      return false;
+    }
+    if (obs.length > LIMITES_TEXTO_OS.ORD_OBS) {
+      toastMixin.fire(
+        "Atenção",
+        `As observações gerais excedem o limite de ${LIMITES_TEXTO_OS.ORD_OBS} caracteres (${obs.length}).`,
+        "warning"
+      );
+      return false;
+    }
+    if (obs_adm.length > LIMITES_TEXTO_OS.ORD_OBS_ADM) {
+      toastMixin.fire(
+        "Atenção",
+        `As anotações internas excedem o limite de ${LIMITES_TEXTO_OS.ORD_OBS_ADM} caracteres (${obs_adm.length}).`,
+        "warning"
+      );
+      return false;
+    }
+    if (justificativaAtraso.length > LIMITES_TEXTO_OS.ORD_JUSTIFICATIVA_ATRASO) {
+      toastMixin.fire(
+        "Atenção",
+        `A justificativa do atraso excede o limite de ${LIMITES_TEXTO_OS.ORD_JUSTIFICATIVA_ATRASO} caracteres (${justificativaAtraso.length}).`,
+        "warning"
+      );
+      return false;
+    }
+    if (nfs.length > LIMITES_TEXTO_OS.ORD_NFS) {
+      toastMixin.fire(
+        "Atenção",
+        `O número da NF-e/NFS-e excede o limite de ${LIMITES_TEXTO_OS.ORD_NFS} caracteres.`,
+        "warning"
+      );
+      return false;
+    }
+    const servicoExcedido = listaServicosInseridos.find(
+      (s) => (s.OS_NOME || "").trim().length > LIMITES_TEXTO_OS.OS_NOME
+    );
+    if (servicoExcedido) {
+      toastMixin.fire(
+        "Atenção",
+        `A descrição de um serviço excede o limite de ${LIMITES_TEXTO_OS.OS_NOME} caracteres (${(servicoExcedido.OS_NOME || "").trim().length}).`,
+        "warning"
+      );
+      return false;
+    }
+    const produtoExcedido = listaProdutosInseridos.find(
+      (p) => (p.ORE_NOME || "").trim().length > LIMITES_TEXTO_OS.ORE_NOME
+    );
+    if (produtoExcedido) {
+      toastMixin.fire(
+        "Atenção",
+        `A descrição de um produto excede o limite de ${LIMITES_TEXTO_OS.ORE_NOME} caracteres (${(produtoExcedido.ORE_NOME || "").trim().length}).`,
+        "warning"
+      );
+      return false;
+    }
+
+    const eraNovaOrdem = codigoOrdem === 0;
+    let codigo = codigoOrdem;
+    let ordemInserida = false;
+    const repository = new OrdemRepository();
+
     try {
       const cidadeRep = new CidadeRepository();
       const cidade = await cidadeRep.getCidade(clienteSelecionado.CODCIDADE ?? 0);
 
-      let codigo = codigoOrdem;
       if (codigo === 0) {
         codigo = await IncrementaGenerator("GEN_ORD");
       }
@@ -786,9 +854,9 @@ function OrcamentosContent() {
         ORD_SOLICITANTE_NOME: solicitanteNome || undefined,
       };
 
-      const repository = new OrdemRepository();
       const prodRepository = new ProdutoRepository();
       await repository.insereordem(ord);
+      ordemInserida = true;
 
       // Executa exclusões pendentes de serviços e produtos no banco apenas ao salvar (R03)
       for (const codServ of servicosParaExcluir) {
@@ -867,6 +935,13 @@ function OrcamentosContent() {
       });
       return true;
     } catch (e) {
+      if (eraNovaOrdem && ordemInserida && codigo > 0) {
+        try {
+          await repository.removeOrdemOrfa(codigo);
+        } catch (rollbackErr) {
+          console.error("Falha ao remover OS órfã após erro ao salvar:", rollbackErr);
+        }
+      }
       toastMixin.fire({
         title: "Erro ao Salvar",
         text: String(e),
@@ -1278,6 +1353,7 @@ function OrcamentosContent() {
             serParceiroSelecionado(forn);
             setIsDirty(true);
           }}
+          clienteCodigo={clienteSelecionado?.CODIGO}
           showModal={showModalPesquisaFornecedor}
           setShowModal={setShowModalPesquisaFornecedor}
         />

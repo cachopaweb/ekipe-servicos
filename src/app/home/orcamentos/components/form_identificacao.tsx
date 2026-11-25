@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { parseDataCalendario, formatDataInput, isOrdemAtrasada, formatStatusOrdemLabel } from "@/app/functions/utils";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 import { ClienteModel } from "@/app/models/cliente_model";
 import { FornecedorModel } from "@/app/models/fornecedor_model";
 import { SolicitanteModel } from "@/app/models/solicitante_model";
@@ -349,7 +350,7 @@ export default function FormIdentificacao({
                 value={om}
                 onChange={(e) => setOm && setOm(e.target.value.toUpperCase())}
                 placeholder="Ex: 46118812"
-                maxLength={30}
+                maxLength={LIMITES_TEXTO_OS.ORD_OM}
                 className="ek-input font-medium uppercase"
               />
             </div>
@@ -365,7 +366,7 @@ export default function FormIdentificacao({
                 value={pedidoCompra}
                 onChange={(e) => setPedidoCompra && setPedidoCompra(e.target.value.toUpperCase())}
                 placeholder="Ex: 4800455455"
-                maxLength={30}
+                maxLength={LIMITES_TEXTO_OS.ORD_PEDIDO_COMPRA}
                 className="ek-input font-medium uppercase"
               />
             </div>
@@ -396,25 +397,40 @@ export default function FormIdentificacao({
 
           {/* LINHA DE JUSTIFICATIVA DE ATRASO / OBSERVAÇÃO */}
           <div>
-            <label className={`ek-label flex items-center justify-between ${
+            <label className={`ek-label flex items-center justify-between gap-2 ${
               isAtrasada ? "text-red-800" : ""
             }`}>
               <span className="flex items-center gap-1">
                 <AlertCircle className={`w-3.5 h-3.5 ${isAtrasada ? "text-red-600" : "text-ek-faint"}`} />
                 <span>Observação / Justificativa do Atraso</span>
               </span>
-              {isAtrasada && (
-                <span className="text-xs font-medium text-red-700">
-                  Preenchimento obrigatório devido ao atraso
-                </span>
-              )}
+              <span className="flex items-center gap-2">
+                {isAtrasada && (
+                  <span className="text-xs font-medium text-red-700">
+                    Preenchimento obrigatório devido ao atraso
+                  </span>
+                )}
+                {justificativaAtraso.length > 0 && (
+                  <span
+                    className={`text-[11px] tabular-nums ${
+                      justificativaAtraso.length >= LIMITES_TEXTO_OS.ORD_JUSTIFICATIVA_ATRASO
+                        ? "text-red-600 font-semibold"
+                        : justificativaAtraso.length >= LIMITES_TEXTO_OS.ORD_JUSTIFICATIVA_ATRASO * 0.9
+                          ? "text-amber-600 font-medium"
+                          : "text-ek-faint"
+                    }`}
+                  >
+                    {justificativaAtraso.length}/{LIMITES_TEXTO_OS.ORD_JUSTIFICATIVA_ATRASO}
+                  </span>
+                )}
+              </span>
             </label>
             <input
               type="text"
               value={justificativaAtraso}
               onChange={(e) => setJustificativaAtraso && setJustificativaAtraso(e.target.value.toUpperCase())}
               placeholder="Informe a justificativa ou observação referente ao prazo..."
-              maxLength={255}
+              maxLength={LIMITES_TEXTO_OS.ORD_JUSTIFICATIVA_ATRASO}
               className={`ek-input uppercase ${
                 isAtrasada
                   ? "border-red-300 bg-red-50/30 text-red-900 focus:border-red-500"
@@ -436,14 +452,25 @@ export default function FormIdentificacao({
             <span>Solicitação do Cliente / Diagnóstico Inicial</span>
             <span className="text-red-600">*</span>
           </label>
-          <span className="text-xs text-ek-faint tabular-nums">
-            {solicitacao.trim() ? `${solicitacao.length} caracteres` : "Preenchimento obrigatório"}
+          <span
+            className={`text-xs tabular-nums ${
+              solicitacao.length >= LIMITES_TEXTO_OS.ORD_SOLICITACAO
+                ? "text-red-600 font-semibold"
+                : solicitacao.length >= LIMITES_TEXTO_OS.ORD_SOLICITACAO * 0.9
+                  ? "text-amber-600 font-medium"
+                  : "text-ek-faint"
+            }`}
+          >
+            {solicitacao.trim()
+              ? `${solicitacao.length} / ${LIMITES_TEXTO_OS.ORD_SOLICITACAO} caracteres`
+              : `Preenchimento obrigatório (máx. ${LIMITES_TEXTO_OS.ORD_SOLICITACAO})`}
           </span>
         </div>
         <textarea
           id="solicitacao_cliente_input"
           rows={3}
           value={solicitacao}
+          maxLength={LIMITES_TEXTO_OS.ORD_SOLICITACAO}
           onChange={(e) => setSolicitacao(e.target.value.toUpperCase())}
           placeholder="Descreva o que o cliente solicitou ou o diagnóstico inicial do serviço (obrigatório para salvar a ordem)..."
           className={`ek-textarea uppercase resize-y ${

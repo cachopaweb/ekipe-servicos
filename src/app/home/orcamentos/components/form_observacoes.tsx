@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FileText, Lock } from "lucide-react";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 
 interface FormObservacoesProps {
   obs: string;
@@ -63,12 +64,23 @@ export default function FormObservacoes({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs text-ek-muted">
               <span>Este texto é impresso no orçamento do cliente.</span>
-              <span className="tabular-nums">{obsValue.length} caracteres</span>
+              <span
+                className={`tabular-nums ${
+                  obsValue.length >= LIMITES_TEXTO_OS.ORD_OBS
+                    ? "text-red-600 font-semibold"
+                    : obsValue.length >= LIMITES_TEXTO_OS.ORD_OBS * 0.9
+                      ? "text-amber-600 font-medium"
+                      : ""
+                }`}
+              >
+                {obsValue.length} / {LIMITES_TEXTO_OS.ORD_OBS} caracteres
+              </span>
             </div>
             <textarea
               id="obs_impressao_id"
               rows={3}
               value={obsValue}
+              maxLength={LIMITES_TEXTO_OS.ORD_OBS}
               onChange={(e) => setObs(e.target.value.toUpperCase())}
               placeholder="Ex: Validade da proposta: 15 dias. Pagamento em 3x no boleto. Garantia de 90 dias nos serviços prestados..."
               className="ek-textarea uppercase resize-y"
@@ -80,12 +92,23 @@ export default function FormObservacoes({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs text-ek-muted">
               <span className="text-brand-goldInk font-medium">Uso restrito da empresa. Não sai na impressão da OS.</span>
-              <span className="tabular-nums">{obsAdmValue.length} caracteres</span>
+              <span
+                className={`tabular-nums ${
+                  obsAdmValue.length >= LIMITES_TEXTO_OS.ORD_OBS_ADM
+                    ? "text-red-600 font-semibold"
+                    : obsAdmValue.length >= LIMITES_TEXTO_OS.ORD_OBS_ADM * 0.9
+                      ? "text-amber-600 font-medium"
+                      : ""
+                }`}
+              >
+                {obsAdmValue.length} / {LIMITES_TEXTO_OS.ORD_OBS_ADM} caracteres
+              </span>
             </div>
             <textarea
               id="obs_adm_id"
               rows={3}
               value={obsAdmValue}
+              maxLength={LIMITES_TEXTO_OS.ORD_OBS_ADM}
               onChange={(e) => setObsAdm(e.target.value.toUpperCase())}
               placeholder="Anotações internas, custos operacionais, instruções para os técnicos em campo..."
               className="ek-textarea uppercase resize-y"

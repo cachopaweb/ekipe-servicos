@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import OrdSerModel from "@/app/models/ord_ser_model";
 import UnidadeMedidaModel from "@/app/models/unidade_med_model";
+import { LIMITES_TEXTO_OS } from "@/app/constants/limites_texto";
 import { mascaraMoeda, maskRealToNumber, mascaraMoedaEvent } from "@/app/functions/utils";
 import { Wrench, X, Save } from "lucide-react";
 
@@ -82,16 +83,37 @@ export default function ModalItemServico({
         {/* Form Body */}
         <form onSubmit={handleSalvar} className="p-5 space-y-4">
           <div>
-            <label className="ek-label">
-              Descrição do Serviço
-            </label>
-            <input
-              type="text"
+            <div className="flex items-center justify-between gap-2">
+              <label className="ek-label">
+                Descrição do Serviço
+              </label>
+              <span
+                className={`text-xs tabular-nums mb-1 ${
+                  nome.length >= LIMITES_TEXTO_OS.OS_NOME
+                    ? "text-red-600 font-semibold"
+                    : nome.length >= LIMITES_TEXTO_OS.OS_NOME * 0.9
+                      ? "text-amber-600 font-medium"
+                      : "text-ek-faint"
+                }`}
+              >
+                {nome.length} / {LIMITES_TEXTO_OS.OS_NOME}
+              </span>
+            </div>
+            <textarea
+              rows={4}
               value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              maxLength={LIMITES_TEXTO_OS.OS_NOME}
+              onChange={(e) => setNome(e.target.value.slice(0, LIMITES_TEXTO_OS.OS_NOME))}
               required
-              className="ek-input font-medium uppercase"
+              className={`ek-textarea font-medium uppercase resize-y ${
+                nome.length >= LIMITES_TEXTO_OS.OS_NOME ? "border-red-400 focus:border-red-500" : ""
+              }`}
             />
+            {nome.length >= LIMITES_TEXTO_OS.OS_NOME && (
+              <p className="mt-1 text-xs text-red-600 font-medium">
+                Limite máximo de {LIMITES_TEXTO_OS.OS_NOME.toLocaleString("pt-BR")} caracteres atingido.
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-3">
